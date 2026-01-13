@@ -1,0 +1,88 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Zeiss
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 6
+DEFDAT  vw_zai_usr_s PUBLIC
+; 
+;***************************************************
+;* Techpaket Carl Zeiss Automated Inspection GmbH  *
+;*                                                 *
+;* Konzernstandard 26                              *
+;* Bearbeiter: Peter Hofmann                       *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 29.06.2017 Testversion 0.1                      *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_ZAI CHAR Name[20],INT Datum
+DECL _Tech_ZAI Tech_ZAI
+;ENDFOLD
+; 
+;***************************************************
+;FOLD CZAI
+; 
+DECL GLOBAL FRAME CZAI_FrameIn={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+; 
+;VARIABLEN INTEGER
+; 
+DECL INT CZAI_LastTime=75593
+DECL CONST INT CZAI_LBIT_VALUE=2000
+DECL CONST INT CZAI_LBIT_MAX=5000
+DECL INT CZAI_MsgHandle=-1
+; 
+;VARIABLEN BOOL
+; 
+DECL GLOBAL BOOL B_MIT_ZAI=FALSE ;Variable wird im Techpaket (AUDI) gesetzt
+DECL BOOL CZAI_LBIT_MessageSet=FALSE
+; 
+DECL GLOBAL BOOL CZAI_StopAtPointError=FALSE
+DECL GLOBAL BOOL CZAI_CalculationRequired=FALSE
+; 
+;FLAGS
+; 
+DECL GLOBAL INT F_CZAI_FlagStart=495
+DECL GLOBAL CONST INT F_CZAI_GeStr=2
+DECL GLOBAL CONST INT F_CZAI_Err=1
+DECL GLOBAL CONST INT F_CZAI_NoErr=0
+; 
+DECL GLOBAL CONST INT F_TeilKomp=12
+; 
+;SLAVE ADRESSIERUNG
+; 
+SIGNAL CZAI_LiveBit_In $IN[1985]
+SIGNAL CZAI_LiveBit_Out $OUT[1968]
+; 
+;FOLD IN-Signale
+GLOBAL SIGNAL CZAI_CommandIn $IN[1953]  TO $IN[1960]
+GLOBAL SIGNAL CZAI_AckIn $IN[1961]  TO $IN[1968]
+GLOBAL SIGNAL CZAI_IDIn $IN[1969]  TO $IN[1984]
+GLOBAL SIGNAL CZAI_ModeIn $IN[2001]  TO $IN[2016]
+GLOBAL SIGNAL CZAI_StatusIn $IN[1969]  TO $IN[1984]
+GLOBAL SIGNAL CZAI_Double1In $IN[2017]  TO $IN[2048]
+GLOBAL SIGNAL CZAI_Double2In $IN[2049]  TO $IN[2080]
+GLOBAL SIGNAL CZAI_Double3In $IN[2081]  TO $IN[2112]
+GLOBAL SIGNAL CZAI_UPIn $IN[2001]  TO $IN[2016]
+;ENDFOLD (IN-Signale)
+; 
+;FOLD OUT-Signale
+GLOBAL SIGNAL CZAI_CommandOut $OUT[1953]  TO $OUT[1960]
+GLOBAL SIGNAL CZAI_SequenceOut $OUT[1961]  TO $OUT[1967]
+GLOBAL SIGNAL CZAI_IDOut $OUT[1969]  TO $OUT[2000]
+GLOBAL SIGNAL CZAI_ModeOut $OUT[2001]  TO $OUT[2016]
+GLOBAL SIGNAL CZAI_Double1Out $OUT[2017]  TO $OUT[2048]
+GLOBAL SIGNAL CZAI_Double2Out $OUT[2049]  TO $OUT[2080]
+GLOBAL SIGNAL CZAI_Double3Out $OUT[2081]  TO $OUT[2112]
+;ENDFOLD (OUT-Signale)
+; 
+;MASTER ADRESSIERUNG
+; 
+;ENDFOLD (CZAI)
+;*******************************************************************************
+; 
+;*******************************************************************************
+; 
+;*******************************************************************************
+ENDDAT

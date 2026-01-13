@@ -1,0 +1,238 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/G_Handling
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_G_USR_S( )
+;
+;***************************************************
+;*Technologiepaket G Handling                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT G 
+GLOBAL DEF G_INIT( )
+INT i
+;
+;Version Techpaket
+Tech_G.Name[]="KS26.01.005_20191111"
+;
+;Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_GS_Handle[i]=-1
+  n_GR_Handle[i]=-1
+ENDFOR
+;
+Greif_Timer=$ROB_TIMER
+;
+;Hilfsmerker fuer Kollisionsueberwachung ausschalten
+HM_Koll_aktiv=FALSE
+;
+;Hilfsflag fuer Suchlauf korrigieren ausschalten
+$FLAG[F_Suchlauf_STOP]=FALSE
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW G
+GLOBAL DEF G_SAW(GNr :IN)
+INT GNr
+;
+;Hilfsmerker fuer Kollisionsueberwachung ausschalten
+HM_Koll_aktiv=FALSE
+;
+;Hilfsflag fuer Suchlauf korrigieren ausschalten
+$FLAG[F_Suchlauf_STOP]=FALSE
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET G
+GLOBAL DEF G_RESET(GNr :IN)
+INT GNr
+;
+;Hilfsmerker fuer Kollisionsueberwachung ausschalten
+HM_Koll_aktiv=FALSE
+;
+;Hilfsflag fuer Suchlauf korrigieren ausschalten
+$FLAG[F_Suchlauf_STOP]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL G
+GLOBAL DEF G_CANCEL(GNr :IN)
+INT GNr
+;
+;Hilfsmerker fuer Kollisionsueberwachung ausschalten
+HM_Koll_aktiv=FALSE
+;
+;Hilfsflag fuer Suchlauf korrigieren ausschalten
+$FLAG[F_Suchlauf_STOP]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP G
+GLOBAL DEF G_LOOP(GNr :IN)
+BOOL bRet
+INT i,GNr
+;
+$FLAG[F_V_TYP_SMC]=V_TYP_SMC
+$FLAG[F_V_TYP_Festo]=V_TYP_Festo
+FOR i=1 TO 3
+  $FLAG[F_G_VST[i]]=G_VST[i]
+ENDFOR
+;
+;Vorsteuerluft bei Zangenfunktion
+IF $OUT[O_R_Hand] AND $COULD_START_MOTION AND NOT $OUT[O_R_Proz_akt] THEN
+  FOR i = 1 TO 29
+    IF ((DEF_ZANGE[i].Typ==1) OR (DEF_ZANGE[i].Typ==2)) AND (DEF_ZANGE[i].A_AUF>0) AND (DEF_ZANGE[i].A_ZU>0) THEN
+	   IF (($OUT[DEF_ZANGE[i].A_AUF]==TRUE) OR ($OUT[DEF_ZANGE[i].A_ZU]==TRUE)) THEN
+        HM_G_VST=TRUE
+      ENDIF
+    ENDIF
+  ENDFOR    	 
+ENDIF
+IF NOT $COULD_START_MOTION AND $OUT[O_R_Hand] AND $FLAG[F_RSK_Gst] AND NOT $OUT[O_VST_aktiv] THEN
+  HM_G_VST=FALSE
+ENDIF
+;
+;Vorsteuerluft Ventile
+IF (HM_G_VST==TRUE) THEN
+  ;Vorsteuerventile fuer Greifer
+  $OUT[O_G_VST1]=TRUE
+  $OUT[O_G_VST2]=TRUE
+  $OUT[O_G_VST3]=TRUE
+  ;Vorsteuerventile sonstige Anwendungen
+  $OUT[O_G_VST_res1]=TRUE
+  $OUT[O_G_VST_res2]=TRUE                            
+  $OUT[O_G_VST_res3]=TRUE
+  $OUT[O_G_VST_res4]=TRUE
+  $OUT[O_G_VST_res5]=TRUE    	 
+ENDIF
+;
+IF $OUT[O_VST_aktiv] THEN
+  Timer_G_VST=$ROB_TIMER
+ENDIF
+;
+IF $OUT[O_R_Hand] AND NOT $OUT[O_VST_aktiv] AND (($ROB_TIMER-Timer_G_VST)>Verz_G_VST) THEN
+  IF (HM_G_VST==FALSE) THEN  
+    ;Vorsteuerventile fuer Greifer
+    IF NOT $FLAG[F_erweitertes_Abblasen] THEN
+      $OUT[O_G_VST1]=FALSE
+    ENDIF
+    $OUT[O_G_VST2]=FALSE
+    $OUT[O_G_VST3]=FALSE
+    ;Vorsteuerventile sonstige Anwendungen
+    $OUT[O_G_VST_res1]=FALSE
+    $OUT[O_G_VST_res2]=FALSE 
+    $OUT[O_G_VST_res3]=FALSE
+    $OUT[O_G_VST_res4]=FALSE
+    $OUT[O_G_VST_res5]=FALSE 
+  ENDIF
+ENDIF
+;
+$FLAG[F_o_Abblasen]=B_G_o_Abblasen
+;
+IF MIT_SPM THEN
+  ;Vorbesetzung Analogmodul 1
+  IF (SI_SPM_AN1=='B0000000000000000') THEN
+    SO_SPM_AN1='B0110000001000001'
+  ELSE
+    IF ((SI_SPM_AN1=='B0110000001000001') OR (SI_SPM_AN1=='B0000000100000000')) THEN
+      SO_SPM_AN1='B0000000100000000'
+    ENDIF
+  ENDIF
+;
+  IF $OUT[O_SPM_M_Ein] AND NOT B_SPM_Hilf2 THEN 
+    B_SPM_Hilf1=$OUT[O_SPM_M_Ein] AND $IN[I_SPM_MS_io]
+    B_SPM_Hilf2=B_SPM_Hilf1
+  ENDIF  
+  IF (LIN_SUCHEN_OVRED<>-1) AND $IN[I_SPM_S_Ein] AND (B_SPM_S_Ein==FALSE) AND NOT $IN[I_SPM_ohne_P] THEN
+    PULSE($OUT[O_SPM_M_Ein],TRUE,r_SPM_Z_Vorg)
+    B_SPM_S_Ein=TRUE
+  ENDIF
+  IF (LIN_SUCHEN_OVRED ==-1) THEN
+    B_SPM_S_Ein=FALSE
+  ENDIF 
+  IF NOT $OUT[O_SPM_M_Ein] THEN
+    B_SPM_Hilf2=FALSE
+  ENDIF
+  IF $OUT[O_R_PF0] THEN
+    B_SPM_Hilf1=TRUE
+  ENDIF  
+  ;
+  ;Ausgabe Meldungen Spreizmagnet
+  ;Prozess aktiv
+  $OUT[O_SPM_Proz_akt]=$OUT[O_SPM_M_Ein]
+  ;Fehler Motorschutz
+  B_SPM_Hilf=NOT $IN[I_SPM_F_Mot1] OR NOT $IN[I_SPM_F_Mot2] OR NOT $IN[I_SPM_F_Mot3] OR NOT $IN[I_SPM_F_Mot4]
+  $OUT[O_SPM_F_Moto]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND B_SPM_Hilf
+  ;Fehler Magnettemperatur zu hoch
+  $OUT[O_SPM_F_Ma_h]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($CYCFLAG[155]==TRUE)
+  ;Fehler Magnetstrom
+  $OUT[O_SPM_F_Ma_S]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $OUT[O_SPM_M_Ein] AND NOT B_SPM_Hilf1
+  ;Sammelstoerung
+  B_SPM_Hilf=$OUT[O_SPM_F_Ma_h] OR $OUT[O_SPM_F_Moto] OR $OUT[O_SPM_F_Alfa]
+  $OUT[O_SPM_F_Samm]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND B_SPM_Hilf AND $timer_flag[TimerNr_Ein]     
+ENDIF  
+;
+;Suchlauf
+IF ($MODE_OP==#EX) THEN
+  $FLAG[F_Suchlauf_STOP]=FALSE
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD G_Meldungen
+DEF G_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Answer
+DECL GS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "G_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_GS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_GS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_GS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_GS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_GS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (G Meldungen)

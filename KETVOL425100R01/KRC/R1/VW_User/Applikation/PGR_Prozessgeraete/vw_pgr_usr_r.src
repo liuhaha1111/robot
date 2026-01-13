@@ -1,0 +1,2043 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/PGR_Prozessgeraete
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_PGR_USR_R( )
+;
+;***************************************************
+;*Technologiepaket PGR Prozessgeraete              *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 16.08.2017 FM Sonstige angepasst                *
+;* 26.04.2018 Konfiguration RIP neu hinzu          *
+;* 30.07.2018 Proz_Nr Greifer angepasst            *
+;* 10.01.2019 KG-XML integriert                    *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD PGR Interface
+GLOBAL DEF PGR_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i,BitOffset,Byte,IdentNr,Proz_Nr,Wkzg_Nr,Steu_Nr,FM_Nr
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    Proz_Nr=0
+    Wkzg_Nr=0
+    Steu_Nr=0
+    FM_Nr=0
+    ;
+    ;Fertigmeldung an BMS zuruecksetzen
+    SO_PGR_FM_Nr=FM_Nr
+    ;Prozessgeraete-Nr an BMS zuruecksetzen
+    SO_PGR_Geraete_Nr=Proz_Nr
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    Proz_Nr=0
+    Wkzg_Nr=0
+    Steu_Nr=0
+    FM_Nr=0
+    ;
+    BitOffset=1
+    Byte=8
+    IdentNr=10
+    ;
+   SWITCH PAR1
+      CASE 0  ;Ohne Prozessgeraet
+        ;Gesamtfertigmeldung an BMS
+        IF (PAR4==15) THEN
+          FM_Nr=PAR4
+          FOR i=1 TO 30
+            IF (Hilf1_FM[i]<>Hilf2_FM[i]) THEN
+              Sperre_FM15=TRUE
+            ENDIF
+          ENDFOR        
+          IF (Sperre_FM15==FALSE) THEN
+            Fertigmeldung(FM_Nr)
+          ELSE
+            PGR_Msg(11,#QuitMsg)
+          ENDIF
+        ENDIF
+      CASE 1  ;Prozessgeraet Greifer
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-10)
+        IF ( Wkzg_Nr<1) OR ( Wkzg_Nr>8) THEN
+          PGR_Msg(1,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            Hilf2_FM[PAR1]=TRUE
+            Fertigmeldung(FM_Nr)
+          ENDIF
+        ENDIF          
+      CASE 2  ;Prozessgeraet Dockingsystem
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<>1) THEN
+          PGR_Msg(6,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((DS_BASE_SL-BitOffset)/Byte)-15)*IdentNr)+ Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            Hilf2_FM[PAR1]=TRUE
+            Fertigmeldung(FM_Nr)
+          ENDIF
+        ENDIF
+      CASE 3  ;Prozessgeraet Zangensteuerung(EZ/SP/KE)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF  (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((SZ_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+ Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[SZ_BASE_SL[Steu_Nr]+I_SZ_o_Kra] AND NOT $IN[SK_BASE_SL[Steu_Nr]+I_SK_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 4  ;Prozessgeraet Kleben(KL)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-20)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(3,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((KL_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[KL_BASE_SL[Steu_Nr]+I_KL_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 5  ;Prozessgeraet Clinchen-Servo(CZS)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((CZS_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[CZS_BASE_SL[Steu_Nr]+I_CZS_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 6  ;Prozessgeraet Clinchen-Pneumo(CZP)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((CZP_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[CZP_BASE_SL[Steu_Nr]+I_CZP_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 7  ;Prozessgeraet Clinchen-Flat(CZF)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((CZF_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[CZF_BASE_SL[Steu_Nr]+I_CZF_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 8  ;Prozessgeraet Nieten-Servo(NZS)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((NZS_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[NZS_BASE_SL[Steu_Nr]+I_NZS_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 9  ;Prozessgeraet Nieten-Hydr(NZS)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF  (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((NZH_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[NZH_BASE_SL[Steu_Nr]+I_NZH_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 10  ;Prozessgeraet Reibelementschweissen(RW)
+        Steu_Nr=PAR2
+        Wkzg_Nr=PAR3
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(2,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((RW_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[RW_BASE_SL[Steu_Nr]+I_RW_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 11  ;Prozessgeraet Bolzenschweissen(BZ)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>5) THEN
+          PGR_Msg(6,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((BZ_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[BZ_BASE_SL[Steu_Nr]+I_BZ_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 12  ;Prozessgeraet Stanzen(SM)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-40)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(5,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((SM_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[SM_BASE_SL[Steu_Nr]+I_SM_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 13  ;Prozessgeraet Buckeln(BM)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-40)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(5,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((BM_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[BM_BASE_SL[Steu_Nr]+I_BM_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 14  ;Prozessgeraet MIG/MAG(MS)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-60)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(7,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((MS_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[MS_BASE_SL[Steu_Nr]+I_MS_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 15  ;Prozessgeraet FlowDrill(FD)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-30)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>4) THEN
+          PGR_Msg(4,#QuitMsg)
+        ENDIF
+         ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((FD_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[FD_BASE_SL[Steu_Nr]+I_FD_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 16  ;Prozessgeraet Schrauben(SR)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-30)
+        IF (Wkzg_Nr<1) OR (Wkzg_Nr>5) THEN
+          PGR_Msg(4,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((SR_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[SR_BASE_SL[Steu_Nr]+I_SR_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 17  ;Prozessgeraet Laserreinigung(LR)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<>1) THEN
+          PGR_Msg(6,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((LR_BASE_SL-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[LR_BASE_SL+I_LR_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 18  ;Prozessgeraet Wischkopf(RE)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<>1) THEN
+          PGR_Msg(6,#QuitMsg)
+        ENDIF
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((RE_BASE_SL-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[RE_BASE_SL+I_RE_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 19  ;Prozessgeraet Objekterkennung(OE)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<>1) THEN
+          PGR_Msg(4,#QuitMsg)
+        ENDIF
+         ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((OE_BASE_SL[Steu_Nr]-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[OE_BASE_SL[Steu_Nr]+I_OE_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 20  ;Prozessgeraet Buersten(BU)
+        Steu_Nr=PAR2
+        Wkzg_Nr=(PAR3-50)
+        IF (Wkzg_Nr<>1) THEN
+          PGR_Msg(4,#QuitMsg)
+        ENDIF
+         ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=((((BU_BASE_SL-BitOffset)/Byte)-15)*IdentNr)+Wkzg_Nr
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            IF NOT $IN[BU_BASE_SL+I_BU_o_Proz] THEN
+              Hilf2_FM[PAR1]=TRUE
+              Fertigmeldung(FM_Nr)
+            ELSE
+              PGR_Msg(9,#NotifyMsg)
+            ENDIF
+          ENDIF
+        ENDIF
+      CASE 21  ;Prozessgeraet Sonstige
+        ;Prozessgeraete-Nr an BMS
+        IF (PAR4==20) OR (PAR4==21) THEN
+          Proz_Nr=PAR5
+          SO_PGR_Geraete_Nr=Proz_Nr
+        ENDIF
+        ;Fertigmeldung an BMS
+        IF (PAR4>=1) AND (PAR4<=14) THEN
+          FM_Nr=PAR4
+          Hilf1_FM[PAR1]=TRUE
+          Hilf2_FM[PAR1]=TRUE
+          IF (FM_Nr>=1) AND (FM_Nr<=14) THEN
+            Fertigmeldung(FM_Nr)
+          ENDIF
+        ENDIF
+	 ENDSWITCH   
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    Proz_Nr=0
+    Wkzg_Nr=0
+    Steu_Nr=0
+    FM_Nr=0
+    ;
+    ;Fertigmeldung an BMS zuruecksetzen
+    SO_PGR_FM_Nr=FM_Nr
+    ;Prozessgeraete-Nr an BMS zuruecksetzen
+    SO_PGR_Geraete_Nr=Proz_Nr
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    ;
+    SWITCH PAR1
+      CASE 2100 ; Alle Variablen zuruecksetzen
+        CF_BU_BASE_SL=449
+        CF_LR_BASE_SL=449
+        CF_RE_BASE_SL=449
+        CF_STP_BASE_SL[1]=449
+        CF_CZF_BASE_SL[1]=449
+        MIT_STP=FALSE
+        MIT_RZ=FALSE
+        $FLAG[F_m_RZKOPF]=FALSE
+        $FLAG[F_m_RZ1]=FALSE
+        $FLAG[F_m_RZ2]=FALSE
+        $FLAG[F_m_RZ3]=FALSE
+        $FLAG[F_Mit_STP]=FALSE
+        $FLAG[F_KL_MS_o_FRG]=FALSE 
+		$FLAG[F_MIT_WDHFRS]=FALSE
+        MIT_Auto_KF=FALSE
+        MIT_2SZ_an_SK1=FALSE
+        SZ1_PAR4=0
+        SZ1_PAR5=0
+        KF_ausbl_SZ_ZU=FALSE
+        KF_ausbl_SZ_Kraft=FALSE
+        KF_ausbl_SZ_AUF=FALSE
+        KF1_PAR4=0
+        KW_Braeuer=FALSE
+        KW_Lutz=FALSE
+        KW_AEG=FALSE
+        KW_Sintherleghe=FALSE
+        MIT_CZF[1]=FALSE
+        MIT_MS_SUCH=FALSE
+        MIT_BU=FALSE
+        MIT_SR=FALSE
+        MIT_LR=FALSE
+        MIT_RE=FALSE
+        MIT_NK=FALSE
+        MIT_DS=FALSE
+        MIT_DS_Cod=FALSE
+        MIT_erw_B_Ve=FALSE
+        B_KW_MIN_MAX=FALSE
+        B_KW_ALU=FALSE
+		  B_KW_VE_MONO=FALSE
+		  B_KW_VE_BI=FALSE
+        B_MIT_KW_VW=FALSE
+        B_MIT_VIS=FALSE
+        B_MIT_ISR=FALSE
+        B_MIT_PRC=FALSE
+        B_MIT_VMT=FALSE
+        B_MIT_INOS=FALSE
+        B_MIT_ZAI=FALSE
+        MIT_EKI=FALSE
+        B_G_o_Abblasen=FALSE
+        V_TYP_SMC=FALSE
+        V_TYP_Festo=FALSE
+        MIT_SPM=FALSE
+        MIT_PR=FALSE
+        B_Rob_Pal=FALSE
+        B_MIT_CONV=FALSE
+        B_MIT_DZ=FALSE
+        FOR i=1 TO 2
+          CF_NZS_BASE_SL[i]=449
+          CF_NZH_BASE_SL[i]=449
+          CF_CZS_BASE_SL[i]=449
+          CF_CZP_BASE_SL[i]=449
+          CF_RW_BASE_SL[i]=449
+          CF_BZ_BASE_SL[i]=449
+          CF_MS_BASE_SL[i]=449
+          CF_SM_BASE_SL[i]=449
+          CF_FD_BASE_SL[i]=449
+          CF_OE_BASE_SL[i]=449
+          MIT_NZS[i]=FALSE
+          MIT_NZH[i]=FALSE
+          NZ_mit_Ausgleich[i]=FALSE
+          NZ_V2[i]=FALSE
+          MIT_CZS[i]=FALSE
+          MIT_CZP[i]=FALSE
+          MIT_RW[i]=FALSE
+          MIT_BZ[i]=FALSE      
+          MIT_MS[i]=FALSE   
+          MS_KS_pneum[i]=FALSE
+          MS_mit_SP[i]=FALSE
+          SP_Ventil_an_MS[i]=FALSE
+          MS_KS_mit_VE[i]=FALSE
+          MIT_SM[i]=FALSE
+          MIT_FD[i]=FALSE
+          MIT_OE[i]=FALSE
+        ENDFOR
+        FOR i=1 TO 3
+          CF_SZ_BASE_SL[i]=449
+          CF_SK_BASE_SL[i]=449
+          CF_KW_BASE_SL[i]=449
+          CF_BM_BASE_SL[i]=449
+          CF_KL_BASE_SL[i]=449
+          MIT_EZ[i]=FALSE
+          MIT_KE[i]=FALSE
+          MIT_SZAusgleich[i]=FALSE
+          MIT_SK_WdhFraesen[i]=FALSE
+          KE_Ref_AUF[i]=FALSE
+          MIT_SK[i]=FALSE
+          MIT_EK_Vorz[i]=FALSE
+          KF_NF_2Huebe[i]=FALSE
+          KF_NF_2Kraft[i]=FALSE
+          KF_mit_VE[i]=FALSE
+          MIT_KW[i]=FALSE
+          MIT_BM[i]=FALSE
+          MIT_KL[i]=FALSE
+          KL_robotergefuehrt[i]=FALSE
+          KL_stat[i]=FALSE
+          MIT_KL_SPUELEN[i]=FALSE
+          KL_o_Nachtrig[i]=FALSE
+          KL_Rob_Dos[i]=FALSE
+          KL_pneum_KS[i]=TRUE
+          KL_elektr_KS[i]=FALSE
+          KL_ohne_KS[i]=FALSE
+          G_VST[i]=FALSE
+          B_OHNE_ND[i]=FALSE
+          MIT_ND_Abfr_V[i]=FALSE
+        ENDFOR
+        FOR i=1 TO 4
+          CF_SR_BASE_SL[i]=449
+        ENDFOR
+      CASE 2201 ;KL1
+        IF (PAR2==1) THEN
+          KL_robotergefuehrt[1]=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          KL_stat[1]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          IF $IN[I_FT_o_BT] THEN
+            MIT_KL_SPUELEN[1]=FALSE
+          ELSE
+            MIT_KL_SPUELEN[1]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR4==2) THEN
+          KL_o_Nachtrig[1]=TRUE
+        ENDIF
+        IF (PAR5==1) THEN
+          KL_Rob_Dos[1]=TRUE
+        ENDIF
+        IF (PAR6==1) THEN
+          KL_pneum_KS[1]=TRUE
+          KL_elektr_KS[1]=FALSE
+          KL_ohne_KS[1]=FALSE
+        ENDIF
+        IF (PAR6==2) THEN
+          KL_pneum_KS[1]=FALSE
+          KL_elektr_KS[1]=TRUE
+          KL_ohne_KS[1]=FALSE
+        ENDIF
+        IF (PAR6==3) THEN
+          KL_pneum_KS[1]=FALSE
+          KL_elektr_KS[1]=FALSE
+          KL_ohne_KS[1]=TRUE
+        ENDIF
+        IF (PAR7==1) THEN
+          $FLAG[F_KL_MS_o_FRG]=TRUE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_KL_BASE_SL[1]=Default_KL_BASE_SL[1]
+        ELSE
+          CF_KL_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_KL[1]=TRUE
+      CASE 2202 ;KL2
+        IF (PAR2==1) THEN
+          KL_robotergefuehrt[2]=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          KL_stat[2]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          IF $IN[I_FT_o_BT] THEN
+            MIT_KL_SPUELEN[2]=FALSE
+          ELSE
+            MIT_KL_SPUELEN[2]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR4==2) THEN
+          KL_o_Nachtrig[2]=TRUE
+        ENDIF
+        IF (PAR5==1) THEN
+          KL_Rob_Dos[2]=TRUE
+        ENDIF
+        IF (PAR6==1) THEN
+          KL_pneum_KS[2]=TRUE
+          KL_elektr_KS[2]=FALSE
+          KL_ohne_KS[2]=FALSE
+        ENDIF
+        IF (PAR6==2) THEN
+          KL_pneum_KS[2]=FALSE
+          KL_elektr_KS[2]=TRUE
+          KL_ohne_KS[2]=FALSE
+        ENDIF
+        IF (PAR6==3) THEN
+          KL_pneum_KS[2]=FALSE
+          KL_elektr_KS[2]=FALSE
+          KL_ohne_KS[2]=TRUE
+        ENDIF
+        IF (PAR7==1) THEN
+          $FLAG[F_KL_MS_o_FRG]=TRUE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_KL_BASE_SL[2]=Default_KL_BASE_SL[2]
+        ELSE
+          CF_KL_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_KL[2]=TRUE
+      CASE 2203 ;KL3
+        IF (PAR2==1) THEN
+          KL_robotergefuehrt[3]=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          KL_stat[3]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          IF $IN[I_FT_o_BT] THEN
+            MIT_KL_SPUELEN[3]=FALSE
+          ELSE
+            MIT_KL_SPUELEN[3]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR4==2) THEN
+          KL_o_Nachtrig[3]=TRUE
+        ENDIF
+        IF (PAR5==1) THEN
+          KL_Rob_Dos[3]=TRUE
+        ENDIF
+        IF (PAR6==1) THEN
+          KL_pneum_KS[3]=TRUE
+          KL_elektr_KS[3]=FALSE
+          KL_ohne_KS[3]=FALSE
+        ENDIF
+        IF (PAR6==2) THEN
+          KL_pneum_KS[3]=FALSE
+          KL_elektr_KS[3]=TRUE
+          KL_ohne_KS[3]=FALSE
+        ENDIF
+        IF (PAR6==3) THEN
+          KL_pneum_KS[3]=FALSE
+          KL_elektr_KS[3]=FALSE
+          KL_ohne_KS[3]=TRUE
+        ENDIF
+        IF (PAR7==1) THEN
+          $FLAG[F_KL_MS_o_FRG]=TRUE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_KL_BASE_SL[3]=Default_KL_BASE_SL[3]
+        ELSE
+          CF_KL_BASE_SL[3]=PAR9
+        ENDIF
+        MIT_KL[3]=TRUE
+      CASE 2301 ;EZ/SP/KE1
+        IF (PAR3==1) THEN
+          MIT_EK_Vorz[1]=TRUE
+        ENDIF
+        IF (PAR5==1) THEN
+          SZ1_PAR5=1
+          MIT_Auto_KF=TRUE
+        ENDIF
+        IF (PAR5==2) THEN
+          SZ1_PAR5=2
+          MIT_Auto_KF=FALSE
+        ENDIF
+        IF (PAR6==2) THEN
+          MIT_SZAusgleich[1]=TRUE
+        ENDIF
+        IF (PAR8==2) THEN
+          MIT_SK_WdhFraesen[1]=TRUE
+		  $FLAG[F_MIT_WDHFRS]=TRUE
+        ELSE
+          MIT_SK_WdhFraesen[1]=FALSE
+		  $FLAG[F_MIT_WDHFRS]=FALSE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_SZ_BASE_SL[1]=Default_SZ_BASE_SL[1]
+          CF_SK_BASE_SL[1]=Default_SK_BASE_SL[1]
+        ELSE
+          CF_SZ_BASE_SL[1]=PAR9
+          CF_SK_BASE_SL[1]=PAR9+16
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_EZ[1]=TRUE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[1]=TRUE
+          MIT_KE[1]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_EZ[1]=TRUE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[1]=TRUE
+          MIT_KE[1]=FALSE
+          PGR_Msg (15,#QuitMsg)
+        ENDIF
+        IF (PAR2==3) THEN
+          MIT_EZ[1]=FALSE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[1]=TRUE
+          MIT_KE[1]=TRUE
+          IF (PAR7==1) THEN
+            KE_Ref_AUF[1]=TRUE
+          ENDIF
+        ENDIF
+      CASE 2302 ;EZ/SP/KE2
+        IF (PAR3==1) THEN
+          MIT_EK_Vorz[2]=TRUE
+        ENDIF
+        IF (PAR5==1) AND (SZ1_PAR5==1)THEN
+          MIT_Auto_KF=TRUE
+        ELSE
+          IF (PAR5==1) AND (SZ1_PAR5<>1) OR (PAR5==2) AND (SZ1_PAR5<>2)THEN
+            PGR_Msg (22,#QuitMsg)
+          ELSE
+            MIT_Auto_KF=FALSE
+          ENDIF
+        ENDIF
+        IF (PAR6==2) THEN
+          MIT_SZAusgleich[2]=TRUE
+        ENDIF
+        IF (PAR8==2) THEN
+          MIT_SK_WdhFraesen[2]=TRUE
+		  $FLAG[F_MIT_WDHFRS]=TRUE
+        ELSE
+          MIT_SK_WdhFraesen[2]=FALSE
+		  $FLAG[F_MIT_WDHFRS]=FALSE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_SZ_BASE_SL[2]=Default_SZ_BASE_SL[2]
+          CF_SK_BASE_SL[2]=Default_SK_BASE_SL[2]
+        ELSE
+          CF_SZ_BASE_SL[2]=PAR9
+          CF_SK_BASE_SL[2]=PAR9+16
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_EZ[2]=TRUE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[2]=TRUE
+          MIT_KE[2]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_EZ[2]=TRUE
+          MIT_2SZ_an_SK1=TRUE
+          MIT_SK[2]=FALSE
+          MIT_KE[2]=FALSE
+        ENDIF
+        IF (PAR2==3) THEN
+          MIT_EZ[2]=FALSE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[2]=TRUE
+          MIT_KE[2]=TRUE
+          IF (PAR7==1) THEN
+            KE_Ref_AUF[2]=TRUE
+          ENDIF
+        ENDIF
+      CASE 2303 ;EZ/SP/KE3
+        IF (PAR3==1) THEN
+          MIT_EK_Vorz[3]=TRUE
+        ELSE
+          MIT_EK_Vorz[3]=FALSE
+        ENDIF
+        IF (PAR5==1) AND (SZ1_PAR5==1) THEN
+          MIT_Auto_KF=TRUE
+        ELSE
+          IF (PAR5==1) AND (SZ1_PAR5<>1) OR (PAR5==2) AND (SZ1_PAR5<>2)THEN
+            PGR_Msg (22,#QuitMsg)
+          ELSE
+            MIT_Auto_KF=FALSE
+          ENDIF
+        ENDIF
+        IF (PAR6==2) THEN
+          MIT_SZAusgleich[3]=TRUE
+        ENDIF
+        IF (PAR8==2) THEN
+          MIT_SK_WdhFraesen[3]=TRUE
+		  $FLAG[F_MIT_WDHFRS]=TRUE
+        ELSE
+          MIT_SK_WdhFraesen[3]=FALSE
+		  $FLAG[F_MIT_WDHFRS]=FALSE
+        ENDIF        
+        IF (PAR9==0) THEN
+          CF_SZ_BASE_SL[3]=Default_SZ_BASE_SL[3]
+          CF_SK_BASE_SL[3]=Default_SK_BASE_SL[3]
+        ELSE
+          CF_SZ_BASE_SL[3]=PAR9
+          CF_SK_BASE_SL[3]=PAR9+16
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_EZ[3]=TRUE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[3]=TRUE
+          MIT_KE[3]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_EZ[3]=TRUE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[3]=TRUE
+          MIT_KE[3]=FALSE
+          PGR_Msg (16,#QuitMsg)
+        ENDIF
+        IF (PAR2==3) THEN
+          MIT_EZ[3]=FALSE
+          MIT_2SZ_an_SK1=FALSE
+          MIT_SK[3]=TRUE
+          MIT_KE[3]=TRUE
+          IF (PAR7==1) THEN
+            KE_Ref_AUF[3]=TRUE
+          ENDIF
+        ENDIF
+      CASE 2401 ;KF1
+        IF (PAR2==2) OR (PAR2==3) OR (PAR2==4) OR (PAR2==5) THEN
+          MIT_KW[1]=TRUE
+        ENDIF
+        SWITCH PAR2
+          CASE 1
+          CASE 2
+            KW_Braeuer=TRUE
+          CASE 3
+            KW_Lutz=TRUE
+          CASE 4
+            KW_AEG=TRUE
+          CASE 5
+            KW_Sintherleghe=TRUE
+        ENDSWITCH
+        IF (PAR3==1) THEN
+          KF_NF_2Huebe[1]=FALSE
+          KF_NF_2Kraft[1]=FALSE
+        ENDIF
+        IF (PAR3==2) THEN
+          KF_NF_2Huebe[1]=TRUE
+          KF_NF_2Kraft[1]=FALSE
+        ENDIF
+        IF (PAR3==3) THEN
+          KF_NF_2Huebe[1]=TRUE
+          KF_NF_2Kraft[1]=TRUE
+        ENDIF
+        IF (PAR4==1) THEN
+          KF1_PAR4=1
+          KF_ausbl_SZ_ZU=TRUE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=FALSE
+        ENDIF
+        IF (PAR4==2) THEN
+          KF1_PAR4=2
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=TRUE
+          KF_ausbl_SZ_AUF=FALSE
+        ENDIF
+        IF (PAR4==3) THEN
+          KF1_PAR4=3
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=TRUE
+        ENDIF
+        IF (PAR5==1) THEN
+          KF_mit_VE[1]=TRUE
+        ELSE
+          KF_mit_VE[1]=FALSE
+        ENDIF
+        IF (PAR9==0) OR (PAR2==1) THEN
+          CF_KW_BASE_SL[1]=Default_KW_BASE_SL[1]
+        ELSE
+          CF_KW_BASE_SL[1]=PAR9
+        ENDIF
+      CASE 2402 ;KF2
+        IF (PAR2==1) THEN
+          MIT_KW[2]=FALSE
+        ENDIF
+        IF (PAR2==2) OR (PAR2==3) OR (PAR2==4) OR (PAR2==5) THEN
+          MIT_KW[2]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          KF_NF_2Huebe[2]=FALSE
+          KF_NF_2Kraft[2]=FALSE
+        ENDIF
+        IF (PAR3==2) THEN
+          KF_NF_2Huebe[2]=TRUE
+          KF_NF_2Kraft[2]=FALSE
+        ENDIF
+        IF (PAR3==3) THEN
+          KF_NF_2Huebe[2]=TRUE
+          KF_NF_2Kraft[2]=TRUE
+        ENDIF
+        IF (PAR4==1) AND (KF1_PAR4==1) THEN
+          KF_ausbl_SZ_ZU=TRUE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=FALSE
+        ELSE
+          IF (PAR4==1) AND (KF1_PAR4<>1) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR4==2) AND (KF1_PAR4==2) THEN
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=TRUE
+          KF_ausbl_SZ_AUF=FALSE
+          IF (PAR4==2) AND (KF1_PAR4<>2) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR4==3) AND (KF1_PAR4==3) THEN
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=TRUE
+        ELSE
+          IF (PAR4==3) AND (KF1_PAR4<>3) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR5==1) THEN
+          KF_mit_VE[2]=TRUE
+        ELSE
+          KF_mit_VE[2]=FALSE
+        ENDIF
+        IF (PAR9==0) OR (PAR2==1) THEN
+          CF_KW_BASE_SL[2]=Default_KW_BASE_SL[2]
+        ELSE
+          CF_KW_BASE_SL[2]=PAR9
+        ENDIF
+      CASE 2403 ;KF3
+        IF (PAR2==1) THEN
+          MIT_KW[3]=FALSE
+        ENDIF
+        IF (PAR2==2) OR (PAR2==3) OR (PAR2==4) OR (PAR2==5) THEN
+          MIT_KW[3]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          KF_NF_2Huebe[3]=FALSE
+          KF_NF_2Kraft[3]=FALSE
+        ENDIF
+        IF (PAR3==2) THEN
+          KF_NF_2Huebe[3]=TRUE
+          KF_NF_2Kraft[3]=FALSE
+        ENDIF
+        IF (PAR3==3) THEN
+          KF_NF_2Huebe[3]=TRUE
+          KF_NF_2Kraft[3]=TRUE
+        ENDIF
+        IF (PAR4==1) AND (KF1_PAR4==1) THEN
+          KF_ausbl_SZ_ZU=TRUE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=FALSE
+        ELSE
+          IF (PAR4==1) AND (KF1_PAR4<>1) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR4==2) AND (KF1_PAR4==2) THEN
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=TRUE
+          KF_ausbl_SZ_AUF=FALSE
+        ELSE
+          IF (PAR4==2) AND (KF1_PAR4<>2) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR4==3) AND (KF1_PAR4==3) THEN
+          KF_ausbl_SZ_ZU=FALSE
+          KF_ausbl_SZ_Kraft=FALSE
+          KF_ausbl_SZ_AUF=TRUE
+        ELSE
+          IF (PAR4==3) AND (KF1_PAR4<>3) THEN
+            PGR_Msg (19,#QuitMsg)
+          ENDIF
+        ENDIF
+        IF (PAR5==1) THEN
+          KF_mit_VE[3]=TRUE
+        ELSE
+          KF_mit_VE[3]=FALSE
+        ENDIF
+        IF (PAR9==0) OR (PAR2==1) THEN
+          CF_KW_BASE_SL[3]=Default_KW_BASE_SL[3]
+        ELSE
+          CF_KW_BASE_SL[3]=PAR9
+        ENDIF
+      CASE 2501 ;STP
+        MIT_STP=TRUE
+        MIT_SK[1]=TRUE
+        $FLAG[F_Mit_STP]=TRUE
+        IF (PAR9==0) THEN
+          CF_STP_BASE_SL[1]=Default_STP_BASE_SL[1]
+          CF_SK_BASE_SL[1]=Default_SK_BASE_SL[1]
+        ELSE
+          CF_STP_BASE_SL[1]=PAR9
+          CF_SK_BASE_SL[1]=PAR9+16
+        ENDIF
+      CASE 2601 ;NZ1
+        IF (PAR9==0) THEN
+          IF (PAR2==1) THEN
+            CF_NZS_BASE_SL[1]=Default_NZS_BASE_SL[1]
+          ELSE
+            CF_NZH_BASE_SL[1]=Default_NZH_BASE_SL[1]
+          ENDIF
+        ELSE
+          IF (PAR2==1) THEN
+            CF_NZS_BASE_SL[1]=PAR9
+          ELSE
+            CF_NZH_BASE_SL[1]=PAR9
+          ENDIF
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_NZS[1]=TRUE
+          MIT_NZH[1]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_NZS[1]=FALSE
+          MIT_NZH[1]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          NZ_mit_Ausgleich[1]=TRUE
+        ENDIF
+        IF (PAR4==1) THEN
+          NZ_V2[1]=TRUE
+        ENDIF
+      CASE 2602 ;NZ2
+        IF (PAR9==0) THEN
+          IF (PAR2==1) THEN
+            CF_NZS_BASE_SL[2]=Default_NZS_BASE_SL[2]
+          ELSE
+            CF_NZH_BASE_SL[2]=Default_NZH_BASE_SL[2]
+          ENDIF
+        ELSE
+          IF (PAR2==1) THEN
+            CF_NZS_BASE_SL[2]=PAR9
+          ELSE
+            CF_NZH_BASE_SL[2]=PAR9
+          ENDIF
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_NZS[2]=TRUE
+          MIT_NZH[2]=FALSE
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_NZS[2]=FALSE
+          MIT_NZH[2]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          NZ_mit_Ausgleich[2]=TRUE
+        ENDIF
+        IF (PAR4==1) THEN
+          NZ_V2[2]=TRUE
+        ENDIF
+      CASE 2701 ;CZ1
+        IF (PAR9==0) THEN
+          IF (PAR2==1) THEN
+            CF_CZS_BASE_SL[1]=Default_CZS_BASE_SL[1]
+          ENDIF
+          IF (PAR2==2) THEN
+            CF_CZP_BASE_SL[1]=Default_CZP_BASE_SL[1]
+          ENDIF
+          IF (PAR2==3) THEN
+            CF_CZF_BASE_SL[1]=Default_CZF_BASE_SL[1]
+          ENDIF
+        ELSE
+          IF (PAR2==1) THEN
+            CF_CZS_BASE_SL[1]=PAR9
+          ENDIF
+          IF (PAR2==2) THEN
+            CF_CZP_BASE_SL[1]=PAR9
+          ENDIF
+          IF (PAR2==3) THEN
+            CF_CZF_BASE_SL[1]=PAR9
+          ENDIF
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_CZS[1]=TRUE
+          MIT_CZP[1]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_CZS[1]=FALSE
+          MIT_CZP[1]=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          MIT_CZF[1]=TRUE
+        ENDIF
+      CASE 2702 ;CZ2
+        IF (PAR9==0) THEN
+          IF (PAR2==1) THEN
+            CF_CZS_BASE_SL[2]=Default_CZS_BASE_SL[2]
+          ENDIF
+          IF (PAR2==2) THEN
+            CF_CZP_BASE_SL[2]=Default_CZP_BASE_SL[2]
+          ENDIF
+        ELSE
+          IF (PAR2==1) THEN
+            CF_CZS_BASE_SL[2]=PAR9
+          ENDIF
+          IF (PAR2==2) THEN
+            CF_CZP_BASE_SL[2]=PAR9
+          ENDIF
+        ENDIF
+        IF (PAR2==1) THEN
+          MIT_CZS[2]=TRUE
+          MIT_CZP[2]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MIT_CZS[2]=FALSE
+          MIT_CZP[2]=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          MIT_CZF[2]=FALSE  ;nicht vorgesehen
+          PGR_Msg (21,#QuitMsg)
+        ENDIF
+      CASE 2801 ;RW1
+        IF (PAR9==0) THEN
+          CF_RW_BASE_SL[1]=Default_RW_BASE_SL[1]
+        ELSE
+          CF_RW_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_RW[1]=TRUE
+      CASE 2802 ;RW2
+        IF (PAR9==0) THEN
+          CF_RW_BASE_SL[2]=Default_RW_BASE_SL[2]
+        ELSE
+          CF_RW_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_RW[2]=TRUE
+      CASE 2901 ;BZ1
+        IF (PAR9==0) THEN
+          CF_BZ_BASE_SL[1]=Default_BZ_BASE_SL[1]
+        ELSE
+          CF_BZ_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_BZ[1]=TRUE
+      CASE 2902 ;BZ2
+        IF (PAR9==0) THEN
+          CF_BZ_BASE_SL[2]=Default_BZ_BASE_SL[2]
+        ELSE
+          CF_BZ_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_BZ[2]=TRUE
+      CASE 3101 ;MS1
+        IF (PAR2==1) THEN
+          MS_KS_pneum[1]=TRUE
+          MS_KS_mit_VE[1]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MS_KS_pneum[1]=TRUE
+          MS_KS_mit_VE[1]=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          MS_KS_pneum[1]=FALSE
+          MS_KS_mit_VE[1]=FALSE
+        ENDIF
+        IF (PAR2==4) THEN
+          MS_KS_pneum[1]=FALSE
+          MS_KS_mit_VE[1]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          MS_mit_SP[1]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          MS_mit_SP[1]=TRUE
+          SP_Ventil_an_MS[1]=TRUE
+        ENDIF
+        IF (PAR4==1) THEN
+          $FLAG[F_KL_MS_o_FRG]=TRUE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_MS_BASE_SL[1]=Default_MS_BASE_SL[1]
+        ELSE
+          CF_MS_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_MS[1]=TRUE
+      CASE 3102 ;MS2
+        IF (PAR2==1) THEN
+          MS_KS_pneum[2]=TRUE
+          MS_KS_mit_VE[2]=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          MS_KS_pneum[2]=TRUE
+          MS_KS_mit_VE[2]=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          MS_KS_pneum[2]=FALSE
+          MS_KS_mit_VE[2]=FALSE
+        ENDIF
+        IF (PAR2==4) THEN
+          MS_KS_pneum[2]=FALSE
+          MS_KS_mit_VE[2]=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          MS_mit_SP[2]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          MS_mit_SP[2]=TRUE
+          SP_Ventil_an_MS[2]=TRUE
+        ENDIF
+        IF (PAR4==1) THEN
+          $FLAG[F_KL_MS_o_FRG]=TRUE
+        ENDIF
+        IF (PAR9==0) THEN
+          CF_MS_BASE_SL[2]=Default_MS_BASE_SL[2]
+        ELSE
+          CF_MS_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_MS[2]=TRUE
+      CASE 3201 ;SM1
+        IF (PAR9==0) THEN
+          CF_SM_BASE_SL[1]=Default_SM_BASE_SL[1]
+        ELSE
+          CF_SM_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_SM[1]=TRUE
+      CASE 3202 ;SM2
+        IF (PAR9==0) THEN
+          CF_SM_BASE_SL[2]=Default_SM_BASE_SL[2]
+        ELSE
+          CF_SM_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_SM[2]=TRUE
+      CASE 3301 ;BM1
+        IF (PAR9==0) THEN
+          CF_BM_BASE_SL[1]=Default_BM_BASE_SL[1]
+        ELSE
+          CF_BM_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_BM[1]=TRUE
+      CASE 3302 ;BM2
+        IF (PAR9==0) THEN
+          CF_BM_BASE_SL[2]=Default_BM_BASE_SL[2]
+        ELSE
+          CF_BM_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_BM[2]=TRUE
+      CASE 3303 ;BM3
+        IF (PAR9==0) THEN
+          CF_BM_BASE_SL[2]=Default_BM_BASE_SL[2]
+        ELSE
+          CF_BM_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_BM[3]=TRUE
+      CASE 3401 ;FD1
+        IF (PAR9==0) THEN
+          CF_FD_BASE_SL[1]=Default_FD_BASE_SL[1]
+        ELSE
+          CF_FD_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_FD[1]=TRUE
+      CASE 3402 ;FD2
+        IF (PAR9==0) THEN
+          CF_FD_BASE_SL[2]=Default_FD_BASE_SL[2]
+        ELSE
+          CF_FD_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_FD[2]=TRUE
+      CASE 3501 ;BU
+        IF (PAR9==0) THEN
+          CF_BU_BASE_SL=Default_BU_BASE_SL
+        ELSE
+          CF_BU_BASE_SL=PAR9
+        ENDIF
+        MIT_BU=TRUE
+      CASE 3601 ;SR
+        IF (PAR9==0) THEN
+          CF_SR_BASE_SL[1]=Default_SR_BASE_SL[1]
+          CF_SR_BASE_SL[2]=Default_SR_BASE_SL[2]
+          CF_SR_BASE_SL[3]=Default_SR_BASE_SL[3]
+          CF_SR_BASE_SL[4]=Default_SR_BASE_SL[4]
+        ELSE
+          CF_SR_BASE_SL[1]=PAR9
+          CF_SR_BASE_SL[2]=PAR9+8
+          CF_SR_BASE_SL[3]=PAR9+16
+          CF_SR_BASE_SL[4]=PAR9+24
+        ENDIF
+        MIT_SR=TRUE
+      CASE 3701 ;LR
+        IF (PAR9==0) THEN
+          CF_LR_BASE_SL=Default_LR_BASE_SL
+        ELSE
+          CF_LR_BASE_SL=PAR9
+        ENDIF
+        MIT_LR=TRUE
+      CASE 3801 ;RE
+        IF (PAR9==0) THEN
+          CF_RE_BASE_SL=Default_RE_BASE_SL
+        ELSE
+          CF_RE_BASE_SL=PAR9
+        ENDIF
+        MIT_RE=TRUE
+      CASE 3901 ;OE1
+        IF (PAR9==0) THEN
+          CF_OE_BASE_SL[1]=Default_OE_BASE_SL[1]
+        ELSE
+          CF_OE_BASE_SL[1]=PAR9
+        ENDIF
+        MIT_OE[1]=TRUE
+      CASE 3902 ;OE2
+        IF (PAR9==0) THEN
+          CF_OE_BASE_SL[2]=Default_OE_BASE_SL[2]
+        ELSE
+          CF_OE_BASE_SL[2]=PAR9
+        ENDIF
+        MIT_OE[2]=TRUE
+      CASE 4101 ;NK
+        IF (PAR9==0) THEN
+          CF_NK_BASE_SL=Default_NK_BASE_SL
+        ELSE
+          CF_NK_BASE_SL=PAR9
+        ENDIF
+        MIT_NK=TRUE
+      CASE 4201 ;DS
+        IF (PAR2==1) THEN
+          MIT_DS_Cod=TRUE
+        ELSE
+          MIT_DS_Cod=FALSE
+        ENDIF
+        MIT_DS=TRUE
+      CASE 4301 ;LM1
+        IF (PAR2==1) THEN
+          B_MIT_VIS=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          B_MIT_ISR=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          B_MIT_PRC=TRUE
+        ENDIF
+        IF (PAR2==4) THEN
+          B_MIT_VMT=TRUE
+        ENDIF
+        IF (PAR2==5) THEN
+          B_MIT_INOS=TRUE
+        ENDIF
+        IF (PAR2==6) THEN
+          B_MIT_ZAI=TRUE
+        ENDIF
+        IF (PAR2==7) THEN
+          MIT_EKI=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          B_One_Port[1]=TRUE
+          B_New_XML[1]=FALSE
+          B_Two_Port[1]=FALSE
+          B_EKI_ASCII[1]=FALSE
+          B_EKI_INITSY[1]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          B_Two_Port[1]=TRUE
+          B_One_Port[1]=FALSE
+          B_New_XML[1]=FALSE
+          B_EKI_ASCII[1]=FALSE
+          B_EKI_INITSY[1]=TRUE
+        ENDIF
+        IF (PAR3==3) THEN
+          B_EKI_ASCII[1]=TRUE
+          B_One_Port[1]=FALSE
+          B_Two_Port[1]=FALSE
+          B_New_XML[1]=FALSE
+          B_EKI_INITSY[1]=TRUE
+        ENDIF  
+        IF (PAR4==1) THEN
+          B_EKI_RELABS[1]=FALSE
+          B_EKI_KASTAT[1]=FALSE
+        ENDIF
+        IF (PAR4==2) THEN
+          B_EKI_RELABS[1]=FALSE
+          B_EKI_KASTAT[1]=TRUE
+        ENDIF
+        IF (PAR4==3) THEN
+          B_EKI_RELABS[1]=TRUE
+          B_EKI_KASTAT[1]=FALSE
+        ENDIF
+        IF (PAR4==4) THEN
+          B_EKI_RELABS[1]=TRUE
+          B_EKI_KASTAT[1]=TRUE
+        ENDIF
+      CASE 4302 ;LM2
+        IF (PAR2==1) THEN
+          B_MIT_VIS=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          B_MIT_ISR=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          B_MIT_PRC=TRUE
+        ENDIF
+        IF (PAR2==4) THEN
+          B_MIT_VMT=TRUE
+        ENDIF
+        IF (PAR2==5) THEN
+          B_MIT_INOS=TRUE
+        ENDIF
+        IF (PAR2==6) THEN
+          B_MIT_ZAI=TRUE
+        ENDIF
+        IF (PAR2==7) THEN
+          MIT_EKI=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          B_One_Port[2]=TRUE
+          B_New_XML[2]=FALSE
+          B_Two_Port[2]=FALSE
+          B_EKI_ASCII[2]=FALSE
+          B_EKI_INITSY[2]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          B_Two_Port[2]=TRUE
+          B_One_Port[2]=FALSE
+          B_New_XML[2]=FALSE
+          B_EKI_ASCII[2]=FALSE
+          B_EKI_INITSY[2]=TRUE     
+        ENDIF
+        IF (PAR3==3) THEN
+          B_EKI_ASCII[2]=TRUE
+          B_One_Port[2]=FALSE
+          B_Two_Port[2]=FALSE
+          B_New_XML[2]=FALSE
+          B_EKI_INITSY[2]=TRUE
+        ENDIF  
+        IF (PAR4==1) THEN
+          B_EKI_RELABS[2]=FALSE
+          B_EKI_KASTAT[2]=FALSE
+        ENDIF
+        IF (PAR4==2) THEN
+          B_EKI_RELABS[2]=FALSE
+          B_EKI_KASTAT[2]=TRUE
+        ENDIF
+        IF (PAR4==3) THEN
+          B_EKI_RELABS[2]=TRUE
+          B_EKI_KASTAT[2]=FALSE
+        ENDIF
+        IF (PAR4==4) THEN
+          B_EKI_RELABS[2]=TRUE
+          B_EKI_KASTAT[2]=TRUE
+        ENDIF
+      CASE 4303 ;LM3
+        IF (PAR2==1) THEN
+          B_MIT_VIS=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          B_MIT_ISR=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          B_MIT_PRC=TRUE
+        ENDIF
+        IF (PAR2==4) THEN
+          B_MIT_VMT=TRUE
+        ENDIF
+        IF (PAR2==5) THEN
+          B_MIT_INOS=TRUE
+        ENDIF
+        IF (PAR2==6) THEN
+          B_MIT_ZAI=TRUE
+        ENDIF
+        IF (PAR2==7) THEN
+          MIT_EKI=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          B_One_Port[3]=TRUE
+          B_New_XML[3]=FALSE
+          B_Two_Port[3]=FALSE
+          B_EKI_ASCII[3]=FALSE
+          B_EKI_INITSY[3]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          B_Two_Port[3]=TRUE
+          B_One_Port[3]=FALSE
+          B_New_XML[3]=FALSE
+          B_EKI_ASCII[3]=FALSE
+          B_EKI_INITSY[3]=TRUE
+        ENDIF
+        IF (PAR3==3) THEN
+          B_EKI_ASCII[3]=TRUE
+          B_One_Port[3]=FALSE
+          B_Two_Port[3]=FALSE
+          B_New_XML[3]=FALSE
+          B_EKI_INITSY[3]=TRUE
+        ENDIF  
+        IF (PAR4==1) THEN
+          B_EKI_RELABS[3]=FALSE
+          B_EKI_KASTAT[3]=FALSE
+        ENDIF
+        IF (PAR4==2) THEN
+          B_EKI_RELABS[3]=FALSE
+          B_EKI_KASTAT[3]=TRUE
+        ENDIF
+        IF (PAR4==3) THEN
+          B_EKI_RELABS[3]=TRUE
+          B_EKI_KASTAT[3]=FALSE
+        ENDIF
+        IF (PAR4==4) THEN
+          B_EKI_RELABS[3]=TRUE
+          B_EKI_KASTAT[3]=TRUE
+        ENDIF
+      CASE 4304 ;LM4
+        IF (PAR2==1) THEN
+          B_MIT_VIS=TRUE
+        ENDIF
+        IF (PAR2==2) THEN
+          B_MIT_ISR=TRUE
+        ENDIF
+        IF (PAR2==3) THEN
+          B_MIT_PRC=TRUE
+        ENDIF
+        IF (PAR2==4) THEN
+          B_MIT_VMT=TRUE
+        ENDIF
+        IF (PAR2==5) THEN
+          B_MIT_INOS=TRUE
+        ENDIF
+        IF (PAR2==6) THEN
+          B_MIT_ZAI=TRUE
+        ENDIF
+        IF (PAR2==7) THEN
+          MIT_EKI=TRUE
+        ENDIF
+        IF (PAR3==1) THEN
+          B_One_Port[4]=TRUE
+          B_New_XML[4]=FALSE
+          B_Two_Port[4]=FALSE
+          B_EKI_ASCII[4]=FALSE
+          B_EKI_INITSY[4]=TRUE
+        ENDIF
+        IF (PAR3==2) THEN
+          B_Two_Port[4]=TRUE
+          B_One_Port[4]=FALSE
+          B_New_XML[4]=FALSE
+          B_EKI_ASCII[4]=FALSE
+          B_EKI_INITSY[4]=TRUE
+        ENDIF
+        IF (PAR3==3) THEN
+          B_EKI_ASCII[4]=TRUE
+          B_One_Port[4]=FALSE
+          B_Two_Port[4]=FALSE
+          B_New_XML[4]=FALSE
+          B_EKI_INITSY[4]=TRUE
+        ENDIF  
+        IF (PAR4==1) THEN
+          B_EKI_RELABS[4]=FALSE
+          B_EKI_KASTAT[4]=FALSE
+        ENDIF
+        IF (PAR4==2) THEN
+          B_EKI_RELABS[4]=FALSE
+          B_EKI_KASTAT[4]=TRUE
+        ENDIF
+        IF (PAR4==3) THEN
+          B_EKI_RELABS[4]=TRUE
+          B_EKI_KASTAT[4]=FALSE
+        ENDIF
+        IF (PAR4==4) THEN
+          B_EKI_RELABS[4]=TRUE
+          B_EKI_KASTAT[4]=TRUE
+        ENDIF
+      CASE 4401,4402 ;Ventilinsel
+        IF (PAR1==4401) THEN
+          V_TYP_SMC=FALSE
+          V_TYP_Festo=TRUE
+        ENDIF
+        IF (PAR1==4402) THEN
+          V_TYP_SMC=TRUE
+          V_TYP_Festo=FALSE
+        ENDIF
+        IF (PAR2==2) THEN
+          G_VST[1]=TRUE
+          IF (PAR6==2) THEN
+       	   MIT_ND_Abfr_V[1]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR3==2) THEN
+          G_VST[2]=TRUE
+          IF (PAR6==2) THEN
+	         MIT_ND_Abfr_V[2]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR4==2) THEN
+          G_VST[3]=TRUE
+          IF (PAR6==2) THEN
+	         MIT_ND_Abfr_V[3]=TRUE
+          ENDIF
+        ENDIF
+        IF (PAR5==2) THEN
+          B_G_o_Abblasen=TRUE
+        ENDIF
+      CASE 4501 ;Spreizmagnet
+        MIT_SPM=TRUE
+      CASE 4601 ;Praeger
+        MIT_PR=TRUE
+		IF (PAR9==0) THEN
+          CF_PR_BASE_SL=Default_PR_BASE_SL
+        ELSE
+          CF_PR_BASE_SL=PAR9
+        ENDIF
+      CASE 4701 ;RIP1
+		  IF (PAR1==4701) THEN
+		    B_MIT_RIP[1]=TRUE
+		  ENDIF
+		  IF (PAR2==1) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=FALSE
+        ENDIF
+		  IF (PAR2==2) THEN
+          B_KW_MIN_MAX=TRUE
+          B_KW_ALU=FALSE
+		  ENDIF
+   	  IF (PAR2==4) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=TRUE
+		  ENDIF
+		  IF (PAR3==1) THEN
+		    B_KW_VE_MONO=TRUE
+		  ENDIF
+		  IF (PAR3==2) THEN
+		    B_KW_VE_BI=TRUE
+		    B_MIT_KW_VW=TRUE
+		    B_DFW2anRIP1=FALSE
+		  ENDIF
+          IF (PAR3==3) THEN
+		    B_KW_VE_BI=TRUE
+		    B_MIT_KW_VW=TRUE
+		    B_DFW2anRIP1=TRUE
+		  ENDIF
+	       IF (PAR4==1) THEN
+          B_OHNE_ND[1]=TRUE
+		  ENDIF
+		  IF (PAR4==2) THEN
+          B_OHNE_ND[1]=FALSE
+		  ENDIF
+		CASE 4702 ;RIP2
+		  IF (PAR1==4702) THEN
+		    B_MIT_RIP[2]=TRUE
+		  ENDIF
+		  IF (PAR2==1) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=FALSE   
+          ENDIF 			
+        IF (PAR2==2) THEN
+          B_KW_MIN_MAX=TRUE
+          B_KW_ALU=FALSE          
+          ENDIF 			
+        IF (PAR2==4) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=TRUE      
+        ENDIF		
+		  IF (PAR3==1) THEN
+		    B_KW_VE_MONO=TRUE
+          ENDIF 		  
+		  IF (PAR3==2) THEN
+		    B_KW_VE_BI=TRUE
+		    B_MIT_KW_VW=TRUE
+		  ENDIF
+		  IF (PAR4==1) THEN
+          B_OHNE_ND[2]=TRUE
+		  ENDIF
+		  IF (PAR4==2) THEN
+          B_OHNE_ND[2]=FALSE
+		  ENDIF
+		CASE 4703 ;RIP3
+		  IF (PAR1==4703) THEN
+		    B_MIT_RIP[3]=TRUE
+		  ENDIF
+		  IF (PAR2==1) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=FALSE 
+          ENDIF 			
+        IF (PAR2==2) THEN
+          B_KW_MIN_MAX=TRUE
+          B_KW_ALU=FALSE 
+          ENDIF 			
+        IF (PAR2==4) THEN
+          B_KW_MIN_MAX=FALSE
+          B_KW_ALU=TRUE      
+        ENDIF		
+	     IF (PAR3==1) THEN
+		    B_KW_VE_MONO=TRUE
+          ENDIF 		  
+		  IF (PAR3==2) THEN
+		    B_KW_VE_BI=TRUE
+		    B_MIT_KW_VW=TRUE
+		  ENDIF
+		  IF (PAR4==1) THEN
+          B_OHNE_ND[3]=TRUE
+		  ENDIF
+		  IF (PAR4==2) THEN
+          B_OHNE_ND[3]=FALSE
+		  ENDIF
+      CASE 4801 ;Roboter
+        IF (PAR2==2) THEN
+          B_Rob_Pal=TRUE
+		  ELSE
+          B_Rob_Pal=FALSE
+        ENDIF
+        IF (PAR3==2) THEN
+          MIT_erw_B_Ve=TRUE
+		ELSE
+          MIT_erw_B_Ve=FALSE
+        ENDIF
+        IF (PAR9==1) THEN
+          B_MIT_DZ=TRUE
+        ENDIF
+      CASE 4901 ;RZ1
+        MIT_RZ=TRUE
+        $FLAG[F_m_RZ1]=TRUE
+        IF PAR2==1 THEN
+	       $FLAG[F_m_RZKOPF]=TRUE
+        ENDIF
+        IF PAR2==2 THEN
+	       $FLAG[F_m_RZKOPF]=FALSE
+          IF PAR5==0 THEN
+            PGR_Msg (91,#QuitMsg)
+          ELSE
+            PROCPAR[111]=PAR5
+          ENDIF
+        ENDIF
+      CASE 4902 ;RZ2
+        MIT_RZ=TRUE
+        $FLAG[F_m_RZ2]=TRUE
+        IF PAR2==2 THEN
+	       $FLAG[F_m_RZKOPF]=FALSE
+          IF PAR5==0 THEN
+            PGR_Msg (91,#QuitMsg)
+          ELSE
+            PROCPAR[112]=PAR5
+          ENDIF
+        ENDIF
+      CASE 4903 ;RZ3
+        MIT_RZ=TRUE
+        $FLAG[F_m_RZ3]=TRUE
+        IF PAR2==2 THEN
+	       $FLAG[F_m_RZKOPF]=FALSE
+          IF PAR5==0 THEN
+            PGR_Msg (91,#QuitMsg)
+          ELSE
+            PROCPAR[113]=PAR5
+          ENDIF
+        ENDIF
+      CASE 5101 ;Roboter
+        B_MIT_CONV=TRUE
+      ENDSWITCH
+    ;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (PGR Interface)
+;
+;***************************************************
+;FOLD Fertigmeldung
+DEF Fertigmeldung(FM_Nr :IN)
+INT FM_Nr,RobTimerStart,BMS_FM_QUIT
+;
+IF $FLAG[F_o_Proz_SStep] THEN
+  PGR_Msg(8,#QuitMsg)
+ELSE
+  RobTimerStart=$Rob_Timer          
+  SO_PGR_FM_Nr=FM_Nr
+  WAIT FOR ((SI_PGR_FM_Nr==SO_PGR_FM_Nr) OR (($Rob_Timer-RobTimerStart)>2000))  
+  IF (($Rob_Timer- RobTimerStart)>=2000) THEN
+    PGR_Msg(10,#QuitMsg)
+  ENDIF
+ENDIF
+FM_Nr=0
+SO_PGR_FM_Nr=FM_Nr
+;
+END
+;
+;***************************************************
+;FOLD PGR Meldungen
+;
+DEF PGR_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL PGRR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "PGR_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_PGRR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="PGR: Greifer-Nr ungueltig"
+    CASE 2
+      USER_MSG.MSG_TXT[]="PGR: Zangen-Nr ungueltig"
+    CASE 3
+      USER_MSG.MSG_TXT[]="PGR: Pistolen-Nr ungueltig"
+    CASE 4
+      USER_MSG.MSG_TXT[]="PGR: Spindel-Nr ungueltig"
+    CASE 5
+      USER_MSG.MSG_TXT[]="PGR: Buegel-Nr ungueltig"
+    CASE 6
+      USER_MSG.MSG_TXT[]="PGR: Kopf-Nr ungueltig"
+    CASE 7
+      USER_MSG.MSG_TXT[]="PGR: Brenner-Nr ungueltig"
+    CASE 8
+      USER_MSG.MSG_TXT[]="PGR: Anwahl ohne Prozess aktiv (F525), Fertigmeldung wurde nicht gesetzt"
+    CASE 9
+      USER_MSG.MSG_TXT[]="PGR: Anwahl ohne Prozess aktiv (BMS), Fertigmeldung wurde nicht gesetzt"
+    CASE 10
+      USER_MSG.MSG_TXT[]="PGR: Fertigmeldung wurde von BMS nicht quittiert"
+    CASE 11
+      USER_MSG.MSG_TXT[]="PGR: Fehlende Teilfertigmeldung(en), Gesamtfertigmeldung wurde nicht gesetzt"
+    CASE 12
+      USER_MSG.MSG_TXT[]="PGR: Prozess n.i.O., Fertigmeldung wurde nicht gesetzt"
+    CASE 13
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 14
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 15
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -EZ/SP/KE1 2EZ/SP an 1SK- ungueltig"
+    CASE 16
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -KF2 2EZ/SP an 1SK- ungueltig"
+    CASE 17
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 18
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 19
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -KF Ausblasen- muss bei allen KF identisch sein"
+    CASE 20
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 21
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -CZ2 Flat- ungueltig (nur CZ1 Flat moeglich)"
+    CASE 22
+	   USER_MSG.MSG_TXT[]="PGR: PGR: Konfiguration -KF Ermittlung- muss bei allen EZ/SP/KE identisch sein"
+    CASE 23
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -Ausgleich- muss bei allen EZ/SP/KE identisch sein"
+	CASE 24
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -RIP2- ungueltig"
+    CASE 25
+	   USER_MSG.MSG_TXT[]="PGR: Konfiguration -RIP3- ungueltig"	
+    CASE 91
+      USER_MSG.MSG_TXT[]="PGR: Fraesmesserdicke nicht eingegeben"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"   
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_PGRR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_PGRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_PGRR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_PGRR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_PGRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (PGR Meldungen)
+

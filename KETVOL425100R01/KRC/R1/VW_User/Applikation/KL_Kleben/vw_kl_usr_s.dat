@@ -1,0 +1,255 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/KL_Kleben
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_kl_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket KL Kleben                       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_KL CHAR Name[20],INT Datum
+DECL _Tech_KL Tech_KL
+;ENDFOLD
+; 
+;***************************************************
+;FOLD KL
+;VARIABLEN INTEGER
+GLOBAL INT Default_KL_BASE_SL[3]
+Default_KL_BASE_SL[1]=161
+Default_KL_BASE_SL[2]=177
+Default_KL_BASE_SL[3]=193
+GLOBAL INT CF_KL_BASE_SL[3]
+CF_KL_BASE_SL[1]=449
+CF_KL_BASE_SL[2]=449
+CF_KL_BASE_SL[3]=449
+GLOBAL INT KL_ZANGE[3]
+KL_ZANGE[1]=28
+KL_ZANGE[2]=27
+KL_ZANGE[3]=26
+GLOBAL INT RobTimerTrig=0
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_KL[3]
+MIT_KL[1]=FALSE
+MIT_KL[2]=FALSE
+MIT_KL[3]=FALSE
+GLOBAL BOOL KL_stat[3]
+KL_stat[1]=FALSE
+KL_stat[2]=FALSE
+KL_stat[3]=FALSE
+GLOBAL BOOL MIT_KL_SPUELEN[3]
+MIT_KL_SPUELEN[1]=FALSE
+MIT_KL_SPUELEN[2]=FALSE
+MIT_KL_SPUELEN[3]=FALSE
+GLOBAL BOOL KL_o_Nachtrig[3]
+KL_o_Nachtrig[1]=FALSE
+KL_o_Nachtrig[2]=FALSE
+KL_o_Nachtrig[3]=FALSE
+GLOBAL BOOL KL_SPUELEN_AKTIV[3]
+KL_SPUELEN_AKTIV[1]=FALSE
+KL_SPUELEN_AKTIV[2]=FALSE
+KL_SPUELEN_AKTIV[3]=FALSE
+GLOBAL BOOL KL_Trigger=FALSE
+GLOBAL BOOL KL_Pistole_ZU[3]
+KL_Pistole_ZU[1]=FALSE
+KL_Pistole_ZU[2]=FALSE
+KL_Pistole_ZU[3]=FALSE
+GLOBAL BOOL KL_robotergefuehrt[3]
+KL_robotergefuehrt[1]=FALSE
+KL_robotergefuehrt[2]=FALSE
+KL_robotergefuehrt[3]=FALSE
+GLOBAL BOOL KL_Rob_Dos[3]
+KL_Rob_Dos[1]=FALSE
+KL_Rob_Dos[2]=FALSE
+KL_Rob_Dos[3]=FALSE
+GLOBAL BOOL KL_pneum_KS[3]
+KL_pneum_KS[1]=TRUE
+KL_pneum_KS[2]=TRUE
+KL_pneum_KS[3]=TRUE
+GLOBAL BOOL KL_elektr_KS[3]
+KL_elektr_KS[1]=FALSE
+KL_elektr_KS[2]=FALSE
+KL_elektr_KS[3]=FALSE
+GLOBAL BOOL KL_ohne_KS[3]
+KL_ohne_KS[1]=FALSE
+KL_ohne_KS[2]=FALSE
+KL_ohne_KS[3]=FALSE
+GLOBAL BOOL KL_FrgSpuel_1[3]
+KL_FrgSpuel_1[1]=FALSE
+KL_FrgSpuel_1[2]=FALSE
+KL_FrgSpuel_1[3]=FALSE
+GLOBAL BOOL HM_PH_Reset=FALSE
+;FLAGS
+GLOBAL INT F_KL_FRG_SP_EIN=47
+GLOBAL INT F_KL_Trig[3]
+F_KL_Trig[1]=337
+F_KL_Trig[2]=357
+F_KL_Trig[3]=377
+GLOBAL INT F_KL_SP_PF0[3]
+F_KL_SP_PF0[1]=338
+F_KL_SP_PF0[2]=358
+F_KL_SP_PF0[3]=378
+GLOBAL INT F_KL_Rob_Dos[3]
+F_KL_Rob_Dos[1]=350
+F_KL_Rob_Dos[2]=370
+F_KL_Rob_Dos[3]=390
+GLOBAL INT F_KL_ZeigePos[3]
+F_KL_ZeigePos[1]=343
+F_KL_ZeigePos[2]=363
+F_KL_ZeigePos[3]=383
+GLOBAL INT F_KL_AnwZeig[3]
+F_KL_AnwZeig[1]=342
+F_KL_AnwZeig[2]=362
+F_KL_AnwZeig[3]=382
+GLOBAL INT F_KL_Feh_Kleben[3]
+F_KL_Feh_Kleben[1]=339
+F_KL_Feh_Kleben[2]=359
+F_KL_Feh_Kleben[3]=379
+GLOBAL INT F_KL_anw_S[3]
+F_KL_anw_S[1]=48
+F_KL_anw_S[2]=49
+F_KL_anw_S[3]=50
+GLOBAL INT F_KL_Sammel[3]
+F_KL_Sammel[1]=356
+F_KL_Sammel[2]=376
+F_KL_Sammel[3]=396
+GLOBAL INT F_KL_MoS_nio=398
+GLOBAL INT F_KL_BT_io=750
+GLOBAL INT F_KL_BT_Na=751
+GLOBAL INT F_KL_BT_nio=752
+GLOBAL INT F_KL_MS_o_FRG=837
+GLOBAL INT F_F_Schwenker=50
+;KS SLAVE ADRESSIERUNG
+GLOBAL INT KS_BASE_SL=113 ;KS Indirekte Slave Adressen
+;Slave Ausgaenge
+GLOBAL INT O_KS_F_Schwenker=4 ;indirekt adressiert
+;KL SLAVE ADRESSIERUNG
+GLOBAL INT KL_BASE_SL[3] ;KL Indirekte Slave Adressen
+KL_BASE_SL[1]=449
+KL_BASE_SL[2]=449
+KL_BASE_SL[3]=449
+;Slave Eingaenge
+GLOBAL INT I_KL_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_KL_BT_zei=1 ;indirekt adressiert
+GLOBAL INT I_KL_anw_S=2 ;indirekt adressiert
+GLOBAL INT I_KL_Heizung_AUS=4 ;indirekt adressiert
+GLOBAL INT I_KL_Trigger=7 ;indirekt adressiert
+GLOBAL INT I_KL_BT_io=8 ;indirekt adressiert
+GLOBAL INT I_KL_BT_Na=9 ;indirekt adressiert
+GLOBAL INT I_KL_BT_nio=10 ;indirekt adressiert
+GLOBAL INT I_KL_anw_S_1K=11 ;indirekt adressiert
+GLOBAL INT I_KL_Mischerwechsel=13 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_KL_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_KL_BT_zeig=1 ;indirekt adressiert
+GLOBAL INT O_KL_S_an=2 ;indirekt adressiert
+GLOBAL INT O_KL_VW_akt=4 ;indirekt adressiert
+GLOBAL INT O_KL_VW_Fas=5 ;indirekt adressiert
+GLOBAL INT O_KL_P_Temp=6 ;indirekt adressiert
+GLOBAL INT O_KL_St_HPD=7 ;indirekt adressiert
+GLOBAL INT O_KL_Feh_KL=8 ;indirekt adressiert
+GLOBAL INT O_KL_1K_Mix=9 ;indirekt adressiert
+GLOBAL INT O_KL_1K_S_an=10 ;indirekt adressiert
+GLOBAL INT O_KL_2K_Mix=11 ;indirekt adressiert
+GLOBAL INT O_KL_FK_Kon=12 ;indirekt adressiert
+GLOBAL INT O_KL_Mischerwechsel=13 ;indirekt adressiert
+GLOBAL INT O_KL_Betr_f=14 ;indirekt adressiert
+GLOBAL INT O_KL_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT KL_BASE_MA[3] ;KL Indirekte Master Adressen
+KL_BASE_MA[1]=1505
+KL_BASE_MA[2]=1569
+KL_BASE_MA[3]=1633
+;Master Eingaenge
+GLOBAL INT I_KL_Prg_LBit=0 ;1505,1569,1633
+GLOBAL INT I_KL_Prg_HBit=7 ;1512,1576,1640
+GLOBAL INT I_KL_Para_LBit=8 ;1513,1577,1641
+GLOBAL INT I_KL_Para_HBit=15 ;1520,1584,1648
+GLOBAL INT I_KL_Pist_LBit=16 ;1521,1585,1649
+GLOBAL INT I_KL_Pist_HBit=18 ;1523,1587,1651
+GLOBAL INT I_KL_Sammel=19 ;1524,1588,1652
+GLOBAL INT I_KL_Feh_Do=20 ;1525,1589,1653
+GLOBAL INT I_KL_Feh_KL=21 ;1526,1590,1654
+GLOBAL INT I_KL_Betr_f=22 ;1527,1591,1655
+GLOBAL INT I_KL_Auto=23 ;1528,1592,1656
+GLOBAL INT I_KL_ANF_S=29 ;1534,1598,1662
+GLOBAL INT I_KL_S_FK=31 ;1536,1600,1664
+GLOBAL INT I_KL_Proz_niO=32 ;1537,1601,1665
+GLOBAL INT I_KL_Proz_iO=33 ;1538,1602,1666
+GLOBAL INT I_KL_SysKom=40 ;1545,1609,1673
+GLOBAL INT I_KL_E_Mode=41 ;1546,1610,1674
+GLOBAL INT I_KL_St_HPD=43 ;1548,1612,1676
+GLOBAL INT I_KL_VW_Fas=44 ;1549,1613,1677
+GLOBAL INT I_KL_P_Temp=46 ;1551,1615,1679
+GLOBAL INT I_KL_VW_akt=47 ;1552,1616,1680
+GLOBAL INT I_KL_S_1K_FK=48 ;1553,1617,1681
+GLOBAL INT I_KL_1K_Mix=49 ;1554,1618,1682
+GLOBAL INT I_KL_2K_Mix=50 ;1555,1619,1683
+GLOBAL INT I_KL_M_wechsel=52 ;1557,1621,1685
+GLOBAL INT I_KL_Waa_le=57 ;1562,1626,1690
+GLOBAL INT I_KL_FK_Kon=59 ;1564,1628,1692
+;Master Ausgaenge
+GLOBAL INT O_KL_Prg_LBit=0 ;1505,1569,1633
+GLOBAL INT O_KL_Prg_HBit=7 ;1512,1676,1640
+GLOBAL INT O_KL_Para_LBit=8 ;1513,1577,1641
+GLOBAL INT O_KL_Para_HBit=15 ;1520,1584,1648
+GLOBAL INT O_KL_Pist_LBit=16 ;1521,1585,1649
+GLOBAL INT O_KL_Pist_HBit=18 ;1523,1587,1651
+GLOBAL INT O_KL_Betr_FRG=22 ;1527,1591,1655
+GLOBAL INT O_KL_Auto=23 ;1528,1592,1656
+GLOBAL INT O_KL_Start=24 ;1529,1593,1657
+GLOBAL INT O_KL_o_Proz=25 ;1530,1594,1658
+GLOBAL INT O_KL_DO_FUE=26 ;1531,1595,1659
+GLOBAL INT O_KL_FRG_S=29 ;1534,1598,1662
+GLOBAL INT O_KL_S=30 ;1535,1599,1663
+GLOBAL INT O_KL_PK_start=32 ;1537,1601,1665
+GLOBAL INT O_KL_BT_io=34 ;1539,1603,1667
+GLOBAL INT O_KL_BT_Na=35 ;1540,1604,1668
+GLOBAL INT O_KL_BT_nio=36 ;1541,1605,1669
+GLOBAL INT O_KL_Pistole=39 ;1544,1608,1672
+GLOBAL INT O_KL_SYS_EIN=40 ;1545,1609,1673
+GLOBAL INT O_KL_P_Reset=42 ;1547,1611,1675
+GLOBAL INT O_KL_E_Mode=41 ;1546,1610,1674
+GLOBAL INT O_KL_BT_zei=43 ;1548,1612,1676
+GLOBAL INT O_KL_Heizung_AUS=44 ;1548,1612,1676
+GLOBAL INT O_KL_H_Reset=45 ;1550,1614,1678
+GLOBAL INT O_KL_S_1K=48 ;1553,1617,1681
+GLOBAL INT O_KL_M_wechsel=52 ;1557,1621,1685
+;ENDFOLD
+; 
+;***************************************************
+;Spueleimer
+GLOBAL INT SP_BASE_MA[3] ;SP Indirekte Master Adressen
+SP_BASE_MA[1]=2113
+SP_BASE_MA[2]=2121
+SP_BASE_MA[3]=2129
+;Master Eingaenge
+GLOBAL INT O_V_KL=0
+GLOBAL INT O_FRGHal_KL=4
+GLOBAL INT O_FRGBew_KL=5
+;Master Ausgaenge
+GLOBAL INT I_Sp_Ruh_KL=2
+GLOBAL INT I_Sp_Arb_KL=3
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM KLS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_KLS_Handle[100]
+GLOBAL INT n_KLR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

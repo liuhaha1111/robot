@@ -1,0 +1,7 @@
+&ACCESS RV
+&REL 432
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM SUPPRESS = UnusedFunctionParameter AssignmentLoosesPrecision UnusedProgram
+DEFDAT  SELECT
+INT T_NR=0
+ENDDAT

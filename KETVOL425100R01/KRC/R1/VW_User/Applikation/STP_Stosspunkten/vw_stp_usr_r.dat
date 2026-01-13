@@ -1,0 +1,55 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/STP_Stosspunkten
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_STP_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket STP Stosspunkten                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.15 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Stosspunkten
+;
+;STP Programmnummer
+SIGNAL SO_STP_Prg_Nr $OUT[769]  TO $OUT[776]
+SIGNAL SO_STP_Fzg_Typ $OUT[777]  TO $OUT[784]
+;SK Programmnummer
+SIGNAL SO_SK1_Prg_Nr $OUT[801]  TO $OUT[816]
+SIGNAL SO_SK1_Fzg_Typ $OUT[817]  TO $OUT[824]
+;STP Sollposition
+SIGNAL SO_STP_SollPos $OUT[737]  TO $OUT[751]
+;Uebergabe Istposition Stosspunkten
+SIGNAL SI_STP_IstPos $IN[737]  TO $IN[751]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;
+GLOBAL BOOL b_Stoss_akt=FALSE
+;
+REAL MyPos=99.0
+REAL MyPos1=99.0
+REAL MyPos2=0.0
+;ENDFOLD
+;
+;TCP-Korrektur
+INT Weg=0
+INT Offset=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM STPR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

@@ -1,0 +1,66 @@
+&ACCESS  R
+&COMMENT KS26 (VW)
+&PARAM DISKPATH = VW_User/Applikation/Volkswagen_Fehlerauswertung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 10
+DEFDAT  vw_feh_usr_s PUBLIC
+;***************************************************
+;*Technologiepaket Fehlerauswertung                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter:                                      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2014.02.05 LZ K_Meld_Delay neu hinzu            *
+;* 2014.02.05 LZ RobTimer_Delay neu hinzu          *
+;* 2019.03.19 BM I_VW_KWMOT2/I_VW_KWMOT3 hinzu     *
+;*                                                 *
+;***************************************************
+; 
+;FOLD Version Techpaket
+STRUC _Tech_Feh CHAR Name[20],INT Datum
+DECL _Tech_Feh Tech_Feh
+;ENDFOLD
+; 
+;FOLD Variablen
+
+GLOBAL CONST INT I_R_Med_ein=25
+
+GLOBAL INT VW_FEH_NR=0 ; 
+INT I_VW_KFMOT1=840
+INT I_VW_KSMOT1=4081
+INT I_VW_KFMOT2=1000
+INT I_VW_KSMOT2=4081
+INT I_VW_KFMOT3=1160
+INT I_VW_KSMOT3=4081
+INT I_VW_KWMOT1=864
+INT I_VW_KWMOT2=1024
+INT I_VW_KWMOT3=1184
+INT I_SZ_DX_ERR=59
+
+GLOBAL INT F_MedienAusDK=283
+INT F_WPS_WDHFRS=749
+INT F_SZ1_EZ_SP1=64
+INT F_SZ2_EZ_SP1=65
+INT F_SZ3_EZ_SP1=66
+INT F_SZ4_EZ_SP1=67
+INT F_SZ1_an_KF2=72 ;ToDo Step anpassen
+INT F_SZ1_an_KF3=73 ;ToDo Step anpassen
+INT F_EZ_SP1_ROB=530
+
+GLOBAL INT I_ERR_Nr=29
+
+GLOBAL BOOL b_MedUebwEin=FALSE
+
+GLOBAL INT RobTimer_Delay[3]
+RobTimer_Delay[1]=1058687443
+RobTimer_Delay[2]=1058687443
+RobTimer_Delay[3]=1058687443
+; 
+GLOBAL INT K_Meld_Delay=5000
+; 
+SIGNAL VW_FEH_BIN_A $OUT[225]  TO $OUT[232]
+; 
+;ENDFOLD (Variablen)
+; 
+ENDDAT

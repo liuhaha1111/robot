@@ -1,0 +1,225 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/LR_Laserreinigung
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_LR_USR_R( )
+;
+;***************************************************
+;*Technologiepaket LR Laserreinigung               *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD LR_Interface
+GLOBAL DEF LR_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+    WHILE ((PAR1<1) OR (PAR1>254))
+      LR_Msg(1,#QuitMsg) ; ungueltiger Wert fuer ProgNr
+    ENDWHILE
+    CONTINUE
+    SO_LR_Prg_Nr=PAR1
+    CONTINUE
+    SO_LR_P_Anw=TRUE
+    CONTINUE
+    SO_LR_Leistung=PAR2 ;Laserleistung
+    WHILE ((PAR2<5) OR (PAR2>500))
+      LR_Msg(2,#QuitMsg) ; Laserleistung ungueltiger Wert
+    ENDWHILE
+    CONTINUE
+    SO_LR_Naht_Nr=PAR6 ;Nahtnummer an SPS 
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+;
+    CONTINUE
+    IF ((SO_LR_Prg_Nr<>PAR1) OR (SO_LR_Leistung<>PAR2)) THEN
+      CONTINUE
+      SO_LR_Prg_Nr=PAR1
+      CONTINUE
+      PULSE(SO_LR_P_Anw,TRUE,0.2)
+      CONTINUE
+      SO_LR_Leistung=PAR2 ;Laserleistung
+    ENDIF  
+    CONTINUE
+    SO_LR_P_Anw=FALSE
+;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (LR Interface)
+;
+;***************************************************
+GLOBAL DEF LR_Naht_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+INT RobTimerStart
+BOOL bRet
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+;
+    B_LR_Naht_niO=FALSE
+;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;Pruefung LR i.O.
+    IF $IN[I_R_SK_gesch] AND NOT $IN[I_FT_o_BT] THEN
+      IF ($B_OUT[17]>0) AND ($B_OUT[17]<=100) THEN
+        FOR i=1 TO 100
+          IF B_LR_NIO_NahtNr[I] THEN
+            B_LR_Naht_niO=TRUE
+          ENDIF
+        ENDFOR
+        RobTimerStart=$ROB_TIMER
+        WAIT FOR ((B_LR_Naht_niO==FALSE) OR (($ROB_TIMER-RobTimerStart)>100))
+        IF (($ROB_TIMER-RobTimerStart)>100) THEN
+          LR_Msg(3,#StateMsg)
+        ENDIF
+        WAIT FOR ((B_LR_Naht_niO==FALSE) OR $IN[I_R_Quit_Wei] OR $IN[I_R_Quit_Aus])
+        IF (n_LRR_Handle[13]>-1) THEN
+          bRet=Clear_KrlMsg(n_LRR_Handle[13])
+          n_LRR_Handle[13]=-1
+        ENDIF
+      ELSE
+        LR_Msg(4,#QuitMsg)
+        LR_Msg(5,#QuitMsg)
+      ENDIF
+    ENDIF
+    B_LR_Naht_niO=FALSE
+    FOR i=1 TO 100
+      B_LR_NIO_NahtNr[i]=FALSE
+    ENDFOR
+;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;
+ENDSWITCH
+END
+;
+;ENDFOLD (LR Interface)
+;
+;***************************************************
+;FOLD LR_Meldungen
+DEF LR_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL LRR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "LR_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_LRR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="LR: P1 nur Werte von 1-254"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="LR: P2 nur Werte von 5-500"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="LR: Lasernaehte n.i.O. - Quittierung erforderlich (E27/E28)"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="LR: Bin17(NahtNr) nicht programmiert"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="LR: Lasernaehte koennen nicht geprueft werden"
+    CASE 19
+	   USER_MSG.MSG_TXT[]="LR: Falsche Gruppen-Auswahl"  
+    CASE 20
+	   USER_MSG.MSG_TXT[]="LR: P1 Falsche Auswahl"
+    CASE 21
+	   USER_MSG.MSG_TXT[]="LR: P2 Falsche Auswahl" 
+    CASE 22
+	   USER_MSG.MSG_TXT[]="LR: P3 Falsche Auswahl"    
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_LRR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_LRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_LRR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_LRR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_LRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (LR Meldungen)
+

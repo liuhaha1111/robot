@@ -1,0 +1,761 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SZ_Schweisszangen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_sz_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket SZ Schweisszangen               *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.19 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;Version Techpaket
+STRUC _Tech_SZ CHAR Name[20],INT Datum
+DECL _Tech_SZ Tech_SZ
+; 
+;FOLD SZ
+;VARIABLEN REAL
+REAL HM_PROC=0.0
+;VARIABLEN INTEGER
+GLOBAL INT Default_SZ_BASE_SL[3]
+Default_SZ_BASE_SL[1]=129
+Default_SZ_BASE_SL[2]=161
+Default_SZ_BASE_SL[3]=193
+GLOBAL INT CF_SZ_BASE_SL[3]
+CF_SZ_BASE_SL[1]=449
+CF_SZ_BASE_SL[2]=449
+CF_SZ_BASE_SL[3]=449
+GLOBAL INT EZ1_Konfig_Makro[4]
+EZ1_Konfig_Makro[1]=911
+EZ1_Konfig_Makro[2]=912
+EZ1_Konfig_Makro[3]=913
+EZ1_Konfig_Makro[4]=914
+GLOBAL INT HM_SZ_Oeff[3]
+HM_SZ_Oeff[1]=0
+HM_SZ_Oeff[2]=0
+HM_SZ_Oeff[3]=0
+GLOBAL INT EZ2_Konfig_Makro=918
+GLOBAL INT EZ3_Konfig_Makro=919
+GLOBAL INT R1AusgleichFunktion=0
+GLOBAL INT Kraft_o_Proz=2000
+GLOBAL INT Mit_Anf_Pos=713
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_EZ[3]
+MIT_EZ[1]=FALSE
+MIT_EZ[2]=FALSE
+MIT_EZ[3]=FALSE
+GLOBAL BOOL MIT_KE[3]
+MIT_KE[1]=FALSE
+MIT_KE[2]=FALSE
+MIT_KE[3]=FALSE
+GLOBAL BOOL MIT_KW[3]
+MIT_KW[1]=FALSE
+MIT_KW[2]=FALSE
+MIT_KW[3]=FALSE
+GLOBAL BOOL KE_Ref_AUF[3]
+KE_Ref_AUF[1]=FALSE
+KE_Ref_AUF[2]=FALSE
+KE_Ref_AUF[3]=FALSE
+GLOBAL BOOL MIT_SZAusgleich[3]
+MIT_SZAusgleich[1]=FALSE
+MIT_SZAusgleich[2]=FALSE
+MIT_SZAusgleich[3]=FALSE
+GLOBAL BOOL KF_ausbl_SZ_ZU=FALSE
+GLOBAL BOOL KF_ausbl_SZ_Kraft=FALSE
+GLOBAL BOOL KF_ausbl_SZ_AUF=FALSE
+GLOBAL BOOL HM_KF_UP101=FALSE
+GLOBAL BOOL KF_NF_2Huebe[3]
+KF_NF_2Huebe[1]=FALSE
+KF_NF_2Huebe[2]=FALSE
+KF_NF_2Huebe[3]=FALSE
+GLOBAL BOOL KF_NF_2Kraft[3]
+KF_NF_2Kraft[1]=FALSE
+KF_NF_2Kraft[2]=FALSE
+KF_NF_2Kraft[3]=FALSE
+GLOBAL BOOL MIT_EK_Vorz[3]
+MIT_EK_Vorz[1]=FALSE
+MIT_EK_Vorz[2]=FALSE
+MIT_EK_Vorz[3]=FALSE
+GLOBAL BOOL B_KW_MIN_MAX=FALSE
+GLOBAL BOOL B_KW_ALU=FALSE
+GLOBAL BOOL B_KW_VE_MONO=FALSE
+GLOBAL BOOL B_KW_VE_BI=FALSE
+GLOBAL BOOL MIT_Auto_KF=FALSE
+GLOBAL BOOL MIT_2SZ_an_SK1=FALSE
+GLOBAL BOOL GunBal_Halt=FALSE
+GLOBAL BOOL TeachPos[3]
+TeachPos[1]=FALSE
+TeachPos[2]=FALSE
+TeachPos[3]=FALSE
+GLOBAL BOOL B_SZ_n_Ref[3]
+B_SZ_n_Ref[1]=FALSE
+B_SZ_n_Ref[2]=FALSE
+B_SZ_n_Ref[3]=FALSE
+GLOBAL BOOL B_SZ_AUF_ZU[3]
+B_SZ_AUF_ZU[1]=FALSE
+B_SZ_AUF_ZU[2]=FALSE
+B_SZ_AUF_ZU[3]=FALSE
+GLOBAL BOOL B_SZ_Tastend[3]
+B_SZ_Tastend[1]=FALSE
+B_SZ_Tastend[2]=FALSE
+B_SZ_Tastend[3]=FALSE
+GLOBAL BOOL B_SZ_TEACH_REF[3]
+B_SZ_TEACH_REF[1]=FALSE
+B_SZ_TEACH_REF[2]=FALSE
+B_SZ_TEACH_REF[3]=FALSE
+GLOBAL BOOL B_KE_Sammel[3]
+B_KE_Sammel[1]=FALSE
+B_KE_Sammel[2]=FALSE
+B_KE_Sammel[3]=FALSE
+GLOBAL BOOL KF_mit_VE[3]
+KF_mit_VE[1]=FALSE
+KF_mit_VE[2]=FALSE
+KF_mit_VE[3]=FALSE
+GLOBAL BOOL B_SZ1_VW_EK[4]
+B_SZ1_VW_EK[1]=FALSE
+B_SZ1_VW_EK[2]=FALSE
+B_SZ1_VW_EK[3]=FALSE
+B_SZ1_VW_EK[4]=FALSE
+GLOBAL BOOL B_SZ2_VW_EK[4]
+B_SZ2_VW_EK[1]=FALSE
+B_SZ2_VW_EK[2]=FALSE
+B_SZ2_VW_EK[3]=FALSE
+B_SZ2_VW_EK[4]=FALSE
+GLOBAL BOOL B_SZ3_VW_EK[4]
+B_SZ3_VW_EK[1]=FALSE
+B_SZ3_VW_EK[2]=FALSE
+B_SZ3_VW_EK[3]=FALSE
+B_SZ3_VW_EK[4]=FALSE
+GLOBAL BOOL B_SZ1_MAX_EK[4]
+B_SZ1_MAX_EK[1]=FALSE
+B_SZ1_MAX_EK[2]=FALSE
+B_SZ1_MAX_EK[3]=FALSE
+B_SZ1_MAX_EK[4]=FALSE
+GLOBAL BOOL B_SZ2_MAX_EK[4]
+B_SZ2_MAX_EK[1]=FALSE
+B_SZ2_MAX_EK[2]=FALSE
+B_SZ2_MAX_EK[3]=FALSE
+B_SZ2_MAX_EK[4]=FALSE
+GLOBAL BOOL B_SZ3_MAX_EK[4]
+B_SZ3_MAX_EK[1]=FALSE
+B_SZ3_MAX_EK[2]=FALSE
+B_SZ3_MAX_EK[3]=FALSE
+B_SZ3_MAX_EK[4]=FALSE
+GLOBAL BOOL B_SZ_FRG_FR[3]
+B_SZ_FRG_FR[1]=FALSE
+B_SZ_FRG_FR[2]=FALSE
+B_SZ_FRG_FR[3]=FALSE
+GLOBAL BOOL EZ1SZ1_EK_gew=FALSE
+GLOBAL BOOL EZ1SZ2_EK_gew=FALSE
+GLOBAL BOOL EZ1SZ3_EK_gew=FALSE
+GLOBAL BOOL EZ1SZ4_EK_gew=FALSE
+GLOBAL BOOL EZ2SZ1_EK_gew=FALSE
+GLOBAL BOOL EZ3SZ1_EK_gew=FALSE
+;FLAGS
+GLOBAL INT F_MIT_KE[3]
+F_MIT_KE[1]=830
+F_MIT_KE[2]=831
+F_MIT_KE[3]=832
+GLOBAL INT F_SZ1_ANW_Z[4]
+F_SZ1_ANW_Z[1]=64
+F_SZ1_ANW_Z[2]=65
+F_SZ1_ANW_Z[3]=66
+F_SZ1_ANW_Z[4]=67
+GLOBAL INT F_SZ1_MAX_EK[4]
+F_SZ1_MAX_EK[1]=68
+F_SZ1_MAX_EK[2]=69
+F_SZ1_MAX_EK[3]=70
+F_SZ1_MAX_EK[4]=71
+GLOBAL INT F_SZ2_MAX_EK=133
+GLOBAL INT F_SZ3_MAX_EK=169
+GLOBAL INT F_SZ1_BMS_ANW_Z[4]
+F_SZ1_BMS_ANW_Z[1]=541
+F_SZ1_BMS_ANW_Z[2]=542
+F_SZ1_BMS_ANW_Z[3]=543
+F_SZ1_BMS_ANW_Z[4]=544
+GLOBAL INT F_SZ2_BMS_ANW_Z[1]
+F_SZ2_BMS_ANW_Z[1]=545
+GLOBAL INT F_SZ3_BMS_ANW_Z[1]
+F_SZ3_BMS_ANW_Z[1]=546
+GLOBAL INT F_SZ2_ANW_Z1=64
+GLOBAL INT F_SZ3_ANW_Z1=64
+GLOBAL INT F_SZ_anw_KW[3]
+F_SZ_anw_KW[1]=74
+F_SZ_anw_KW[2]=167
+F_SZ_anw_KW[3]=168
+GLOBAL INT F_SZ_Schliess[3]
+F_SZ_Schliess[1]=120
+F_SZ_Schliess[2]=158
+F_SZ_Schliess[3]=194
+GLOBAL INT F_SZ_m_Komp[3]
+F_SZ_m_Komp[1]=121
+F_SZ_m_Komp[2]=159
+F_SZ_m_Komp[3]=195
+GLOBAL INT F_SZ_Oeff_iO[3]
+F_SZ_Oeff_iO[1]=745
+F_SZ_Oeff_iO[2]=746
+F_SZ_Oeff_iO[3]=747
+GLOBAL INT F_SZ_Pos_iO[3]
+F_SZ_Pos_iO[1]=742
+F_SZ_Pos_iO[2]=743
+F_SZ_Pos_iO[3]=744
+GLOBAL INT F_KF_NF_2Huebe[3]
+F_KF_NF_2Huebe[1]=130
+F_KF_NF_2Huebe[2]=164
+F_KF_NF_2Huebe[3]=200
+GLOBAL INT F_KF_NF_2Kraft[3]
+F_KF_NF_2Kraft[1]=715
+F_KF_NF_2Kraft[2]=716
+F_KF_NF_2Kraft[3]=717
+GLOBAL INT F_KF_mit_VE[3]
+F_KF_mit_VE[1]=564
+F_KF_mit_VE[2]=565
+F_KF_mit_VE[3]=566
+GLOBAL INT F_SZ_Sammel[3]
+F_SZ_Sammel[1]=118
+F_SZ_Sammel[2]=156
+F_SZ_Sammel[3]=192
+GLOBAL INT F_SZ_Anw_SF[3]
+F_SZ_Anw_SF[1]=78
+F_SZ_Anw_SF[2]=138
+F_SZ_Anw_SF[3]=174
+GLOBAL INT F_SZ_Anw_NF[3]
+F_SZ_Anw_NF[1]=79
+F_SZ_Anw_NF[2]=139
+F_SZ_Anw_NF[3]=175
+GLOBAL INT F_KE_aktiv=836
+GLOBAL INT Signal_Ipos=0
+GLOBAL INT F_SZ_F_Messen[3]
+F_SZ_F_Messen[1]=85
+F_SZ_F_Messen[2]=143
+F_SZ_F_Messen[3]=179
+GLOBAL INT VISU_Gun=0
+GLOBAL INT VISU_PROG_PROZ=0
+GLOBAL INT VISU_Druck=0
+GLOBAL INT F_SZ1_Kapp1=122
+GLOBAL INT F_SZ1_Kapp2=123
+GLOBAL INT F_SZ1_Kapp3=124
+GLOBAL INT F_SZ1_Kapp4=125
+GLOBAL INT F_SZ2_Kapp=160
+GLOBAL INT F_SZ3_Kapp=196
+GLOBAL INT F_SZ_Kr_Skal=293
+GLOBAL INT F_SZ_St_Skal=294
+GLOBAL INT F_SZ_o_Wiedh=298
+GLOBAL INT F_SZ_Fe_Res=303
+GLOBAL INT F_m_SZAusgleich[3]
+F_m_SZAusgleich[1]=710
+F_m_SZAusgleich[2]=709
+F_m_SZAusgleich[3]=708
+GLOBAL INT F_m_SZ2_TO_3=724
+GLOBAL INT F_SZ_Anf_Pos=741
+GLOBAL INT F_KW_MoS_nio=810
+GLOBAL INT F_SZ_POT_Fra=838
+GLOBAL INT F_KF_MoS_nio=863
+;Slave Ausgaenge (KS/KF)
+GLOBAL INT O_KSKF_P_akt=116
+;SZ SLAVE ADRESSIERUNG
+GLOBAL INT SZ_BASE_SL[3] ;SZ Indirekte Slave Adressen
+SZ_BASE_SL[1]=449
+SZ_BASE_SL[2]=449
+SZ_BASE_SL[3]=449
+;Slave Eingaenge
+GLOBAL INT I_SZ_o_Kra=0 ;indirekt adressiert
+GLOBAL INT I_SZ_anw_KW[4]
+I_SZ_anw_KW[1]=3
+I_SZ_anw_KW[2]=4
+I_SZ_anw_KW[3]=5
+I_SZ_anw_KW[4]=6
+GLOBAL INT I_SZ_Anw_Fra=1 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_SZ_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_SZ_KF_akt=1 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Schl=2 ;indirekt adressiert
+GLOBAL INT O_SZ_W_SZ=3 ;indirekt adressiert
+GLOBAL INT O_SZ_W_Schm=4 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Kraf=5 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Prog=6 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Ziel=7 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Baut=8 ;indirekt adressiert
+GLOBAL INT O_SZ_F_schw=9 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Frae=10 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Geom=11 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Ausg=12 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Steu=13 ;indirekt adressiert
+GLOBAL INT O_SZ_F_Temp=14 ;indirekt adressiert
+GLOBAL INT O_SZ_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT SZ_BASE_MA[3] ;SZ Indirekte Master Adressen
+SZ_BASE_MA[1]=705
+SZ_BASE_MA[2]=865
+SZ_BASE_MA[3]=1025
+;Master Eingaenge
+GLOBAL INT I_SZ_bereit=0 ;705,865,1025
+GLOBAL INT I_SZ_eMode=1 ;706,866,1026
+GLOBAL INT I_SZ_Re_aus=2 ;707,867,1027
+GLOBAL INT I_SZ_TPos_g=6 ;711,871,1031
+GLOBAL INT I_SZ_Auto=8 ;713,873,1033
+GLOBAL INT I_SZ_ref=9 ;714,874,1034
+GLOBAL INT I_SZ_aktiv=10 ;715,875,1035
+GLOBAL INT I_SZ_IPos_g=11 ;716,876,1036
+GLOBAL INT I_SZ_auf=12 ;717,877,1037
+GLOBAL INT I_SZ_zu=13 ;718,878,1038
+GLOBAL INT I_SZ_AR=14 ;719,879,1039
+GLOBAL INT I_SZ_IPos_LBit=32 ;737,897,1057
+GLOBAL INT I_SZ_IPos_HBit=46 ;751,911,1071
+GLOBAL INT I_SZ_Vorz=47 ;752,912,1072
+GLOBAL INT I_SZ_LBit=48 ;753,913,1073
+GLOBAL INT I_SZ_MessEnd=52 ;757,917,1077
+GLOBAL INT I_SZ_ZCod_niO=56 ;761,921,1081
+GLOBAL INT I_SZ_GCodW1=61 ;766,926,1086
+GLOBAL INT I_SZ_GCodW2=62 ;767,927,1087
+GLOBAL INT I_SZ_GCodW4=63 ;768,928,1088
+GLOBAL INT I_SZ_W_SZ=64 ;769,929,1089
+GLOBAL INT I_SZ_W_Schm=65 ;770,930,1090
+GLOBAL INT I_SZ_F_Kraf=66 ;771,931,1091
+GLOBAL INT I_SZ_F_Prog=67 ;772,932,1092
+GLOBAL INT I_SZ_F_Ziel=68 ;773,933,1093
+GLOBAL INT I_SZ_F_Baut=69 ;774,934,1094
+GLOBAL INT I_SZ_F_schw=70 ;775,935,1095
+GLOBAL INT I_SZ_F_Frae=71 ;776,936,1096
+GLOBAL INT I_SZ_F_Kapp=72 ;777,937,1097
+GLOBAL INT I_SZ_F_Geom=73 ;778,938,1098
+GLOBAL INT I_SZ_F_Schl=74 ;779,939,1099
+GLOBAL INT I_SZ_F_Ausg=75 ;780,940,1100
+GLOBAL INT I_SZ_F_Steu=76 ;781,941,1101
+GLOBAL INT I_SZ_F_Traf=77 ;782,942,1102
+GLOBAL INT I_SZ_F_Mot=78 ;783,943,1103
+GLOBAL INT I_SZ_Sammel=79 ;784,944,1104
+;Master Ausgaenge
+GLOBAL INT O_SZ_Fe_Res=0 ;705,865,1025
+GLOBAL INT O_SZ_E_Mode=1 ;706,866,1026
+GLOBAL INT O_SZ_Re_aus=2 ;707,867,1027
+GLOBAL INT O_SZ_o_Kra=3 ;708,868,1028
+GLOBAL INT O_SZ_Mit_EK=4 ;709,869,1029
+GLOBAL INT O_SZ_S_TPos=5 ;710,870,1030
+GLOBAL INT O_SZ_TPos_u=6 ;711,871,1031
+GLOBAL INT O_SZ_R_Hand=7 ;712,872,1032
+GLOBAL INT O_SZ_R_Auto=8 ;713,873,1033
+GLOBAL INT O_SZ_ref=9 ;714,874,1034
+GLOBAL INT O_SZ_FRG=10 ;715,875,1035
+GLOBAL INT O_SZ_SPos_g=11 ;716,876,1036
+GLOBAL INT O_SZ_auf=12 ;717,877,1037
+GLOBAL INT O_SZ_zu=13 ;718,878,1038
+GLOBAL INT O_SZ_t_auf=14 ;719,879,1039
+GLOBAL INT O_SZ_t_zu=15 ;720,880,1040
+GLOBAL INT O_SZ_KSoll_LBit=16 ;721,881,1041
+GLOBAL INT O_SZ_KSoll_HBit=23 ;728,888,1048
+GLOBAL INT O_SZ_H_Bit=31 ;736,896,1056
+GLOBAL INT O_SZ_LBit=48 ;753,913,1073
+GLOBAL INT O_SZ_m_RKom=49 ;754,914,1074
+GLOBAL INT O_SZ_KW_io=50 ;755,915,1075
+GLOBAL INT O_SZ_MvFrae=51 ;756,916,1076
+GLOBAL INT O_SZ_MnFrae=52 ;757,917,1077
+GLOBAL INT O_SZ_FToBT=55 ;760,920,1080
+GLOBAL INT O_SZ_ZCod_LBit=56 ;761,921,1081
+GLOBAL INT O_SZ_ZCod_HBit=58 ;763,923,1083
+GLOBAL INT O_SZ_zu_o_S=61 ;766,926,1086
+GLOBAL INT O_SZ_PNr_LBit=64 ;769,929,1089
+GLOBAL INT O_SZ_PNr_HBit=71 ;776,936,1096
+GLOBAL INT O_SZ_Fzg_LBit=72 ;777,937,1097
+GLOBAL INT O_SZ_Fzg_HBit=79 ;784,944,1104
+GLOBAL INT O_SZ_Quit_Fraesen=81 ;786,946,1106
+GLOBAL INT O_SZ_Refkon=90 ;795,956,1115
+GLOBAL INT O_SZ_D_Teach=4001 ;SZ Master Dummy
+GLOBAL INT O_SZ_D_Auf=4002 ;SZ Master Dummy
+GLOBAL INT O_SZ_D_Zu=4003 ;SZ Master Dummy
+;SZ Kraft
+SIGNAL SO_SZ1_Kraft $OUT[721]  TO $OUT[728]
+SIGNAL SO_SZ2_Kraft $OUT[881]  TO $OUT[888]
+SIGNAL SO_SZ3_Kraft $OUT[1041]  TO $OUT[1048]
+;SZ Zangencode
+SIGNAL SO_SZ1_ZCode $OUT[761]  TO $OUT[763]
+SIGNAL SO_SZ2_ZCode $OUT[921]  TO $OUT[923]
+SIGNAL SO_SZ3_ZCode $OUT[1081]  TO $OUT[1083]
+;SZ Programmnummer
+SIGNAL SO_SZ1_Prg_Nr $OUT[769]  TO $OUT[776]
+SIGNAL SO_SZ2_Prg_Nr $OUT[929]  TO $OUT[936]
+SIGNAL SO_SZ3_Prg_Nr $OUT[1089]  TO $OUT[1096]
+;SZ Fahrzeugtyp
+SIGNAL SO_SZ1_Fzg_Typ $OUT[777]  TO $OUT[784]
+SIGNAL SO_SZ2_Fzg_Typ $OUT[937]  TO $OUT[944]
+SIGNAL SO_SZ3_Fzg_Typ $OUT[1097]  TO $OUT[1104]
+;SZ Ist-Position
+SIGNAL SI_SZ1_IstPos $IN[737]  TO $IN[751]
+SIGNAL SI_SZ2_IstPos $IN[897]  TO $IN[911]
+SIGNAL SI_SZ3_IstPos $IN[1057]  TO $IN[1071]
+;SK Punktnummer
+SIGNAL SO_SK1_Pkt_Nr $OUT[801]  TO $OUT[816]
+SIGNAL SO_SK2_Pkt_Nr $OUT[961]  TO $OUT[976]
+SIGNAL SO_SK3_Pkt_Nr $OUT[1121]  TO $OUT[1136]
+;SK Fahrzeugtyp
+SIGNAL SO_SK1_Fzg_Typ $OUT[817]  TO $OUT[824]
+SIGNAL SO_SK2_Fzg_Typ $OUT[977]  TO $OUT[984]
+SIGNAL SO_SK3_Fzg_Typ $OUT[1137]  TO $OUT[1144]
+;SK Kraftvorgabe
+SIGNAL SI_SK1_Kraft $IN[793]  TO $IN[800]
+SIGNAL SI_SK2_Kraft $IN[953]  TO $IN[960]
+SIGNAL SI_SK3_Kraft $IN[1113]  TO $IN[1120]
+;ENDFOLD
+; 
+;***************************************************
+;FOLD RIP
+;VARIABLEN BOOL
+GLOBAL BOOL RIP_KW_EIN=FALSE
+GLOBAL BOOL KW_gebrueckt=FALSE
+GLOBAL BOOL KW_DS_AUS=FALSE
+GLOBAL BOOL HM_RIP_iO=FALSE
+GLOBAL BOOL B_RIP_KW_iO[3]
+B_RIP_KW_iO[1]=FALSE
+B_RIP_KW_iO[2]=FALSE
+B_RIP_KW_iO[3]=FALSE
+;FLAGS
+GLOBAL INT F_KW_Wart_AUS=281
+GLOBAL INT F_KW_DS_Makro_AUS=283
+GLOBAL INT F_KW_DS_Prog_AUS=62
+GLOBAL INT F_KW_MIN_MAX=291
+GLOBAL INT F_KW_Hand_iO[3]
+F_KW_Hand_iO[1]=131
+F_KW_Hand_iO[2]=165
+F_KW_Hand_iO[3]=201
+GLOBAL INT F_WPS_FRG[3]
+F_WPS_FRG[1]=127
+F_WPS_FRG[2]=162
+F_WPS_FRG[3]=198
+;Slave Eingaenge
+GLOBAL INT I_R_KW_EIN=25
+;Slave Ausgaenge
+GLOBAL INT O_R_KW_EIN=25
+;Master Eingaenge
+GLOBAL INT I_RIP_KW_iO[3]
+I_RIP_KW_iO[1]=513
+I_RIP_KW_iO[2]=521
+I_RIP_KW_iO[3]=529
+GLOBAL INT I_RIP_KW_MIN[3]
+I_RIP_KW_MIN[1]=514
+I_RIP_KW_MIN[2]=522
+I_RIP_KW_MIN[3]=530
+GLOBAL INT I_RIP_KW_MAX[3]
+I_RIP_KW_MAX[1]=515
+I_RIP_KW_MAX[2]=523
+I_RIP_KW_MAX[3]=531
+GLOBAL INT I_RIP_KO_ND[3]
+I_RIP_KO_ND[1]=516
+I_RIP_KO_ND[2]=524
+I_RIP_KO_ND[3]=532
+GLOBAL INT I_RIP_KW_INV[3]
+I_RIP_KW_INV[1]=517
+I_RIP_KW_INV[2]=525
+I_RIP_KW_INV[3]=533
+GLOBAL INT I_RIP_KW_MIN_2=517
+GLOBAL INT I_RIP_KW_MAX_2=518
+;Master Ausgaenge
+GLOBAL INT O_RIP_KW[3]
+O_RIP_KW[1]=513
+O_RIP_KW[2]=521
+O_RIP_KW[3]=529
+GLOBAL INT O_RIP_2SE_SK[3]
+O_RIP_2SE_SK[1]=514
+O_RIP_2SE_SK[2]=522
+O_RIP_2SE_SK[3]=530
+GLOBAL INT O_RIP_KW_AUS[3]
+O_RIP_KW_AUS[1]=515
+O_RIP_KW_AUS[2]=523
+O_RIP_KW_AUS[3]=531
+GLOBAL INT O_RIP_KW2_EIN=516
+GLOBAL INT O_RIP_KW2_AUS=517
+GLOBAL INT O_RIP_RZYL_E=518
+GLOBAL INT O_RIP_RZYL_A=519
+; 
+;***************************************************
+;FOLD LEBENSBIT
+;VARIABLEN INTEGER
+INT ErrSZNr=-1
+INT LBitTimeCnt[3]
+LBitTimeCnt[1]=75494
+LBitTimeCnt[2]=75494
+LBitTimeCnt[3]=75494
+;VARIABLEN BOOL
+BOOL LBitState[3]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+LBitState[3]=FALSE
+BOOL SZ_LBitFeh[3]
+SZ_LBitFeh[1]=FALSE
+SZ_LBitFeh[2]=FALSE
+SZ_LBitFeh[3]=FALSE
+;ENDFOLD
+; 
+;***************************************************
+;FOLD KF/KS
+;VARIABLEN BOOL
+GLOBAL BOOL KFRem=FALSE
+GLOBAL BOOL KF_AKTIV_1=FALSE
+GLOBAL BOOL KF_AKTIV_2=FALSE
+GLOBAL BOOL KF_AKTIV_3=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT TimerNr_KF=0
+;FLAGS
+GLOBAL INT F_FRG_KF[4]
+F_FRG_KF[1]=90
+F_FRG_KF[2]=92
+F_FRG_KF[3]=148
+F_FRG_KF[4]=184
+GLOBAL INT F_KF_KS_ZS_S=292
+GLOBAL INT F_KF_Check=312
+GLOBAL INT F_KF_Variante[3]
+F_KF_Variante[1]=330
+F_KF_Variante[2]=331
+F_KF_Variante[3]=332
+GLOBAL INT F_KF_Bla_rob=736
+GLOBAL INT F_KF_ausblasen[3]
+F_KF_ausblasen[1]=737
+F_KF_ausblasen[2]=738
+F_KF_ausblasen[3]=739
+GLOBAL INT KF_BASE_MA[3] ;KF Indirekte Master Adressen
+KF_BASE_MA[1]=833
+KF_BASE_MA[2]=993
+KF_BASE_MA[3]=1153
+;Master Eingaenge
+GLOBAL INT I_KF_INI=2 ;835,995,1155
+GLOBAL INT I_KS_R_INI=3 ;836,996,1156
+GLOBAL INT I_KS_A_INI=4 ;837,997,1157
+GLOBAL INT I_KS_R_Nocke=5 ;838,998,1158
+GLOBAL INT I_KS_A_Nocke=6 ;839,999,1159
+;Master Ausgaenge
+GLOBAL INT O_KF_M_EIN=1 ;834,994,1154
+GLOBAL INT O_KF_versetzen=2 ;835,995,1155
+GLOBAL INT O_KF_ausblasen=3 ;836,996,1156
+GLOBAL INT O_KW_ausblasen=27 ;860,1020,1180
+GLOBAL INT O_KS_M_EIN=7 ;840,1000,1154
+GLOBAL INT O_KS_Schw[3]
+O_KS_Schw[1]=3969
+O_KS_Schw[2]=3970
+O_KS_Schw[3]=3971
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Konfiguration Ein-Ausgaenge Kappenwechsler
+GLOBAL INT Default_KW_BASE_SL[3]
+Default_KW_BASE_SL[1]=209
+Default_KW_BASE_SL[2]=217
+Default_KW_BASE_SL[3]=225
+GLOBAL INT CF_KW_BASE_SL[3]
+CF_KW_BASE_SL[1]=449
+CF_KW_BASE_SL[2]=449
+CF_KW_BASE_SL[3]=449
+;BOOL
+GLOBAL BOOL KW_Braeuer=FALSE
+GLOBAL BOOL KW_Lutz=FALSE
+GLOBAL BOOL KW_AEG=FALSE
+GLOBAL BOOL KW_Sintherleghe=FALSE
+;FLAGS
+GLOBAL INT F_m_KW[3]
+F_m_KW[1]=537
+F_m_KW[2]=538
+F_m_KW[3]=539
+GLOBAL INT F_Braeuer=805
+GLOBAL INT F_Lutz=806
+GLOBAL INT F_AEG=807
+GLOBAL INT F_Sintherleghe=808
+GLOBAL INT F_KW_Sammel[3]
+F_KW_Sammel[1]=491
+F_KW_Sammel[2]=492
+F_KW_Sammel[3]=493
+GLOBAL INT F_KW_Proz_akt[3]
+F_KW_Proz_akt[1]=531
+F_KW_Proz_akt[2]=532
+F_KW_Proz_akt[3]=533
+GLOBAL INT F_KW_BMS_Anw[3]
+F_KW_BMS_Anw[1]=534
+F_KW_BMS_Anw[2]=535
+F_KW_BMS_Anw[3]=536
+;SLAVE ADRESSIERUNG
+GLOBAL INT KW_BASE_SL[3] ;KW Indirekte Slave Adressen
+KW_BASE_SL[1]=449
+KW_BASE_SL[2]=449
+KW_BASE_SL[3]=449
+;Slave Eingaenge
+GLOBAL INT I_KW_Anw=1
+;Slave Ausgaenge
+GLOBAL INT O_KW_Proz_akt=0
+GLOBAL INT O_KW_b_Wechsel=1
+GLOBAL INT O_KW_Mag_leer=2
+GLOBAL INT O_KW_Feh_setz=4
+GLOBAL INT O_KW_Sammel=7
+;MASTER ADRESSIERUNG
+GLOBAL INT KW_BASE_MA[3] ;KW Indirekte Master Adressen
+KW_BASE_MA[1]=857
+KW_BASE_MA[2]=1017
+KW_BASE_MA[3]=1177
+;Master Eingaenge
+GLOBAL INT I_KW_MZ1_leer=3
+GLOBAL INT I_KW_MZ2_leer=4
+; 
+;***************************************************
+;KF Autom. Ermittling Fraes-Umdrehungen
+GLOBAL BOOL KF_M_EIN[3]
+KF_M_EIN[1]=FALSE
+KF_M_EIN[2]=FALSE
+KF_M_EIN[3]=FALSE
+GLOBAL BOOL KF1_Z_aktiv[4]
+KF1_Z_aktiv[1]=FALSE
+KF1_Z_aktiv[2]=FALSE
+KF1_Z_aktiv[3]=FALSE
+KF1_Z_aktiv[4]=FALSE
+GLOBAL BOOL KF2_Z_aktiv=FALSE
+GLOBAL BOOL KF3_Z_aktiv=FALSE
+GLOBAL INT KF_Umd_Min=2
+GLOBAL INT KF_Umd_Limit=12
+; 
+GLOBAL INT KF_Zyklus=2
+GLOBAL INT KF_COUNT_Pos_1_1=0
+GLOBAL INT KF_COUNT_Neg_1_1=0
+GLOBAL INT KF_COUNT_Pos_1_2=0
+GLOBAL INT KF_COUNT_Neg_1_2=0
+GLOBAL INT KF_COUNT_Pos_1_3=0
+GLOBAL INT KF_COUNT_Neg_1_3=0
+GLOBAL INT KF_COUNT_Pos_1_4=0
+GLOBAL INT KF_COUNT_Neg_1_4=0
+GLOBAL INT KF_COUNT_Pos_2_1=0
+GLOBAL INT KF_COUNT_Neg_2_1=0
+GLOBAL INT KF_COUNT_Pos_3_1=0
+GLOBAL INT KF_COUNT_Neg_3_1=0
+; 
+GLOBAL REAL KF_EK_Limit_1_1=0.100000
+GLOBAL REAL KF_EK_Limit_1_2=0.100000
+GLOBAL REAL KF_EK_Limit_1_3=0.100000
+GLOBAL REAL KF_EK_Limit_1_4=0.100000
+GLOBAL REAL KF_EK_Limit_2_1=0.100000
+GLOBAL REAL KF_EK_Limit_3_1=0.100000
+GLOBAL REAL KF_IST_1_1=0.0
+GLOBAL REAL KF_ALT_1_1=0.0
+GLOBAL REAL KF_IST_1_2=0.0
+GLOBAL REAL KF_ALT_1_2=0.0
+GLOBAL REAL KF_IST_1_3=0.0
+GLOBAL REAL KF_ALT_1_3=0.0
+GLOBAL REAL KF_IST_1_4=0.0
+GLOBAL REAL KF_ALT_1_4=0.0
+GLOBAL REAL KF_IST_2_1=0.0
+GLOBAL REAL KF_ALT_2_1=0.0
+GLOBAL REAL KF_IST_3_1=0.0
+GLOBAL REAL KF_ALT_3_1=0.0
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Konfiguration Ein-Ausgaenge RSK
+;Roboter-Schrittkette
+GLOBAL INT F_RSK_Gst=321
+GLOBAL INT F_RSK_KF=322
+GLOBAL INT F_RSK_KS_R=323
+GLOBAL INT F_RSK_KS_A=324
+GLOBAL INT F_RSK_Kraft=325
+GLOBAL INT F_RSK_Mess=326
+GLOBAL INT F_RSK_Kurz=327
+GLOBAL INT F_RSK_Vers=328
+GLOBAL INT F_RSK_Sammel=329
+; 
+GLOBAL INT O_RSK_F_KS=117
+GLOBAL INT O_RSK_F_KF=118
+GLOBAL INT O_RSK_F_Kurz=119
+GLOBAL INT O_RSK_F_Sammel=120
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Konfiguration Ein-Ausgaenge Kuehlwasser
+GLOBAL INT I_R_KW_vorh[3]
+I_R_KW_vorh[1]=513
+I_R_KW_vorh[2]=521
+I_R_KW_vorh[3]=529
+;ENDFOLD
+; 
+;***************************************************
+GLOBAL BOOL LZA_MitAbbruch=TRUE
+GLOBAL BOOL LZA_Deaktiviert=FALSE
+;Rueckgabewert fuer Verwendung von VECTORMOVEON() und VECTORMOVEOFF()
+DECL GLOBAL VMERROR ERROR=#VM_OK
+;Strategie, wird bei Benutzung im Programm und Manuell gleichermassen verwendet
+DECL GLOBAL VMSTRATEGY STRATEGY={REDUNDANCY #CART_CONST_ORI,SELECTION #DRIVE_BASED,CONTROL #DETECT_PULLING}
+;Direction, wird bei Benutzung im Programm und Manuell gleichermassen verwendet
+DECL GLOBAL VMDIRECTION DIRECTION={DIRECTIONCART {X 20.0000,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}}
+;Parameter fuer Vectormove, verwendet bei Benutzung aus Programm
+DECL GLOBAL VMPARAM PARAMS_PROG={LIMIT 15.0000,PROZ_EXPECTED 25.0000,TIME_EXPECTED 0.550000,MOVE_BACK_VEL 2.00000,MAX_DURATION 1000.00}
+;Parameter fuer Vectormove, verwendet bei Benutzung manuell
+DECL GLOBAL VMPARAM PARAMS_MAN={LIMIT 15.0000,PROZ_EXPECTED 25.0000,TIME_EXPECTED 0.550000,MOVE_BACK_VEL 1.00000,MAX_DURATION 1000.00}
+; 
+;Anfangswert der Grenze fuer Erkennung von "Ziehen" mittels Vel-Lag. Im Normalfall negativer Wert welcher zum Endwert linear interpoliert wird.
+GLOBAL REAL _VelLagThresholdBegin=-40.0000
+;Wert der Grenze fuer Erkennung von "Ziehen" mittels Vel-Lag am Ende der aktiven Bewegung. Im Normalfall weniger negativ als der Anfangswert.
+GLOBAL REAL _VelLagThresholdEnd=-20.0000
+;Zeit fuer Entwicklung von TrqAvg -> TrqAtPull in s
+GLOBAL REAL _TrqPullTimeFactor=0.300000
+;Faktor fuer Entwicklung von TrqAvg -> TrqAtPull
+GLOBAL REAL _TrqPullDeltaFactor=1.50000
+;Zeitoffset fuer Ziehen-Erkennung nach Start in s
+GLOBAL REAL _VMVMasterDetectStart=0.150000
+;Zeitoffset fuer Bauteilberuehrung-Erkennung in s, muss kleiner sein als die eigentliche Verfahrzeit
+GLOBAL REAL _VMVContactStart=0.0
+;Faktor fuer Gewichtung des Momentenoffsets fuer die Erkennungsgrenze der Bauteilberuehrung
+GLOBAL REAL _VMVTrqContactFactor=0.0
+;Merker Konfigurationsparameter l_xxx heisst last xxx
+GLOBAL REAL l_VelLagThresholdBegin
+GLOBAL REAL l_VelLagThresholdEnd
+GLOBAL REAL l_TrqPullTimeFactor
+GLOBAL REAL l_TrqPullDeltaFactor
+GLOBAL REAL l_VMVMasterDetectStart
+GLOBAL REAL l_VMVContactStart
+GLOBAL REAL l_VMVTrqContactFactor
+;damit die Funktionen ohne Probleme am Office ohne NG getestet werden koennen
+GLOBAL BOOL VMV_Office_Sim=FALSE
+; 
+;EZ
+GLOBAL INT EZ_C_PRG_TimeDefault=400 ;EZ C-Zange Parameter fuer Programmablauf
+GLOBAL INT EZ_C_PRG_DistanceDefault=30 ;EZ C-Zange Parameter fuer Programmablauf
+GLOBAL INT EZ_C_MAN_TimeDefault=700 ;EZ C-Zange Parameter fuer Handfunktionen
+GLOBAL INT EZ_C_MAN_DistanceDefault=30 ;EZ C-Zange Parameter fuer Handfunktionen
+GLOBAL INT EZ_X_PRG_TimeDefault=400 ;EZ X-Zange Parameter fuer Programmablauf
+GLOBAL INT EZ_X_PRG_DistanceDefault=30 ;EZ X-Zange Parameter fuer Programmablauf
+GLOBAL INT EZ_X_MAN_TimeDefault=700 ;EZ X-Zange Parameter fuer Handfunktionen
+GLOBAL INT EZ_X_MAN_DistanceDefault=30 ;EZ X-Zange Parameter fuer Handfunktionen
+;SP
+GLOBAL INT SP_C_PRG_TimeDefault=300 ;SP C-Zange Parameter fuer Programmablauf
+GLOBAL INT SP_C_PRG_DistanceDefault=30 ;SP C-Zange Parameter fuer Programmablauf
+GLOBAL INT SP_C_MAN_TimeDefault=700 ;SP C-Zange Parameter fuer Handfunktionen
+GLOBAL INT SP_C_MAN_DistanceDefault=30 ;SP C-Zange Parameter fuer Handfunktionen
+GLOBAL INT SP_X_PRG_TimeDefault=300 ;SP X-Zange Parameter fuer Programmablauf
+GLOBAL INT SP_X_PRG_DistanceDefault=30 ;SP X-Zange Parameter fuer Programmablauf
+GLOBAL INT SP_X_MAN_TimeDefault=700 ;SP X-Zange Parameter fuer Handfunktionen
+GLOBAL INT SP_X_MAN_DistanceDefault=30 ;SP X-Zange Parameter fuer Handfunktionen
+; 
+GLOBAL INT HM_PROZ_EXPECTED=0
+GLOBAL INT C_DefaultArmDurchbiegung=3
+GLOBAL INT X_DefaultArmDurchbiegung=5
+; 
+GLOBAL ENUM _ZangenAntrieb EZ,SP,undefiniert
+DECL GLOBAL _ZangenAntrieb ZangenAntrieb
+GLOBAL ENUM _ZangenTyp C_Zange,X_Zange,undefiniert
+DECL GLOBAL _ZangenTyp ZangenTyp
+; 
+;***************************************************
+;FOLD RIP 1
+GLOBAL INT I_RIP_Sensor=516
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM SZS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_SZS_Handle[100]
+GLOBAL INT n_SZR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

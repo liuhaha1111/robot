@@ -1,0 +1,184 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/OE_Objekterkennung
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_OE_USR_R( )
+;
+;***************************************************
+;*Technologiepaket OE Objekterkennungssensor       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD OE_Interface
+GLOBAL DEF OE_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+INT RobTimerStart
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+;
+    IF NOT $IN[OE_BASE_SL[PAR1]+I_OE_o_Proz] AND NOT $IN[I_FT_o_BT] THEN
+      SO_SPS_Proz_Nr=PAR2
+      SO_OE1_Prg_Nr=PAR2
+      WAIT SEC 0.1
+      $OUT[OE_BASE_SL[PAR1]+O_OE_Proz_ak]=TRUE
+      OE_Wiederholung:
+      RobTimerStart=$Rob_Timer
+      WAIT FOR (($IN[OE_BASE_MA[PAR1]+I_OE_Bereit] AND NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND NOT $IN[I_R_Quit_St]) OR (($Rob_Timer-RobTimerStart)>5000))
+      IF NOT $IN[OE_BASE_MA[PAR1]+I_OE_Bereit] OR $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] THEN
+        $OUT[OE_BASE_SL[PAR1]+O_OE_Sammel]=TRUE
+        OE_Msg(1,#NotifyMsg)
+        WAIT FOR ($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei])
+        IF $IN[I_R_Quit_St] THEN
+          GOTO OE_Wiederholung
+        ELSE
+          GOTO Ende
+        ENDIF
+      ELSE
+        $OUT[OE_BASE_SL[PAR1]+O_OE_Sammel]=FALSE
+      ENDIF
+      IF NOT $OUT[OE_BASE_SL[PAR1]+O_OE_Sammel] THEN
+        $OUT[OE_BASE_MA[PAR1]+O_OE_StartMessen]=TRUE ;Start Messung
+        RobTimerStart=$Rob_Timer
+        WAIT FOR (($IN[OE_BASE_MA[PAR1]+I_OE_Bereit] AND $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO]) OR (($Rob_Timer-RobTimerStart)>5000))
+        IF (PAR1==1) THEN
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess1niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE1_Prg_Nr==1) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess2niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE1_Prg_Nr==2) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess3niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE1_Prg_Nr==3) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess4niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE1_Prg_Nr==4) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_MA[PAR1]+O_OE_StartMessen]=FALSE
+        ENDIF
+        IF (PAR1==2) THEN
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess1niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE2_Prg_Nr==1) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess2niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE2_Prg_Nr==2) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess3niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE2_Prg_Nr==3) AND (($Rob_Timer-RobTimerStart)>5000)
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Mess4niO]=NOT $IN[OE_BASE_MA[PAR1]+I_OE_MesseniO] AND (SO_OE2_Prg_Nr==4) AND (($Rob_Timer-RobTimerStart)>5000)
+        ENDIF
+        IF (($Rob_Timer-RobTimerStart)>5000) THEN
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Sammel]=TRUE
+          IF (PAR2==1) THEN
+            OE_Msg(2,#NotifyMsg)
+          ENDIF
+          IF (PAR2==2) THEN
+            OE_Msg(3,#NotifyMsg)
+          ENDIF
+          IF (PAR2==3) THEN
+            OE_Msg(4,#NotifyMsg)
+          ENDIF
+          IF (PAR2==4) THEN
+            OE_Msg(5,#NotifyMsg)
+          ENDIF
+          WAIT FOR ($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei])
+          IF $IN[I_R_Quit_St] THEN
+            GOTO OE_Wiederholung
+          ELSE
+            GOTO Ende
+          ENDIF
+        ELSE
+          $OUT[OE_BASE_SL[PAR1]+O_OE_Sammel]=FALSE
+        ENDIF
+      ELSE
+        OE_Msg(2,#NotifyMsg)
+        WAIT FOR ($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei])
+        IF $IN[I_R_Quit_St] THEN
+          GOTO OE_Wiederholung
+        ELSE
+          GOTO Ende
+        ENDIF
+      ENDIF
+      Ende:
+    ENDIF
+;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;  
+  ENDSWITCH
+END
+;
+;ENDFOLD (OE Interface)
+;
+;***************************************************
+;FOLD OE_Meldungen
+DEF OE_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL OER_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "OE_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_OER_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="OE Sensor nicht Bereit, Wiederholung [E26] oder Weiter [E27]"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="OE Messung Modell Nr1 n.i.O., Wiederholung [E26] oder Weiter [E27]"
+    CASE 3
+      USER_MSG.MSG_TXT[]="OE Messung Modell Nr2 n.i.O., Wiederholung [E26] oder Weiter [E27]"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="OE Messung Modell Nr3 n.i.O., Wiederholung [E26] oder Weiter [E27]"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="OE Messung Modell Nr4 n.i.O., Wiederholung [E26] oder Weiter [E27]"     
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_OER_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_OER_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_OER_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_OER_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_OER_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (OE Meldungen)
+

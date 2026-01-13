@@ -1,0 +1,48 @@
+&ACCESS RVO1
+&REL 5
+&COMMENT Tech-Konfigurationen
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM DISKPATH = Makros
+DEFFCT INT MAKRO57(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Diverse  Anwahlen -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Diverse  Anwahlen --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD TECH2 Alle Konfigurationen=zuruecksetzen Techaufruf=EIN ;%{E}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH2.Alle CN=201 P1=2100 P2=0 P3=0 P4=0 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN, 3: USER
+      VW_USR_R(#USR_MAKRO,201,2100,0,0,0,0,0,0,0,0,TRUE)
+   ;ENDFOLD
+   ;FOLD TECH4 Ventilinsel Ausfuehrung=Rueckm. Steuerluft vorh. Greifer-Ventilinsel Nr1=vorhanden Greifer-Ventilinsel Nr2=nicht vorhanden Greifer-Ventilinsel Nr3=nicht vorhanden Saugkreise=mit Abblasen ND-Abfrage an Greifer-Ventilinsel=Nr1 nicht vorhanden Slave-Startadresse=vordefiniert Techaufruf=EIN ;%{E}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.Ventilinsel CN=404 P1=4402 P2=2 P3=1 P4=1 P5=1 P6=1 P7=1 P8=1 P9=0 P10=EIN, 3: USER
+      VW_USR_R(#USR_MAKRO,404,4402,2,1,1,1,1,1,1,0,TRUE)
+   ;ENDFOLD
+   ;FOLD TECH4 Roboter Konfiguration Palettier-Modus=AUS Erw.Suchlauf=EIN Anbindung Digitaler Zwilling=EIN Techaufruf=EIN ;%{E}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.Roboter CN=408 P1=4801 P2=1 P3=2 P4=1 P5=1 P6=1 P7=1 P8=1 P9=1 P10=EIN, 3: USER
+      VW_USR_R(#USR_MAKRO,408,4801,1,2,1,1,1,1,1,1,TRUE)
+   ;ENDFOLD
+   ;FOLD TECH4 LM Steuerung=Cam1 KG-XML 2-Port Kommunikation Relativ Base Slave-Startadresse=vordefiniert Techaufruf=EIN ;%{E}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.LM CN=403 P1=4301 P2=1 P3=2 P4=1 P5=1 P6=1 P7=1 P8=1 P9=0 P10=EIN, 3: USER
+      VW_USR_R(#USR_MAKRO,403,4301,1,2,1,1,1,1,1,0,TRUE)
+   ;ENDFOLD
+   ;FOLD F840 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F840 = EIN, 3: BOASG
+      $FLAG[840] = TRUE
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 1
+   ENDIF
+ENDFCT
+; ENDFOLD

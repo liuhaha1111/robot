@@ -1,0 +1,73 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SR_Schrauben
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_sr_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket SR Schrauben                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_SR CHAR Name[20],INT Datum
+DECL _Tech_SR Tech_SR
+;ENDFOLD
+; 
+;***************************************************
+;FOLD SR
+;VARIABLEN INTEGER
+GLOBAL INT Default_SR_BASE_SL[4]
+Default_SR_BASE_SL[1]=193
+Default_SR_BASE_SL[2]=201
+Default_SR_BASE_SL[3]=209
+Default_SR_BASE_SL[4]=217
+GLOBAL INT CF_SR_BASE_SL[4]
+CF_SR_BASE_SL[1]=449
+CF_SR_BASE_SL[2]=449
+CF_SR_BASE_SL[3]=449
+CF_SR_BASE_SL[4]=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_SR=FALSE
+;SK SLAVE ADRESSIERUNG
+GLOBAL INT SR_BASE_SL[4] ;SK Indirekte Slave Adressen
+SR_BASE_SL[1]=449
+SR_BASE_SL[2]=449
+SR_BASE_SL[3]=449
+SR_BASE_SL[4]=449
+;SK Slave Eingaenge
+GLOBAL INT I_SR_o_Proz=0 ;indirekt adressiert
+;SK Slave Ausgaenge
+GLOBAL INT O_SR_VSZF=1 ;indirekt adressiert
+GLOBAL INT O_SR_SZFle=2 ;indirekt adressiert
+;SK MASTER ADRESSIERUNG
+GLOBAL INT SR_BASE_MA[4] ;SK Indirekte Master Adressen
+SR_BASE_MA[1]=2209
+SR_BASE_MA[2]=2225
+SR_BASE_MA[3]=2241
+SR_BASE_MA[4]=2257
+;SK Master Eingaenge
+GLOBAL INT I_SR_VSZF=5 ;2214,2230,2246,2262
+GLOBAL INT I_SR_SZFle=6 ;2215,2231,2247,2263
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM SRS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_SRS_Handle[100]
+GLOBAL INT n_SRR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

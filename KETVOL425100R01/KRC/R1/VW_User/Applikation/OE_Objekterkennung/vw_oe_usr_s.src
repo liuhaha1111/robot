@@ -1,0 +1,206 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/OE_Objekterkennung
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_OE_USR_S( )
+;
+;***************************************************
+;*Technologiepaket OE Objekterkennungssensor       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT OE 
+GLOBAL DEF OE_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_OE.Name[]="KS26.01.000_20170424"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_OES_Handle[i]=-1
+  n_OER_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD OE BASE ADRESSEN INITIALISIEREN
+OE_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW OE 
+GLOBAL DEF OE_SAW(OENr: IN)
+INT i,OENr
+;
+FOR i=1 TO 2
+  $OUT[OE_BASE_MA[i]+O_OE_StartMessen]=FALSE
+ENDFOR
+;
+FOR i=1 TO 4
+  $OUT[OE_BASE_SL[1]+O_OE_Mess_niO[i]]=FALSE
+  $OUT[OE_BASE_SL[2]+O_OE_Mess_niO[i]]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET OE 
+GLOBAL DEF OE_RESET(OENr: IN)
+INT i,OENr
+;
+FOR i=1 TO 2
+  $OUT[OE_BASE_MA[i]+O_OE_StartMessen]=FALSE
+ENDFOR
+;
+FOR i=1 TO 4
+  $OUT[OE_BASE_SL[1]+O_OE_Mess_niO[i]]=FALSE
+  $OUT[OE_BASE_SL[2]+O_OE_Mess_niO[i]]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL OE 
+GLOBAL DEF OE_CANCEL(OENr: IN)
+INT i,OENr
+;
+FOR i=1 TO 2
+  $OUT[OE_BASE_MA[i]+O_OE_StartMessen]=FALSE
+ENDFOR
+;
+FOR i=1 TO 4
+  $OUT[OE_BASE_SL[1]+O_OE_Mess_niO[i]]=FALSE
+  $OUT[OE_BASE_SL[2]+O_OE_Mess_niO[i]]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP OE 
+GLOBAL DEF OE_LOOP(OENr: IN)
+BOOL bRet
+INT i,OENr
+;
+;FOLD OE BASE ADRESSEN INITIALISIEREN
+OE_BASE_INIT( )
+;ENDFOLD
+;
+IF (OE_BASE_SL[OENr]==HM_BASE_SL) THEN
+  OE_Msg((OENr+3),#StateMsg)
+ELSE
+  IF (n_OES_Handle[OENr+3]>-1) THEN
+    bRet=Clear_KrlMsg(n_OES_Handle[OENr+3])
+    n_OES_Handle[OENr+3]=-1
+  ENDIF
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD OE_BASE_INIT
+DEF OE_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;OE SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_OE_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_OE_BASE_SL[1]=HM_BASE_SL
+  OE_BASE_SL[1]=HM_BASE_SL
+ELSE
+  OE_BASE_SL[1]=CF_OE_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_OE_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_OE_BASE_SL[2]=HM_BASE_SL
+  OE_BASE_SL[2]=HM_BASE_SL
+ELSE
+  OE_BASE_SL[2]=CF_OE_BASE_SL[2]
+ENDIF
+;
+;OE MASTER ADRESSIERUNG
+OE_BASE_MA[1]=2737                             
+OE_BASE_MA[2]=2741
+;
+END
+;ENDFOLD (OE_BASE_INIT)
+;
+;***************************************************
+;FOLD OE_Meldungen
+DEF OE_Msg(msg_nr :IN, MsgTyp :IN, OENr :IN)
+INT msg_nr, OENr, Answer
+DECL OES_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "OE_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("OENr")==#initialized then
+  SWITCH OENr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_OES_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="OE1: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="OE2: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_OES_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_OES_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_OES_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_OES_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (OE Meldungen)

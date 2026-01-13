@@ -1,0 +1,143 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/FD_Flowdrill
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_fd_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket FD Flowdrill                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_FD CHAR Name[20],INT Datum
+DECL _Tech_FD Tech_FD
+;ENDFOLD
+; 
+;***************************************************
+;FOLD FD
+GLOBAL BOOL MIT_FD[2]
+MIT_FD[1]=FALSE
+MIT_FD[2]=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT Default_FD_BASE_SL[2]
+Default_FD_BASE_SL[1]=209
+Default_FD_BASE_SL[2]=161
+GLOBAL INT CF_FD_BASE_SL[2]
+CF_FD_BASE_SL[1]=449
+CF_FD_BASE_SL[2]=449
+;VARIABLEN BOOL
+GLOBAL BOOL B_FD_Hilf[2]
+B_FD_Hilf[1]=FALSE
+B_FD_Hilf[2]=FALSE
+;FLAGS
+GLOBAL INT F_FD_Z_def[2]
+F_FD_Z_def[1]=675
+F_FD_Z_def[2]=685
+GLOBAL INT F_FD_null[2]
+F_FD_null[1]=671
+F_FD_null[2]=681
+GLOBAL INT F_FD1_BMS_ANW_Z[4]
+F_FD1_BMS_ANW_Z[1]=557
+F_FD1_BMS_ANW_Z[2]=558
+F_FD1_BMS_ANW_Z[3]=559
+F_FD1_BMS_ANW_Z[4]=560
+GLOBAL INT F_FD2_BMS_ANW_Z[1]
+F_FD2_BMS_ANW_Z[1]=561
+;SZ SLAVE ADRESSIERUNG
+GLOBAL INT FD_BASE_SL[2] ;FD Indirekte Slave Adressen
+FD_BASE_SL[1]=449
+FD_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_FD_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_FD_null=2 ;indirekt adressiert
+GLOBAL INT I_FD_anw_Z[4]
+I_FD_anw_Z[1]=3
+I_FD_anw_Z[2]=4
+I_FD_anw_Z[3]=5
+I_FD_anw_Z[4]=6
+;Slave Ausgaenge
+GLOBAL INT O_FD_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_FD_Pr_ni=2 ;indirekt adressiert
+GLOBAL INT O_FD_VW=7 ;indirekt adressiert
+GLOBAL INT O_FD_Warn=8 ;indirekt adressiert
+GLOBAL INT O_FD_def=9 ;indirekt adressiert
+GLOBAL INT O_FD_Phase=12 ;indirekt adressiert
+GLOBAL INT O_FD_SBe_f=13 ;indirekt adressiert
+GLOBAL INT O_FD_Ber_f=14 ;indirekt adressiert
+GLOBAL INT O_FD_Samme=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT FD_BASE_MA[2] ;FD Indirekte Master Adressen
+FD_BASE_MA[1]=2369
+FD_BASE_MA[2]=2433
+;Master Eingaenge
+GLOBAL INT I_FD_Berei=0 ;2369,2433
+GLOBAL INT I_FD_m_Pro=2 ;2371,2435
+GLOBAL INT I_FD_LBit=3 ;2372,2436
+GLOBAL INT I_FD_Hand=4 ;2373,2437
+GLOBAL INT I_FD_Auto=5 ;2374,2438
+GLOBAL INT I_FD_Phase=6 ;2375,2439
+GLOBAL INT I_FD_Grund=7 ;2376,2440
+GLOBAL INT I_FD_StBer=8 ;2377,2441
+GLOBAL INT I_FD_FK=9 ;2378,2442
+GLOBAL INT I_FD_Pr_iO=10 ;2379,2443
+GLOBAL INT I_FD_Pr_ni=11 ;2380,2444
+GLOBAL INT I_FD_Warn=12 ;2381,2445
+GLOBAL INT I_FD_S_aus=13 ;2382,2446
+GLOBAL INT I_FD_Fuell=14 ;2383,2447
+GLOBAL INT I_FD_Ni_ei=15 ;2384,2448
+GLOBAL INT I_FD_H_Luf=16 ;2385,2449
+GLOBAL INT I_FD_Samme=21 ;2390,2454
+GLOBAL INT I_FD_verbu=22 ;2391,2455
+GLOBAL INT I_FD_getre=23 ;2392,2456
+;Master Ausgaenge
+GLOBAL INT O_FD_Reset=0 ;2369,2433
+GLOBAL INT O_FD_o_Pro=2 ;2371,2435
+GLOBAL INT O_FD_LBit=3 ;2372,2436
+GLOBAL INT O_FD_Hand=4 ;2373,2437
+GLOBAL INT O_FD_Auto=5 ;2374,2438
+GLOBAL INT O_FD_Start=8 ;2377,2441
+GLOBAL INT O_FD_Null=12 ;2381,2445
+GLOBAL INT O_FD_S_aus=13 ;2382,2446
+GLOBAL INT O_FD_Drehr=14 ;2383,2447
+GLOBAL INT O_FD_Ni_ei=15 ;2384,2448
+GLOBAL INT O_FD_H_Luf=16 ;2385,2449
+GLOBAL INT O_FD_verbi=22 ;2391,2455
+GLOBAL INT O_FD_trenn=23 ;2392,2456
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit FD
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL FD_LBitFeh[2]
+FD_LBitFeh[1]=FALSE
+FD_LBitFeh[2]=FALSE
+; 
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrFDNr=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM FD_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_FDS_Handle[100]
+GLOBAL INT n_FDR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

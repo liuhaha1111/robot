@@ -1,0 +1,65 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/RE_Wischkopf
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_re_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket RE Wischkopf                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;FOLD Version Techpaket
+STRUC _Tech_RE CHAR Name[20],INT Datum
+DECL _Tech_RE Tech_RE
+;ENDFOLD
+; 
+;FOLD RE
+;VARIABLEN INTEGER
+GLOBAL INT Default_RE_BASE_SL=137
+GLOBAL INT CF_RE_BASE_SL=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_RE=FALSE
+GLOBAL BOOL B_RE_Hilf=FALSE
+;FLAGS
+GLOBAL INT F_RE_Sammel=811
+;RE SLAVE ADRESSIERUNG
+GLOBAL INT RE_BASE_SL=449 ;RE Indirekte Slave Adressen
+;Slave Eingaenge
+GLOBAL INT I_RE_o_Proz=0
+;Slave Ausgaenge
+GLOBAL INT O_RE_o_Proz=0
+GLOBAL INT O_RE_VBE=3
+GLOBAL INT O_RE_Bereit=5
+GLOBAL INT O_RE_BE=6
+GLOBAL INT O_RE_Sammel=7
+;RE SLAVE ADRESSIERUNG
+GLOBAL INT RE_BASE_MA=1929 ;RE Indirekte Master Adressen
+;Master Eingaenge
+GLOBAL INT I_RE_Bereit=0 ;1929
+GLOBAL INT I_RE_Takt=1 ;1930
+GLOBAL INT I_RE_Stoer=2 ;1931
+GLOBAL INT I_RE_VBE=3 ;1932
+GLOBAL INT I_RE_BiO=4 ;1933
+;Master Ausgaenge
+GLOBAL INT O_RE_Takt=1 ;1930
+;ENDFOLD
+; 
+;FOLD Meldungsausgabe
+ENUM RES_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_RES_Handle[100]
+GLOBAL INT n_RER_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT
+

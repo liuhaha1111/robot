@@ -1,0 +1,33 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/POT_Prozess-ohne-Teil
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_POT_USR_R PUBLIC
+; 
+;***************************************************
+;*Technologiepaket POT Produktion ohne Teil        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2014.09.11 CE                                   *
+;*                                                 *
+;* Aenderungsjournal                               *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD POT
+;
+;
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM POTR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

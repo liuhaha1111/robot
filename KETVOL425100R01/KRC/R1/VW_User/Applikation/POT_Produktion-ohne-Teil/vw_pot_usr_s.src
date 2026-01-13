@@ -1,0 +1,114 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/POT_Prozess-ohne-Teil
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_POT_USR_S( )
+;
+;***************************************************
+;*Technologiepaket POT Produktion ohne Teil        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT POT 
+GLOBAL DEF POT_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_POT.Name[]="KS26.01.000_20190121"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_POTS_Handle[i]=-1
+  n_POTR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+END
+;
+;***************************************************
+;FOLD SAW POT 
+GLOBAL DEF POT_SAW( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET POT 
+GLOBAL DEF POT_RESET( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL POT 
+GLOBAL DEF POT_CANCEL( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP POT
+GLOBAL DEF POT_LOOP( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD POT Meldungen
+DEF POT_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Answer
+DECL POTS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+BOOL Result
+;
+USER_MSG = { Modul[] "POT_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset FALSE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_POTS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+    n_POTS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+    n_POTS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+    n_POTS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+    n_POTS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (POT Meldungen)

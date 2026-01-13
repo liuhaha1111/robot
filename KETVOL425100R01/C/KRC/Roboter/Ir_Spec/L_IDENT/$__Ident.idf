@@ -1,0 +1,26 @@
+;Produced at: 2/14/2021
+;                     23:09:03
+;
+;Type           : fast calculation
+;
+;Comment    :
+;
+-174 ;min. A1
+-174 ;max. A1
+-112 ;min. A2
+-112 ;max. A2
+109 ;min. A3
+113 ;max. A3
+0 ;min. A4
+0 ;max. A4
+-40 ;min. A5
+40 ;max. A5
+-60 ;min. A6
+60 ;max. A6
+100 ;Mass [kg]
+1 ;Periods
+RobotType: #KR210R3100 ULTRA C4 FLR
+ToolType: 100
+MassIdentification: true
+Warm-Up: false
+Additional Load:  {M 50;CM {X -400;Y 0;Z -1540;A 0;B 0;C 0};J {X 10;Y 10;Z 10}}

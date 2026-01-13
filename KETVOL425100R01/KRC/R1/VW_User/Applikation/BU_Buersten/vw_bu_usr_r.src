@@ -1,0 +1,610 @@
+&ACCESS RV1
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/BU_Buersten
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_BU_USR_R( )
+;
+;***************************************************
+;*Technologiepaket Buersten                        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD BU Motor Interface
+GLOBAL DEF BU_M_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT I
+;
+;***************************************************
+;
+SWITCH USER_CMD
+;
+;***************************************************
+;
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+;
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    IF $IN[BU_BASE_SL+I_BU_o_Proz] THEN
+      CONTINUE
+      $FLAG[F_o_Proz_BMS]=TRUE
+    ELSE
+      CONTINUE
+      $FLAG[F_o_Proz_BMS]=FALSE
+    ENDIF
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+;
+  CASE #USR_TRIG
+    ;FOLD Trig
+    IF $IN[BU_BASE_SL+I_BU_o_Proz] THEN
+      $FLAG[F_o_Proz_BMS]=TRUE
+    ELSE
+      $FLAG[F_o_Proz_BMS]=FALSE
+    ENDIF
+    ;Drehzahl-Ermittlung
+    IF (PAR1==1) THEN
+      SWITCH PAR2
+        CASE 1,2
+          BU_Result=PAR3
+          CONTINUE
+          FOR I=1 TO 10
+            IF (BU_Verschleiss>PROCPAR[BU_Schwellwert+I]) AND (PROCPAR[BU_Schwellwert]>0) AND (PROCPAR[BU_Erhoehung+I]>0 )THEN
+              BU_Result=(PAR3+PROCPAR[BU_Erhoehung+I])
+            ENDIF  
+          ENDFOR  
+          WHILE (BU_Result>100)
+            BU_Msg (8,#QuitMsg) ;Wert fuer Drehzahl ungueltig
+          ENDWHILE  
+      ENDSWITCH     
+      ;Drehzahl-Ausgabe
+      SWITCH PAR2
+        CASE 1
+          IF (BU_Result>0) THEN
+            CONTINUE
+            BU_Drehzahl=((BU_Result*16384)/100)
+          ELSE
+            CONTINUE
+            BU_Drehzahl=0
+          ENDIF  
+        CASE 2
+          IF (BU_Result>0) THEN
+            CONTINUE
+            BU_Drehzahl=((BU_Result*16384)/100)+32768 
+          ELSE
+            CONTINUE
+            BU_Drehzahl=0  
+          ENDIF  
+      ENDSWITCH
+    ENDIF
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+;
+  CASE #USR_MAIN
+    ;FOLD Main
+    SWITCH PAR1
+      CASE 1
+      CASE 2 ; Initialisierung der Variablen
+        TOOL_NR=PAR6
+        MessInit ()	
+      CASE 3 ;Referenzfahrt
+        Referenzfahrt=TRUE
+        SUCH_WEG=PAR5	
+        TOOL_NR=PAR6
+        Messfahrt ()
+      CASE 4 ;Messfahrt
+        Referenzfahrt=FALSE
+        SUCH_WEG=PAR5
+        TOOL_NR=PAR6
+        Messfahrt ()
+        ;Lichtschranke hat nicht geschaltet
+        IF (Messfehler==TRUE) THEN
+          BU_Msg (7,#QuitMsg)
+        ELSE
+          ;Vorwarnung Scheibe verschlissen
+          IF (DELTA>BU_Vw_Standmenge) THEN
+            $OUT[BU_BASE_SL+O_BU_Vw_Standmenge]=TRUE
+          ENDIF  
+          IF (DELTA>BU_max_Standmenge) THEN
+            TOOL_DATA[TOOL_NR]=TOOL_SAVE[TOOL_NR]
+            ;Fehlerausgang an SPS
+            $OUT[BU_BASE_SL+O_BU_max_Standmenge]=TRUE
+            ;Meldung Abweichung zu groß
+            BU_Msg (9,#NotifyMsg)
+          ELSE
+            KORR_NEW_BU=$NULLFRAME
+            BU_TOOL_NEW=$NULLFRAME
+            ;Delta Z wird fuer die Korrektur in TOOL X verwendet
+            KORR_NEW_BU.X=(MESSUNG[TOOL_NR].Z-Einfederweg_TCP) ;Tool-Korrektur da Kopf am Bauteil eingefedert Default=20mm
+            BU_TOOL_NEW=TOOL_SAVE[TOOL_NR]:KORR_NEW_BU
+            TOOL_DATA[TOOL_NR]=BU_TOOL_NEW
+            BU_Verschleiss=DELTA
+            ;Meldung Korrektur durchgeführt
+            IF NOT $EXT THEN
+              BU_Msg (2,#NotifyMsg) ;Programmverschiebung aktiv
+            ENDIF  
+          ENDIF
+        ENDIF
+    ENDSWITCH  
+    ;ENDFOLD (Main)
+;
+;***************************************************
+;
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    PROCPAR[BU_Schwellwert+PAR1]=PAR2  
+    PROCPAR[BU_Erhoehung+PAR1]=PAR3  
+    ;ENDFOLD (Makro)    
+;
+ENDSWITCH
+END
+;
+;ENDFOLD (BU Motor Interface)
+;
+;***************************************************
+;FOLD BU Motor Interface
+GLOBAL DEF BU_ACF_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT I
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    SWITCH PAR1
+    ;
+      CASE 1 ;ACF110 10Kg
+        ACF110=TRUE
+        ACF111=FALSE
+        ACF12x=FALSE
+        ACF131=FALSE
+        CONTINUE
+        WHILE ((PAR2<0) OR (PAR2>10000)) 
+          BU_Msg(11,#QuitMsg) ;Wert fuer PAR2 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Traglast=(PAR2*0.01)
+        CONTINUE
+        ACF_Result_1=PAR2 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR3<0) OR (PAR3>100)) 
+          BU_Msg(16,#QuitMsg) ;Wert fuer PAR3 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Antastkraft=PAR3
+        CONTINUE
+        ACF_Result_2=PAR3 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR4<0) OR (PAR4>100)) 
+          BU_Msg(17,#QuitMsg) ;Wert fuer PAR4 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE    
+        SO_ACF_Arbeitskraft=PAR4
+        CONTINUE
+        ACF_Result_3=PAR4 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR5<0) OR (PAR5>10000)) 
+          BU_Msg(18,#QuitMsg) ;Wert fuer PAR5 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Kraftrampe=(PAR5/100)
+        CONTINUE
+        ACF_Result_4=PAR5 ; Darstellung config.mon
+        ;
+      CASE 2 ;ACF111 20Kg
+        ACF110=FALSE
+        ACF111=TRUE
+        ACF12x=FALSE
+        ACF131=FALSE
+        CONTINUE
+        WHILE ((PAR2<0) OR (PAR2>20000)) 
+          BU_Msg(12,#QuitMsg) ;Wert fuer PAR2 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Traglast=(PAR2*0.01)
+        CONTINUE
+        ACF_Result_1=PAR2 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR3<0) OR (PAR3>200))  
+          BU_Msg(16,#QuitMsg) ;Wert fuer PAR3 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Antastkraft=PAR3
+        CONTINUE
+        ACF_Result_2=PAR3 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR4<0) OR (PAR4>200))
+          BU_Msg(17,#QuitMsg) ;Wert fuer PAR4 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Arbeitskraft=PAR4
+        CONTINUE
+        ACF_Result_3=PAR4 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR5<0) OR (PAR5>10000)) 
+          BU_Msg(18,#QuitMsg) ;Wert fuer PAR5 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Kraftrampe=(PAR5/100)
+        CONTINUE
+        ACF_Result_4=PAR5 ; Darstellung config.mon
+        ;
+      CASE 3,4 ;ACF120 50Kg/ACF121 50Kg
+        ACF110=FALSE
+        ACF111=FALSE
+        ACF12x=TRUE
+        ACF131=FALSE
+        CONTINUE
+        WHILE ((PAR2<0) OR (PAR2>50000)) 
+          BU_Msg(13,#QuitMsg) ;Wert fuer PAR2 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Traglast=(PAR2*0.01)
+        CONTINUE
+        ACF_Result_1=PAR2 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR3<0) OR (PAR3>500))  
+          BU_Msg(16,#QuitMsg) ;Wert fuer PAR3 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Antastkraft=PAR3
+        CONTINUE
+        ACF_Result_2=PAR3 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR4<0) OR (PAR4>500)) 
+          BU_Msg(17,#QuitMsg) ;Wert fuer PAR4 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Arbeitskraft=PAR4
+        CONTINUE
+        ACF_Result_3=PAR4 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR5<0) OR (PAR5>10000)) 
+          BU_Msg(18,#QuitMsg) ;Wert fuer PAR5 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Kraftrampe=(PAR5/100)
+        CONTINUE
+        ACF_Result_4=PAR5 ; Darstellung config.mon
+        ;
+      CASE 5 ;ACF131 80Kg
+        ACF110=FALSE
+        ACF111=FALSE
+        ACF12x=FALSE
+        ACF131=TRUE
+        CONTINUE
+        WHILE ((PAR2<0) OR (PAR2>80000)) 
+          BU_Msg(15,#QuitMsg) ;Wert fuer PAR1 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Traglast=(PAR2*0.01)
+        CONTINUE
+        ACF_Result_1=PAR2 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR3<0) OR (PAR3>800)) 
+          BU_Msg(16,#QuitMsg) ;Wert fuer PAR3 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Antastkraft=PAR3
+        CONTINUE
+        ACF_Result_2=PAR3 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR4<0) OR (PAR4>800)) 
+          BU_Msg(17,#QuitMsg) ;Wert fuer PAR4 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Arbeitskraft=PAR4
+        CONTINUE
+        ACF_Result_3=PAR4 ; Darstellung config.mon
+        CONTINUE
+        WHILE ((PAR5<0) OR (PAR5>10000)) 
+          BU_Msg(18,#QuitMsg) ;Wert fuer PAR5 nicht im gueltigen Bereich
+        ENDWHILE
+        CONTINUE
+        SO_ACF_Kraftrampe=(PAR5/100)
+        CONTINUE
+        ACF_Result_4=PAR5 ; Darstellung config.mon
+;
+        DEFAULT    ;SWITCH CMD_SEL
+        BU_Msg(20,#QuitMsg) ;P1 falscher Wert
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    PROCPAR[BU_Schwellwert+PAR1]=PAR2  
+    PROCPAR[BU_Erhoehung+PAR1]=PAR3  
+    ;ENDFOLD (Makro)    
+;
+ENDSWITCH
+END
+;
+;ENDFOLD (BU ACF Interface)
+;
+;***************************************************
+;FOLD MessInit
+DEF MessInit ()
+  INT I, Answer
+  ;Variablen zurücksetzen
+  DELTA=0.0
+  DELTA_Z=0.0
+  ;Ruecksetzen der Vorwarnung und Standmenge
+  $OUT[BU_BASE_SL+O_BU_max_Standmenge]=FALSE
+  $OUT[BU_BASE_SL+O_BU_Vw_Standmenge]=FALSE
+;
+  FOR I=1 TO 6
+    MESSUNG[I]=$NULLFRAME
+  ENDFOR
+;
+  KORR_NEW_BU=$NULLFRAME
+;
+  IF NOT $FLAG[F_BU_IBN] THEN
+    IF ((TOOL_SAVE[TOOL_NR].X<>0.0) OR (TOOL_SAVE[TOOL_NR].Y<>0.0) OR (TOOL_SAVE[TOOL_NR].Z<>0.0)) THEN
+      TOOL_DATA[TOOL_NR]=TOOL_SAVE[TOOL_NR]
+    ELSE
+      BU_Msg (5,#QuitMsg) ;Kein Referenzwerkzeug gelernt
+    ENDIF  
+  ELSE
+    TOOL_SAVE[TOOL_NR]=TOOL_DATA[TOOL_NR]
+  ENDIF
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Messfahrt
+DEF Messfahrt ()
+;
+DECL INT z,i, Answer
+DECL INT original_adv
+;
+Z=0
+I=0
+Messen_aktiv=TRUE
+;
+;SUCH_WEG auf mm angleichen
+SUCH_WEG=SUCH_WEG
+;
+original_adv=$advance
+ORG_POS=$NULLFRAME
+;
+BAS (#INITMOV,0 )
+$TOOL=TOOL_DATA[TOOL_NR]
+$ADVANCE=1
+$ACC.CP=2.3
+$VEL.CP=0.833
+$VEL.ORI1=200.0
+$VEL.ORI2=200.0
+$ACC.ORI1=100.0
+$ACC.ORI2=100.0
+;
+FOR I=1 TO  6
+  $ACC_AXIS[I]=50
+  $VEL_AXIS[I]=100
+ENDFOR
+I=0
+FOR I=1 TO  3
+  $ACC_EXTAX[I]=50
+  $VEL_EXTAX[I]=100
+ENDFOR
+;
+;Messwerte abnullen
+MESS_P_Z=0.0
+DELTA_Z=0.0
+;
+;Anfangspunkt merken
+ORG_POS=$POS_ACT
+MESS_POS=$NULLFRAME
+;
+;Kontrolle ob Messsensor i.o.
+IF $IN[I_ACF_Kontakt] THEN
+  Messfehler=TRUE
+  BU_Msg (6,#QuitMsg) ;Messsensor Kontrollieren
+ELSE
+  Messfehler=FALSE
+ENDIF 
+;
+;Interrupt initialisieren
+INTERRUPT DECL 12 WHEN $IN[I_ACF_Kontakt] DO MessPos( )
+;
+;Messposition bestimmen
+MESS_POS.Z=MESS_POS.Z-SUCH_WEG
+;
+LABEL1:
+INTERRUPT OFF 12
+Messfehler=FALSE
+Z=Z+1
+$ADVANCE=0
+;Interrupt einschalten
+INTERRUPT ON 12
+Messfehler=TRUE
+;
+BU_Movement()
+;
+;Zurueckpositionieren
+LIN ORG_POS 
+;Interrupt ausschalten
+INTERRUPT OFF 12
+;
+IF ((Messfehler==TRUE) AND (Z<2)) THEN
+  BU_Msg (7,#QuitMsg) ;Messsensor hat nicht geschaltet
+  GOTO LABEL1 ;Wiederholung
+ENDIF
+;
+;Referenzfahrt oder Messfahrt
+IF (Referenzfahrt==TRUE) THEN
+  IF (Messfehler==FALSE) THEN
+    TOOL_SAVE[TOOL_NR]=TOOL_DATA[TOOL_NR]
+    REF_1_P1[TOOL_NR].X=MESS_P_Z
+    BU_Msg (1,#NotifyMsg) ;Referenzfahrt wurde durchgefuehrt
+  ENDIF
+ELSE
+  IF (Messfehler==FALSE) THEN
+    DELTA_Z=-(REF_1_P1[TOOL_NR].X-MESS_P_Z)
+    MESSUNG[TOOL_NR].Z=DELTA_Z
+    IF ABS(DELTA_Z)>DELTA THEN
+      DELTA=ABS(DELTA_Z)
+    ENDIF
+    IF NOT $EXT THEN
+      BU_Msg (3,#NotifyMsg)
+    ENDIF  
+  ENDIF
+ENDIF
+;
+$advance=original_adv
+;
+Messen_aktiv=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+DEF BU_Movement()
+;Messbewegung ausfuehren
+$VEL.CP=SUCH_VEL
+PTP $POS_ACT
+;Messposition anfahren
+LIN_REL MESS_POS
+;
+END
+;
+;***************************************************
+;FOLD MessPos
+DEF MessPos ()
+;
+;Variable fuer Fehlerauswertung zuruecksetzen
+Messfehler=False
+;Interrupt zuruecksetzen
+INTERRUPT OFF 12
+;Interruptpositionen speichern
+MESS_P_Z=$POS_INT.Z
+BRAKE
+RESUME
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD BU_Meldungen
+DEF BU_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Offset
+DECL BUR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "BU_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+Offset=0
+IF ((n_BUR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+  CASE 1
+    SWRITE(USER_MSG.MSG_TXT[],Stat,Offset,"Referenzfahrt wurde durchgefuehrt fuer %d !",TOOL_NR)
+  CASE 2
+    USER_MSG.MSG_TXT[]="Programmverschiebung aktiv"
+  CASE 3
+    SWRITE(USER_MSG.MSG_TXT[],Stat, Offset,"Werkzeug = %7.2f, Delta X = %7.2f",TOOL_NR,Delta)
+  CASE 4
+    SWRITE(USER_MSG.MSG_TXT[],Stat, Offset,"Keine Verschiebung aktiv, Messwert ausserhalb der Toleranz, Delta = %7.2f",Delta)
+  CASE 5
+    SWRITE(USER_MSG.MSG_TXT[],Stat, Offset,"Kein Referenzwerkzeug gelernt fuer %d !!",TOOL_NR)
+  CASE 6
+    USER_MSG.MSG_TXT[]="Messsensor n.i.O. - Bitte Pruefen und ggf. Reinigen "
+  CASE 7
+    USER_MSG.MSG_TXT[]="Messposition: Sensor hat nicht geschalten !"   
+  CASE 8
+    USER_MSG.MSG_TXT[]="Wert fuer Drehzahl ungueltig"
+  CASE 9
+    SWRITE(USER_MSG.MSG_TXT[],Stat, Offset,"Keine Verschiebung aktiv, Maximaler Verschleiss ueberschritten, Delta = %7.2f",Delta)
+  CASE 10
+	 USER_MSG.MSG_TXT[]=" "
+  CASE 11
+    USER_MSG.MSG_TXT[]="Wert fuer Traglast ungueltig (Bereich 0-10000g)"
+  CASE 12
+    USER_MSG.MSG_TXT[]="Wert fuer Traglast ungueltig (Bereich 0-20000g)"
+  CASE 13
+    USER_MSG.MSG_TXT[]="Wert fuer Traglast ungueltig (Bereich 0-50000g)"
+  CASE 14
+    USER_MSG.MSG_TXT[]=" "
+  CASE 15
+    USER_MSG.MSG_TXT[]="Wert fuer Traglast ungueltig (Bereich 0-80000g)"
+  CASE 16
+	 USER_MSG.MSG_TXT[]="Wert fuer Min-Kraft ungueltig (Bereich 0-100N)"
+  CASE 17
+    USER_MSG.MSG_TXT[]="Wert fuer Max-Kraft ungueltig (Bereich 0-100N)"
+  CASE 18
+	 USER_MSG.MSG_TXT[]="Wert Min-Kraft->Soll-Kraft ungueltig (Bereich 0-100 1/10s)"
+  CASE 19
+	 USER_MSG.MSG_TXT[]=" "
+  CASE 20
+	 USER_MSG.MSG_TXT[]="P1 falscher Wert"    
+  CASE 21
+    USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_BUR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_BUR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_BUR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_BUR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_BUR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (BU Meldungen)
+

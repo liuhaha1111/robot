@@ -1,0 +1,252 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/SM_Stanzen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_SM_USR_S( )
+;
+;***************************************************
+;*Technologiepaket SM Stanzen                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT SM 
+GLOBAL DEF SM_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_SM.Name[]="KS26.01.001_20190612"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_SMS_Handle[i]=-1
+  n_SMR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD SM BASE ADRESSEN INITIALISIEREN
+SM_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW SM 
+GLOBAL DEF SM_SAW(SMNr :IN)
+INT SMNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET SM 
+GLOBAL DEF SM_RESET(SMNr :IN)
+INT SMNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL SM 
+GLOBAL DEF SM_CANCEL(SMNr :IN)
+INT SMNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP SM
+GLOBAL DEF SM_LOOP(SMNr :IN)
+BOOL bRet
+INT SMNr
+;
+;SM BASE ADRESSEN INITIALISIEREN
+SM_BASE_INIT( )
+;
+IF (SM_BASE_SL[SMNr]==HM_BASE_SL) THEN
+  SM_Msg((SMNr+1),#StateMsg)
+ELSE
+  IF (n_SMS_Handle[SMNr+1]>-1) THEN
+    bRet=Clear_KrlMsg(n_SMS_Handle[SMNr+1])
+    n_SMS_Handle[SMNr+1]=-1
+  ENDIF
+ENDIF
+;
+;Vorwahl ohne Prozess
+$OUT[SM_BASE_MA[SMNr]+O_SM_o_Proz]=$IN[SM_BASE_SL[SMNr]+I_SM_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;
+;BA-Hand an SM setzen
+IF NOT $COULD_START_MOTION THEN
+  $OUT[SM_BASE_MA[SMNr]+O_SM_Hand]=TRUE
+  $OUT[SM_BASE_MA[SMNr]+O_SM_Auto]=FALSE
+ENDIF
+;
+;BA-AUTO an SM setzen
+IF (($OUT[O_R_Hand] AND ($OUT[O_R_Proz_akt] OR $OUT[SM_BASE_MA[SMNr]+O_SM_St_R] OR $OUT[SM_BASE_MA[SMNr]+O_SM_St_V]) AND $COULD_START_MOTION) OR ($OUT[O_R_Auto] AND $COULD_START_MOTION)) THEN
+  $OUT[SM_BASE_MA[SMNr]+O_SM_Hand]=FALSE
+  $OUT[SM_BASE_MA[SMNr]+O_SM_Auto]=TRUE
+ENDIF    
+;
+;Ausgabe Fehlermeldungen
+;
+;Prozess aktiv
+$OUT[SM_BASE_SL[SMNr]+O_SM_P_akt]=$OUT[SM_BASE_MA[SMNr]+O_SM_Start] 
+;Prozess n.i.O.
+$OUT[SM_BASE_SL[SMNr]+O_SM_Pr_niO]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $OUT[SM_BASE_MA[SMNr]+O_SM_P_akt] AND $IN[SM_BASE_MA[SMNr]+I_SM_FK] AND NOT $IN[SM_BASE_SL[SMNr]+I_SM_Pr_iO]
+;Vorwarnung liegt an
+$OUT[SM_BASE_SL[SMNr]+O_SM_VW]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SM_BASE_MA[SMNr]+I_SM_VW]
+;Wartungswarnung liegt an
+$OUT[SM_BASE_SL[SMNr]+O_SM_Warn]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SM_BASE_MA[SMNr]+I_SM_Warn]
+;Prozessmaterial fehlt
+$OUT[SM_BASE_SL[SMNr]+O_SM_Mat]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SM_BASE_MA[SMNr]+I_SM_Mat]
+;Betriebsbereit fehlt
+$OUT[SM_BASE_SL[SMNr]+O_SM_Bereit]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $COULD_START_MOTION AND NOT $IN[SM_BASE_MA[SMNr]+I_SM_Bereit] AND $FLAG[F_SM_Sammel[SMNr]] AND $timer_flag[TimerNr_Ein]
+;Sammelstoerung
+$OUT[SM_BASE_SL[SMNr]+O_SM_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $COULD_START_MOTION AND (($OUT[SM_BASE_MA[SMNr]+O_SM_P_akt] AND $IN[SM_BASE_MA[SMNr]+I_SM_FK] AND NOT $IN[SM_BASE_MA[SMNr]+I_SM_Pr_iO]) OR $IN[SM_BASE_MA[SMNr]+I_SM_Sammel] OR SM_LBitFeh[SMNr])
+;
+;Lebensbit_Ueberwachung
+L_Bit_SM(SMNr)
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SM_BASE_INIT
+DEF SM_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;SM MASTER ADRESSIERUNG
+BaseResult=BaseCheck(CF_SM_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_SM_BASE_SL[1]=HM_BASE_SL
+  SM_BASE_SL[1]=HM_BASE_SL
+ELSE
+  SM_BASE_SL[1]=CF_SM_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_SM_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_SM_BASE_SL[2]=HM_BASE_SL
+  SM_BASE_SL[2]=HM_BASE_SL
+ELSE
+  SM_BASE_SL[2]=CF_SM_BASE_SL[2]
+ENDIF
+;
+;SM MASTER ADRESSIERUNG
+SM_BASE_MA[1]=1793                             
+SM_BASE_MA[2]=1825
+;
+END
+;ENDFOLD (SM_BASE_INIT)
+;
+;***************************************************
+;FOLD Lebensbit SM
+DEF L_Bit_SM(SMNr :IN)
+INT SMNr
+BOOL LBitSM, LBitFault
+INT RobTimer
+BOOL ErrLBit,bRet
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;
+;Setzen - Rucksetzen  des Lebensbit an Zangensteuerung
+$OUT[SM_BASE_MA[SMNr]+O_SM_LBit]=NOT $IN[SM_BASE_MA[SMNr]+I_SM_LBit]
+RobTimer=$ROB_TIMER	
+IF $IN[SM_BASE_MA[SMNr]+I_SM_LBit]<>LBitState[SMNr] THEN
+  LBitTimeCnt[SMNr]=RobTimer
+ENDIF
+IF (RobTimer-LBitTimeCnt[SMNr])>5000 THEN
+  ErrLBit=TRUE
+  ErrSMNr=SMNr
+  SM_LBitFeh[SMNr]=TRUE
+ENDIF
+LBitState[SMNr]=$IN[SM_BASE_MA[SMNr]+I_SM_LBit]
+IF ErrLBit THEN
+  SM_Msg(1,#StateMsg,ErrSMNr)
+ELSE
+  IF (n_SMS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_SMS_Handle[1])
+    n_SMS_Handle[1]=-1
+    ErrSMNr=-1
+  ENDIF
+  SM_LBitFeh[SMNr]=FALSE
+ENDIF
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SM_Meldungen
+DEF SM_Msg(msg_nr :IN, MsgTyp :IN, SMNr :IN)
+INT msg_nr, SMNr, Answer
+DECL SMS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "SM_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("SMNr")==#initialized then
+  SWITCH SMNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_SMS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="SM%1: Keine Antwort auf Lebensbit"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="SM1: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="SM2: Slave Startadresse ungueltig"
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_SMS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_SMS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_SMS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_SMS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (SM Meldungen)

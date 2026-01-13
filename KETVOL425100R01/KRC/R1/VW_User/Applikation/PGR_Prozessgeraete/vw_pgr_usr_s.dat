@@ -1,0 +1,117 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/PGR_Prozessgeraete
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_pgr_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket PGR Prozessgeraete              *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2016.03.02 LE                                   *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_PGR CHAR Name[20],INT Datum
+DECL _Tech_PGR Tech_PGR
+;ENDFOLD
+; 
+;***************************************************
+;FOLD PGR
+; 
+;VARIABLEN BOOL
+GLOBAL BOOL Sperre_FM15=FALSE
+GLOBAL BOOL Hilf1_FM[30]
+Hilf1_FM[1]=FALSE
+Hilf1_FM[2]=FALSE
+Hilf1_FM[3]=FALSE
+Hilf1_FM[4]=FALSE
+Hilf1_FM[5]=FALSE
+Hilf1_FM[6]=FALSE
+Hilf1_FM[7]=FALSE
+Hilf1_FM[8]=FALSE
+Hilf1_FM[9]=FALSE
+Hilf1_FM[10]=FALSE
+Hilf1_FM[11]=FALSE
+Hilf1_FM[12]=FALSE
+Hilf1_FM[13]=FALSE
+Hilf1_FM[14]=FALSE
+Hilf1_FM[15]=FALSE
+Hilf1_FM[16]=FALSE
+Hilf1_FM[17]=FALSE
+Hilf1_FM[18]=FALSE
+Hilf1_FM[19]=FALSE
+Hilf1_FM[20]=FALSE
+Hilf1_FM[21]=FALSE
+Hilf1_FM[22]=FALSE
+Hilf1_FM[23]=FALSE
+Hilf1_FM[24]=FALSE
+Hilf1_FM[25]=FALSE
+Hilf1_FM[26]=FALSE
+Hilf1_FM[27]=FALSE
+Hilf1_FM[28]=FALSE
+Hilf1_FM[29]=FALSE
+Hilf1_FM[30]=FALSE
+GLOBAL BOOL Hilf2_FM[30]
+Hilf2_FM[1]=FALSE
+Hilf2_FM[2]=FALSE
+Hilf2_FM[3]=FALSE
+Hilf2_FM[4]=FALSE
+Hilf2_FM[5]=FALSE
+Hilf2_FM[6]=FALSE
+Hilf2_FM[7]=FALSE
+Hilf2_FM[8]=FALSE
+Hilf2_FM[9]=FALSE
+Hilf2_FM[10]=FALSE
+Hilf2_FM[11]=FALSE
+Hilf2_FM[12]=FALSE
+Hilf2_FM[13]=FALSE
+Hilf2_FM[14]=FALSE
+Hilf2_FM[15]=FALSE
+Hilf2_FM[16]=FALSE
+Hilf2_FM[17]=FALSE
+Hilf2_FM[18]=FALSE
+Hilf2_FM[19]=FALSE
+Hilf2_FM[20]=FALSE
+Hilf2_FM[21]=FALSE
+Hilf2_FM[22]=FALSE
+Hilf2_FM[23]=FALSE
+Hilf2_FM[24]=FALSE
+Hilf2_FM[25]=FALSE
+Hilf2_FM[26]=FALSE
+Hilf2_FM[27]=FALSE
+Hilf2_FM[28]=FALSE
+Hilf2_FM[29]=FALSE
+Hilf2_FM[30]=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT Proz_Nr=0
+GLOBAL INT FM_Nr=0
+GLOBAL INT KF1_PAR4=0
+GLOBAL INT SZ1_PAR4=0
+GLOBAL INT SZ1_PAR5=0
+GLOBAL INT RIP_PAR2=0
+GLOBAL INT RIP_PAR3=0
+;PGR Fertigmeldung
+SIGNAL SO_PGR_FM_Nr $OUT[33]  TO $OUT[36]
+;PGR Prozessgeraetenummer
+SIGNAL SO_PGR_Geraete_Nr $OUT[97]  TO $OUT[112]
+; 
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM PGRS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_PGRS_Handle[100]
+GLOBAL INT n_PGRR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

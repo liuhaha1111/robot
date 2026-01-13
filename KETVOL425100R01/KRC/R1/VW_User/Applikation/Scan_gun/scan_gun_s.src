@@ -1,0 +1,430 @@
+&ACCESS R
+&REL 216
+&COMMENT KS26 (VW)
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = VW_User/Applikation/Scan_Gun
+DEF Scan_Gun_S( )
+;
+;***************************************************
+;*Technologiepaket Ansteuerung VW Scan_Gun_S           *
+;*                                                     *
+;*Konzernstandard                                      *
+;*Bearbeiter: MBA                                      *
+;*                                                     *
+;* Aenderungsjournal: 2023.12.05 neu erstellt          *
+;*                                                     *
+;***************************************************
+;
+END
+;
+;FOLD Scan_Gun_Program
+GLOBAL DEF ScanGun_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT I
+SWITCH USER_CMD
+;***************************************************
+CASE #USR_INIT
+FOR i=1 TO 100
+ n_ScanGun_Handle[i]=-1
+ENDFOR
+  Scangun_Value=0
+  BH_Scangun_Value=0
+$flag[f_scangun_er]=false
+;ENDFOLD (Init)
+;***************************************************
+
+CASE #USR_ADV
+;FOLD Advance
+
+$flag[f_scangun_er]=false
+
+IF (PAR4>0) AND (PAR5>0) AND (PAR4<PAR5) THEN
+   Scangun_Value=Get_ScanGunNbFromInputs(PAR4,PAR5)
+ELSE
+ScanGun_Msg(1,#QuitMsg) ;Scangun-single Robot user input error       
+endif
+if (Scangun_Value==0) then 
+   Scangun_Type_ER=True
+$flag[f_scangun_er]=true
+endif
+;ENDFOLD (Advance)
+;***************************************************
+
+CASE #USR_TRIG
+;FOLD Trig
+;ENDFOLD (Trig)
+;***************************************************
+
+CASE #USR_MAIN
+;FOLD MAIN
+ 
+SWITCH PAR1
+
+CASE 10   ;316-6
+       SWITCH PAR2
+       case 1  ;BH1
+         CONTINUE
+         if (par3==100) then    ;not layer   SCANTA_Speicher 1-100
+            IF (Scangun_Value<1) OR (Scangun_Value>100) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=Scangun_Value
+                BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+                ScanGun_Msg(29,#NotifyMsg,1)
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTA_Speicher 1-50
+            IF (Scangun_Value<1) OR (Scangun_Value>50) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=Scangun_Value
+             BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(29,#NotifyMsg,1)
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTA_Speicher 51-100
+            IF (Scangun_Value<1) OR (Scangun_Value>50) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=Scangun_Value+50
+              BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+              ScanGun_Msg(29,#NotifyMsg,1)
+            endif 
+          endif      
+       case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTA_Speicher 101-255
+            IF (Scangun_Value<1) OR (Scangun_Value>100) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=Scangun_Value+100
+                BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+                ScanGun_Msg(29,#NotifyMsg,1)
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTA_Speicher 101-151
+            IF (Scangun_Value<1) OR (Scangun_Value>50) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=Scangun_Value+100
+             BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+              ScanGun_Msg(29,#NotifyMsg,1)
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTA_Speicher 151-255
+            IF (Scangun_Value<1) OR (Scangun_Value>50) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=Scangun_Value+150
+              BASE_DATA[PAR6]=SCANTA_Speicher[BH_Scangun_Value]
+              ScanGun_Msg(29,#NotifyMsg,1)
+            endif       
+          endif
+       ENDSWITCH
+
+case 20 ;316-7
+       SWITCH PAR2
+       case 1  ;BH1
+         CONTINUE
+         if (par3==100) then    ;not layer   SCANTB_Speicher 1-100
+            IF (Scangun_Value<100) OR (Scangun_Value>200) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=Scangun_Value-100
+                BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+               ScanGun_Msg(30,#NotifyMsg,2)
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTB_Speicher 1-50
+            IF (Scangun_Value<100) OR (Scangun_Value>150) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=Scangun_Value-100
+             BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(30,#NotifyMsg,2)
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTB_Speicher 51-100
+            IF (Scangun_Value<100) OR (Scangun_Value>150) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=(Scangun_Value+50)-100
+              BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(30,#NotifyMsg,2)
+            endif 
+          endif      
+       case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTB_Speicher 101-255
+            IF (Scangun_Value<100) OR (Scangun_Value>200) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=(Scangun_Value+100)-100
+                BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+               ScanGun_Msg(30,#NotifyMsg,2)
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTB_Speicher 101-151
+            IF (Scangun_Value<100) OR (Scangun_Value>150) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=(Scangun_Value+100)-100
+             BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(30,#NotifyMsg,2)
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTB_Speicher 151-255
+            IF (Scangun_Value<100) OR (Scangun_Value>150) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=(Scangun_Value+150)-100
+              BASE_DATA[PAR6]=SCANTB_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(30,#NotifyMsg,2)
+            endif       
+          endif
+       ENDSWITCH
+
+CASE 30   ;316-2
+       SWITCH PAR2
+       case 1  ;BH1
+          CONTINUE
+         if (par3==100) then    ;not layer   SCANTC_Speicher 1-100
+            IF (Scangun_Value<200) OR (Scangun_Value>300) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=Scangun_Value-200
+                BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+                ScanGun_Msg(31,#NotifyMsg,3)
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTC_Speicher 1-50
+            IF (Scangun_Value<200) OR (Scangun_Value>250) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=Scangun_Value-200
+             BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(31,#NotifyMsg,3)
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTC_Speicher 51-100
+            IF (Scangun_Value<200) OR (Scangun_Value>250) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=(Scangun_Value+50)-200
+              BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+              ScanGun_Msg(31,#NotifyMsg,3)
+            endif 
+          endif      
+       case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTC_Speicher 101-255
+            IF (Scangun_Value<200) OR (Scangun_Value>300) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+                BH_Scangun_Value=(Scangun_Value+100)-200
+                BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+                ScanGun_Msg(31,#NotifyMsg,3)
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTC_Speicher 101-151
+            IF (Scangun_Value<200) OR (Scangun_Value>250) THEN
+                Scangun_Type_ER=True
+               else 
+             CONTINUE 
+             BH_Scangun_Value=(Scangun_Value+100)-200
+             BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(31,#NotifyMsg,3)
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTC_Speicher 151-255
+            IF (Scangun_Value<200) OR (Scangun_Value>250) THEN
+              Scangun_Type_ER=True
+            else 
+              CONTINUE
+              BH_Scangun_Value=(Scangun_Value+150)-200
+              BASE_DATA[PAR6]=SCANTC_Speicher[BH_Scangun_Value]
+             ScanGun_Msg(31,#NotifyMsg,3) 
+            endif       
+          endif
+       ENDSWITCH
+ENDSWITCH
+
+IF  Scangun_Type_ER THEN
+    Scangun_Type_ER=FALSE
+
+ ScanGun_Msg(3,#QuitMsg) ;Scangun-single type error or learn base error
+$flag[f_scangun_er]=true
+halt
+else
+IF (BASE_DATA[PAR6].x==0.0) or (BASE_DATA[PAR6].y==0.0) or (BASE_DATA[PAR6].Z==0.0) then
+    ScanGun_Msg(5,#QuitMsg) ;Scangun-base value error
+$flag[f_scangun_er]=true
+halt
+endif 
+endif
+
+
+;ENDFOLD (MAIN)
+
+
+CASE #USR_MAKRO
+;FOLD Makro
+
+;ENDFOLD (Makro)
+
+ENDSWITCH
+END
+;ENDFOLD (Scan_Gun_Program)
+
+
+
+; get number from inputs
+;----------------------------------------
+DEFFCT INT Get_ScanGunNbFromInputs(StartIndex : IN, EndIndex : IN)
+   ;FOLD Get_ScanGunNbFromInputs
+      INT StartIndex, EndIndex
+      INT Result, Counter
+      INT IndexPosition
+      Result=0
+      IndexPosition =0
+      FOR Counter = StartIndex TO EndIndex
+         CONTINUE
+         IF Scangun_ReadIn(Counter,FALSE) THEN
+            Result = Result + Scangun_EXPONENT(2,IndexPosition)
+         ENDIF
+         IndexPosition = IndexPosition + 1
+      ENDFOR
+      RETURN (Result)
+   ;ENDFOLD
+ENDFCT
+
+; Read from Input
+;----------------------------------------
+ DEFFCT BOOL Scangun_ReadIn(InNumber:IN, ErrorDefault:IN)
+   ;FOLD Scangun_ReadIn
+      INT InNumber
+      BOOL ErrorDefault
+      IF (InNumber <> 0) THEN
+         CONTINUE
+         Return $IN[InNumber]
+      ELSE
+        ScanGun_Msg(2,#QuitMsg) ;Scangun-single set error    
+         RETURN ErrorDefault
+      ENDIF
+   ;ENDFOLD
+ENDFCT 
+
+; Exponent helper
+;----------------------------------------
+DEFFCT INT Scangun_EXPONENT (X:IN, Y:IN)
+   ;FOLD Scangun_EXPONENT
+      INT X,Y
+      INT iResult
+      INT iCounter
+      SWITCH Y
+         CASE 0
+            iResult=1
+         CASE 1
+            iResult=X
+         DEFAULT
+            iResult=X
+            FOR iCounter = 1 TO (Y-1)
+               iResult = iResult * X
+            ENDFOR
+      ENDSWITCH
+      RETURN iResult
+   ;ENDFOLD
+ENDFCT
+;
+
+;FOLD SCANGUN_Meldungen
+DEF ScanGun_Msg(msg_nr :IN, MsgTyp :IN,SZNr :IN )
+INT msg_nr, SZNr, Answer,ABC_Speicher
+DECL Scangun_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "ScanGun_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop false, Clear_P_Reset TRUE, Log_To_DB TRUE }
+;
+ABC_Speicher=BH_Scangun_Value
+IF Varstate("SZNr")==#initialized THEN
+  SWITCH SZNr
+    CASE 1
+      Par[1] = { Par_type #Value }
+      Par[1].par_int= ABC_Speicher
+    CASE 2
+      Par[1] = { Par_type #Value }
+    Par[1].par_int= ABC_Speicher
+    CASE 3
+      Par[1] = { Par_type #Value }
+    Par[1].par_int= ABC_Speicher
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_ScanGun_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="Scangun-single Robot user input error  "
+    CASE 2
+	   USER_MSG.MSG_TXT[]="Scangun-single forom plc set error"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="Scangun-single type error or learn base error"
+    CASE 4
+	  USER_MSG.MSG_TXT[]="Scangun_base Value Initialized Successfully "
+    CASE 5
+	   USER_MSG.MSG_TXT[]="Scangun-base value error"
+    CASE 29
+      USER_MSG.MSG_TXT[]="316-6 base_data=SCANTA_Speicher[%1]" 
+    CASE 30
+      USER_MSG.MSG_TXT[]="316-7 base_data=SCANTB_Speicher[%1]" 
+    CASE 31
+      USER_MSG.MSG_TXT[]="316-2 base_data=SCANTC_Speicher[%1]"
+
+
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_ScanGun_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_ScanGun_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_ScanGun_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_ScanGun_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (SCANGUN Meldungen)
+
+
+
+
+
+;MED_EXT_AUS-----------------------------------------------------------

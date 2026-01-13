@@ -1,0 +1,183 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/BZ_Bolzenschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_bz_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket BZ Bolzenschweissen             *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.09 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_BZ CHAR Name[20],INT Datum
+DECL _Tech_BZ Tech_BZ
+;ENDFOLD
+; 
+;***************************************************
+;FOLD BZ
+;VARIABLEN INTEGER
+GLOBAL INT Default_BZ_BASE_SL[2]
+Default_BZ_BASE_SL[1]=217
+Default_BZ_BASE_SL[2]=193
+GLOBAL INT CF_BZ_BASE_SL[2]
+CF_BZ_BASE_SL[1]=449
+CF_BZ_BASE_SL[2]=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_BZ[2]
+MIT_BZ[1]=FALSE
+MIT_BZ[2]=FALSE
+GLOBAL BOOL BZ_HM_BAW1[2]
+BZ_HM_BAW1[1]=FALSE
+BZ_HM_BAW1[2]=FALSE
+GLOBAL BOOL BZ_HM_BAW2[2]
+BZ_HM_BAW2[1]=FALSE
+BZ_HM_BAW2[2]=FALSE
+GLOBAL BOOL BZ_HM_BAW3[2]
+BZ_HM_BAW3[1]=FALSE
+BZ_HM_BAW3[2]=FALSE
+GLOBAL BOOL BZ_HM_BAW4[2]
+BZ_HM_BAW4[1]=FALSE
+BZ_HM_BAW4[2]=FALSE
+GLOBAL BOOL BZ_HM_BAW5[2]
+BZ_HM_BAW5[1]=FALSE
+BZ_HM_BAW5[2]=FALSE
+;FLAGS
+GLOBAL INT F_BZ_Sammel[2]
+F_BZ_Sammel[1]=399
+F_BZ_Sammel[2]=400
+GLOBAL INT F_BZ_Anf_P_FRG[2]
+F_BZ_Anf_P_FRG[1]=610
+F_BZ_Anf_P_FRG[2]=612
+GLOBAL INT F_BZ_P_FRG[2]
+F_BZ_P_FRG[1]=611
+F_BZ_P_FRG[2]=613
+GLOBAL INT F_BZ1_Anw_Kopf[5]
+F_BZ1_Anw_Kopf[1]=641
+F_BZ1_Anw_Kopf[2]=642
+F_BZ1_Anw_Kopf[3]=643
+F_BZ1_Anw_Kopf[4]=644
+F_BZ1_Anw_Kopf[5]=645
+GLOBAL INT F_BZ2_Anw_Kopf[5]
+F_BZ2_Anw_Kopf[1]=648
+F_BZ2_Anw_Kopf[2]=649
+F_BZ2_Anw_Kopf[3]=650
+F_BZ2_Anw_Kopf[4]=651
+F_BZ2_Anw_Kopf[5]=652
+GLOBAL INT F_BZ_TCP[2]
+F_BZ_TCP[1]=646
+F_BZ_TCP[2]=653
+GLOBAL INT F_BZ_pro_akt[2]
+F_BZ_pro_akt[1]=647
+F_BZ_pro_akt[2]=654
+;SLAVE ADRESSIERUNG
+GLOBAL INT BZ_BASE_SL[2] ;BZ Indirekte Slave Adressen
+BZ_BASE_SL[1]=449
+BZ_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_BZ_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_BZ_P_FRG=1 ;indirekt adressiert
+GLOBAL INT I_BZ_Anw_Kopf[5]
+I_BZ_Anw_Kopf[1]=2 ;indirekt adressiert
+I_BZ_Anw_Kopf[2]=3 ;indirekt adressiert
+I_BZ_Anw_Kopf[3]=4 ;indirekt adressiert
+I_BZ_Anw_Kopf[4]=5 ;indirekt adressiert
+I_BZ_Anw_Kopf[5]=6 ;indirekt adressiert
+GLOBAL INT I_BZ_TCP=7 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_BZ_Proz_akt=0 ;indirekt adressiert
+GLOBAL INT O_BZ_Anf_P_FRG=1 ;indirekt adressiert
+GLOBAL INT O_BZ_W_Warn=2 ;indirekt adressiert
+GLOBAL INT O_BZ_Standz=3 ;indirekt adressiert
+GLOBAL INT O_BZ_P_aTol=4 ;indirekt adressiert
+GLOBAL INT O_BZ_BAW=5 ;indirekt adressiert
+GLOBAL INT O_BZ_Bereit=6 ;indirekt adressiert
+GLOBAL INT O_BZ_Sammel=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT BZ_BASE_MA[2] ;BZ Indirekte Master Adressen
+BZ_BASE_MA[1]=1697
+BZ_BASE_MA[2]=1745
+;Master Eingaenge
+GLOBAL INT I_BZ_Bereit=0 ;1697,1745
+GLOBAL INT I_BZ_Sammel=2 ;1699,1747
+GLOBAL INT I_BZ_LBit=3 ;1700,1748
+GLOBAL INT I_BZ_P_aTol=4 ;1701,1749
+GLOBAL INT I_BZ_W_Warn=5 ;1702,1750
+GLOBAL INT I_BZ_Vorwn=6 ;1703,1751
+GLOBAL INT I_BZ_Standz=7 ;1704,1752
+GLOBAL INT I_BZ_BAW[5]
+I_BZ_BAW[1]=11 ;1708,1756
+I_BZ_BAW[2]=12 ;1709,1757
+I_BZ_BAW[3]=13 ;1710,1758
+I_BZ_BAW[4]=14 ;1711,1759
+I_BZ_BAW[5]=15 ;1712,1760
+GLOBAL INT I_BZ_SK_R[5]
+I_BZ_SK_R[1]=32 ;1729,1777
+I_BZ_SK_R[2]=33 ;1730,1778
+I_BZ_SK_R[3]=34 ;1731,1779
+I_BZ_SK_R[4]=35 ;1732,1780
+I_BZ_SK_R[5]=36 ;1733,1781
+GLOBAL INT I_BZ_P_aTo[5]
+I_BZ_P_aTo[1]=40 ;1737,1785
+I_BZ_P_aTo[2]=41 ;1738,1786
+I_BZ_P_aTo[3]=42 ;1739,1787
+I_BZ_P_aTo[4]=43 ;1740,1788
+I_BZ_P_aTo[5]=44 ;1741,1789
+;Master Ausgaenge
+GLOBAL INT O_BZ_o_Proz=1 ;1698,1746
+GLOBAL INT O_BZ_LBit=3 ;1700,1748
+GLOBAL INT O_BZ_Restart=5 ;1702,1750
+GLOBAL INT O_BZ_Hand=10 ;1707,1755
+GLOBAL INT O_BZ_Start[5]
+O_BZ_Start[1]=40 ;1737,1785
+O_BZ_Start[2]=41 ;1738,1786
+O_BZ_Start[3]=42 ;1739,1787
+O_BZ_Start[4]=43 ;1740,1788
+O_BZ_Start[5]=44 ;1741,1789
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit BZ
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL BZ_LBitFeh[2]
+BZ_LBitFeh[1]=FALSE
+BZ_LBitFeh[2]=FALSE
+; 
+;Lebensbit an BZ-Steuerung --- Ausgaenge
+INT LBitToBZ[2]
+LBitToBZ[1]=1700
+LBitToBZ[2]=1748
+; 
+;Lebensbit von BZ-Steuerung --- Eingaenge
+INT LBitFromBZ[2]
+LBitFromBZ[1]=1700
+LBitFromBZ[2]=1748
+; 
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrBZNr=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM BZS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_BZS_Handle[100]
+GLOBAL INT n_BZR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

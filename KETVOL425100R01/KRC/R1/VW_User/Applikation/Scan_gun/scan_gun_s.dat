@@ -1,0 +1,30 @@
+&ACCESS  R
+&COMMENT KS26 (VW)
+&PARAM DISKPATH = VW_User/Applikation/Scan_gun
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 216
+DEFDAT  scan_gun_s PUBLIC
+; 
+;***************************************************
+;*       Baustein Ansteuerung Scan_Gun                  *
+;*        der Marke VOLKSWAGEN                     *
+;* Bearbeitet am:  05.12.2023                      *
+;*     Erstellt : MBA                              *
+;***************************************************
+; 
+; 
+DECL GLOBAL BOOL B_MIT_ScanGun=TRUE ;Variable wird im Techpaket  gesetzt
+DECL GLOBAL INT Scangun_Value=0
+DECL GLOBAL INT BH_Scangun_Value=0
+DECL GLOBAL BOOL Scangun_Type_ER=FALSE
+
+DECL GLOBAL INT F_SCANGUN_ER=695
+
+;FOLD Meldungsausgabe
+GLOBAL INT n_ScanGun_Handle[100]
+ENUM Scangun_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+; 
+; 
+ENDDAT

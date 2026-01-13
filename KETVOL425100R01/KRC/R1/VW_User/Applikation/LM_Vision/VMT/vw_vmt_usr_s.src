@@ -1,0 +1,1620 @@
+&ACCESS R
+&COMMENT KS26
+&REL 4
+&PARAM DISKPATH = VW_User/Applikation/Vision/VMT
+&PARAM TPUSER_VERSION = 8.3.0
+DEF vw_vmt_usr_s( )
+;
+;***************************************************
+;* VMT Vision Machine Technic GmbH                 *
+;*                                                 *
+;* Bearbeitet am:                                  *
+;* 01.09.2015 FH  Erstellt                         *
+;***************************************************
+;
+END
+;
+GLOBAL DEF VMT_INIT()
+;FOLD Version Techpaket
+Tech_VMT.Name[]="KS26.01.000_20160211"
+;ENDFOLD
+;
+;TODO ResetVaraiables usw.
+END
+;***************************************************
+;
+GLOBAL DEF  VMT_BK_SAW ()
+;Aufruf bei Verlust der Satzkoinzidenz (z.B. Satzanwahl)
+END
+;***************************************************
+GLOBAL DEF  VMT_BK_RESET ()
+;Aufruf bei Programmreset
+;
+; Zuruecksetzen von VMT-BK
+;***************************************************
+; Autor: Frank Hoefts
+; Firma: VMT GmbH
+; Datum: 30.11.2009
+; Beschreibung:
+; Setzt diverse Variablen der Bahnkorrektur auf einen definierten Startwert
+;***************************************************
+BK_Init()
+;--------------------------------------------------------------------------------
+;
+END
+
+
+GLOBAL DEF  VMT_BK_CANCEL ()
+;Aufruf bei Programmabwahl
+;
+; Zuruecksetzen von VMT-BK
+;-------------------------------------------------
+; Autor: Frank Hoefts
+; Firma: VMT GmbH
+; Datum: 30.11.2009
+; Beschreibung:
+; Setzt diverse Variablen der Bahnkorrektur auf einen definierten Startwert
+;-------------------------------------------------
+BK_Init()
+;-------------------------------------------------
+;
+END
+
+
+GLOBAL DEF VMT_LOOP ()
+;-------------------------------------------------
+IF B_MIT_VMTBK THEN
+  BK_SUBMIT()
+ENDIF
+IF B_MIT_VMTTBX THEN
+  VMT_TBOX_LOOP()
+ENDIF
+IF B_MIT_VMTGBD THEN
+  VMT_GBEAD_LOOP()
+ENDIF
+;-------------------------------------------------
+END
+
+
+GLOBAL DEF  VMT_ALIVE ()
+;-------------------------------------------------
+VMT_WATCHDOG()
+;-------------------------------------------------
+END
+
+
+GLOBAL DEF  VMT_BK_MAKRO_SPS (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN)
+;Aufruf Aus dem MakroSPS
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6
+BOOL PAR7
+END
+
+
+GLOBAL DEF  VMT_BK_MAKRO_SAW (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN)
+;Aufruf Aus dem MakroSAW
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6
+BOOL PAR7
+END
+
+
+GLOBAL DEF  VMT_BK_MAKRO_STEP (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN)
+;Aufruf Aus dem MakroSTEP
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6
+BOOL PAR7
+END
+
+GLOBAL DEF  VMT_BK_MAKRO_TRIG (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN)
+;Aufruf Aus dem MakroTrigger
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6
+BOOL PAR7
+END
+
+
+GLOBAL DEF VMT_GBEAD_LOOP()
+;If needed some day, fill code in here
+END
+
+
+GLOBAL DEF VMT_TBOX_LOOP()
+;If needed some day, fill code in here
+END
+
+
+
+;FOLD VMT BK
+;-------------------------------------------------
+;Visionsystem BK (Bahnkorrektur) SUBROUTINEN
+;-------------------------------------------------
+
+;================================================
+;Initailisierung von Signalen und Variablen
+;================================================
+GLOBAL DEF BK_INIT()
+;================================================
+INT I
+
+O_VMT_STROBE = FALSE
+O_VMT_ACK = FALSE
+O_VMT_LOCK = FALSE
+N_VMT_PATH = 0
+N_VMT_BKMODE = BK_M_OFF
+N_VMT_REQCNT = 0
+N_VMT_MESCNT = 0
+
+N_VMT_MSGLST=1
+N_VMT_MSGNXT=1
+
+IF B_VMT_UAlive THEN
+  VMT_STOP_TIMER(2)
+  WATCH_LOST = FALSE
+  WATCH_SET = FALSE
+ENDIF
+
+; Check if a correction is still active
+IF N_VMT_CORACT > 0 THEN
+  ;ONLY for VKRC:
+  FOR I=31 TO 31
+    ;IF TOOL_TYPE[I] == #BASE THEN
+      BASE_DATA[I] = FRA_VMT_BASE[I]
+    ;ELSE
+    ;  TOOL_DATA[I] = FRA_VMT_BASE[I]
+    ;ENDIF
+  ENDFOR
+ENDIF
+N_VMT_CORACT = 0
+FR_VMT_CORACT = $NULLFRAME
+END
+
+;================================================
+; Diverse Daten zuruecksetzen
+;================================================
+GLOBAL DEF  BK_ClearData ( )
+;================================================
+INT I,J
+N_VMT_TYPE = 0
+N_VMT_PATH = 0
+N_VMT_BKMODE = BK_M_OFF
+N_VMT_REQCNT = 0
+N_VMT_MESCNT = 0
+
+FOR I=1 TO 10
+ MA_FIRED_MSG[I].MSGNR=0
+ENDFOR
+N_VMT_MSGLST=1
+N_VMT_MSGNXT=1
+
+IF N_VMT_CORACT > 0 THEN
+ FOR I = 31 TO 31
+   ;IF TOOL_TYPE[I] == #BASE THEN
+     BASE_DATA[I] = FRA_VMT_BASE[I]
+   ;ELSE
+   ;  TOOL_DATA[I] = FRA_VMT_BASE[I]
+   ;ENDIF
+ ENDFOR
+ENDIF
+N_VMT_CORACT = 0
+FR_VMT_CORACT = $NULLFRAME
+
+FOR I = 1 TO BK_MAXPATH
+ NA_VMT_PTHID[I] = 0
+ NA_VMT_VALID[I] = 0
+ NA_VMT_INVAL[I] = 0
+ FOR J = 1 TO N_VMT_MAXMES
+   FRA_VMT_CORR[I, J] = $NULLFRAME
+   NA_VMT_CORID[I, J] = 0
+ ENDFOR
+ENDFOR
+END
+
+
+;==================================================
+; Diese Funktion wird vom Hintergrundtask
+; (siehe sps.sub / vw_usr_s) aus immer dann
+; aufgerufen, wenn der Vordergrundzaehler
+; N_VMT_MESCNT erhoeht wurde.
+; Inhaltlich das gleiche wie bei BK_Ende
+;==================================================
+GLOBAL DEF BK_SUBMIT()
+;==================================================
+BOOL Result
+INT j
+
+IF (N_VMT_REQCNT <= 0) OR (N_VMT_MESCNT <= N_VMT_REQCNT) THEN
+  RETURN
+ENDIF
+
+IF ((N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_MEASREF) OR (N_VMT_BKMODE == BK_M_TCP_REF) OR (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_CHECK)) THEN
+  IF (CheckISReady() == TRUE) THEN
+
+    Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_TRIGGER, N_VMT_TYPE, N_VMT_PATH, NA_VMT_MPID[N_VMT_REQCNT], NA_VMT_MCID[N_VMT_REQCNT], FRA_VMT_MPOS[N_VMT_REQCNT])
+
+    IF ((N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_CHECK)) THEN
+      WaitISReady()
+      DoErrorQuitt()
+      Result = BK_RecStateOnly()
+      CheckMPState(N_VMT_PT_ID)
+
+      j = NA_VMT_VALID[N_VMT_PATHIX]
+
+      REPEAT
+        Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_REQUEST, N_VMT_TYPE, N_VMT_PATH, 0, 0, $NULLFRAME)
+        Result = BK_RecShiftData()
+        j = CheckReceivedData(j)
+        WAIT SEC R_VMT_BKWAIT
+      UNTIL (N_VMT_BKSTAT B_AND BK_S_MORE) == 0
+      NA_VMT_VALID[N_VMT_PATHIX] = j
+      
+    ENDIF
+    N_VMT_REQCNT = N_VMT_REQCNT + 1
+    
+  ENDIF
+ENDIF
+END
+
+
+;==================================================
+;Prueft den BK Status nach dem Start Befehl
+;==================================================
+GLOBAL DEFFCT BOOL CheckStartState(TYPE:IN, PATH:IN)
+;==================================================
+INT TYPE
+INT PATH
+
+IF (N_VMT_BKSTAT B_AND BK_E_SENSOR) == BK_E_SENSOR THEN
+  VMT_SET_ERROR_MSG(MsgSENSOR, 0, 0, 0)
+  RETURN FALSE
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_LIMIT) == BK_E_LIMIT THEN
+  VMT_SET_ERROR_MSG(MsgRights, 0, 0, 0)
+  RETURN FALSE
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_GENERAL) == BK_E_GENERAL THEN
+  VMT_SET_ERROR_MSG(MsgINV_PATH, TYPE, PATH, 0)
+  RETURN FALSE
+ENDIF
+RETURN TRUE
+ENDFCT
+
+;==================================================
+;Setzt alles Flags zurueck
+;==================================================
+GLOBAL DEF VMT_RstFlag()
+;==================================================
+INT i
+IF F_VMT_ERROR > 0 THEN
+  $FLAG[F_VMT_ERROR] = FALSE
+ENDIF
+IF F_VMT_IO > 0 THEN
+  $FLAG[F_VMT_IO] = FALSE
+ENDIF
+IF F_VMT_NIO > 0 THEN
+  $FLAG[F_VMT_NIO] = FALSE
+ENDIF
+
+IF (F_VMT_FIRST > 0) AND (F_VMT_LAST > 0) THEN
+  FOR i = F_VMT_FIRST TO F_VMT_LAST
+    $FLAG[i] = FALSE
+  ENDFOR
+ENDIF
+END
+
+;==================================================
+;Setzt IO und NIO Flags
+;==================================================
+GLOBAL DEF VMT_ResFlag()
+;==================================================
+INT i
+IF F_VMT_ERROR > 0 THEN
+	IF F_VMT_IO > 0 THEN
+		$FLAG[F_VMT_IO] = NOT $FLAG[F_VMT_ERROR]
+	ENDIF
+	IF F_VMT_NIO > 0 THEN
+		$FLAG[F_VMT_NIO] = $FLAG[F_VMT_ERROR]
+	ENDIF
+ENDIF
+END
+
+;==================================================
+; Dialog zur Abfrage, ob der neue TCP uebernommen
+; werden soll
+;==================================================
+GLOBAL DEFFCT BOOL MSG_FRAME_DIALOG (ToolNr :IN, AnyFrame :IN , Text[] : IN)
+;==================================================
+INT ToolNr
+FRAME AnyFrame
+CHAR Text[]
+DECL STATE_T STATE
+decl KrlMsg_T msg
+decl KrlMsgPar_T par[3]
+decl KrlMsgOpt_T opt
+decl KrlMsgDlgSK_T SK[7]
+DECL CHAR Format[10]
+int nHandle, keynumber
+int Off_Ausg
+
+
+msg = {modul[] " " , Nr 0, msg_txt[] " "}
+msg.Nr = ToolNr
+Off_Ausg = 0
+SWRITE(msg.modul[], STATE, Off_Ausg, Text[])
+Format[] = "X %.2f"
+Off_Ausg = 0
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.X)
+Format[] = " Y %.2f"
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.Y)
+Format[] = " Z %.2f"
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.Z)
+Format[] = " A %.2f"
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.A)
+Format[] = " B %.2f"
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.B)
+Format[] = " C %.2f"
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Format[], AnyFrame.C)
+
+
+SK[1] = {sk_Type #value, sk_txt[] "OK"}
+;SK[2] = {sk_Type #value, sk_txt[] "Nein"}
+
+
+nHandle = Set_KrlDlg (msg, par[], SK[], opt)
+IF (nHandle > 0) THEN
+   while (Exists_KrlDlg(nHandle, keynumber))
+       wait Sec 0.1
+   endwhile
+   switch keynumber
+   case 1
+       return (true)
+   case 2
+       return (false)
+   endswitch
+ENDIF
+return (false)
+ENDFCT
+
+;==================================================
+; Einfacher Dialog mit den Softkeys OK und Abbrechen
+;==================================================
+GLOBAL DEFFCT BOOL MSG_DIALOG (PAR1 :IN, PAR2 :IN , PAR3 : IN, Text[] : IN)
+;==================================================
+INT PAR1
+INT PAR2
+INT PAR3
+CHAR Text[]
+DECL STATE_T STATE
+decl KrlMsg_T msg
+decl KrlMsgPar_T par[3]
+decl KrlMsgOpt_T opt
+decl KrlMsgDlgSK_T SK[7]
+int nHandle, keynumber
+int Off_Ausg
+
+
+msg = {modul[] "VMT" , Nr 1, msg_txt[] " "}
+Off_Ausg = 0
+SWRITE(msg.msg_txt[], STATE, Off_Ausg, Text[], PAR1, PAR2, PAR3)
+
+SK[1] = {sk_Type #value, sk_txt[] "OK"}
+SK[2] = {sk_Type #value, sk_txt[] "Abbrechen"}
+
+
+nHandle = Set_KrlDlg (msg, par[], SK[], opt)
+IF (nHandle > 0) THEN
+  while (Exists_KrlDlg(nHandle, keynumber))
+     wait Sec 0.1
+  endwhile
+  switch keynumber
+  case 1
+     return (true)
+  case 2
+     return (false)
+  endswitch
+ENDIF
+return (false)
+ENDFCT
+
+;==================================================
+; Zeigt eine selbstquittierende Meldung an
+; die auf ein bestimmtes Signal wartet
+;==================================================
+GLOBAL DEF WaitForSignalMsg(MsgTxt:IN, Input:IN, Expected:IN)
+;=================================================
+DECL CHAR MsgTxt[]
+DECL INT Input
+DECL BOOL Expected
+DECL BOOL Current
+DECL STATE_T STATE
+decl KrlMsg_T msg
+decl KrlMsgPar_T par[3]
+decl KrlMsgOpt_T opt
+int nHandle
+
+
+msg = {modul[] "VMT" , Nr 1, msg_txt[] " "}
+msg.msg_txt[] = MsgTxt[]
+
+nHandle = Set_KrlMsg(#waiting, msg, par[], opt)
+IF (nHandle > 0) THEN
+  REPEAT
+    Current = $IN[Input]
+    IF (Exists_KrlMsg(nHandle) == FALSE) THEN
+      Current = Expected
+    ENDIF
+  UNTIL Current == Expected
+  IF (Exists_KrlMsg(nHandle) == TRUE) THEN
+    Current = Clear_KrlMsg(nHandle)
+  ENDIF
+ENDIF
+
+END
+
+
+
+;==================================================
+; Empfangsroutine fuer Daten und Status
+;==================================================
+GLOBAL DEFFCT BOOL BK_RecShiftData( )
+;==================================================
+WAIT SEC 0 ;advance stop
+O_VMT_ACK = FALSE
+
+
+IF (I_VMT_STROBE == FALSE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+	REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == TRUE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV, 11)
+    RETURN (FALSE)
+  ENDIF
+ENDIF
+
+DoErrorQuitt()
+
+;Recieve Stauts
+N_VMT_BKSTAT = I_VMT_STATE
+
+; scaling / signing
+BK_SCALE_R = GetScaleFactor(I_VMT_FAC_R)
+BK_SCALE_T = GetScaleFactor(I_VMT_FAC_T)
+; Assign correction values
+R_VMT_CORR_X = IN_SIGN(I_VMT_X, BK_SCALE_T)
+R_VMT_CORR_Y = IN_SIGN(I_VMT_Y, BK_SCALE_T)
+R_VMT_CORR_Z = IN_SIGN(I_VMT_Z, BK_SCALE_T)
+R_VMT_CORR_C = IN_SIGN(I_VMT_RX, BK_SCALE_R)
+R_VMT_CORR_B = IN_SIGN(I_VMT_RY, BK_SCALE_R)
+R_VMT_CORR_A = IN_SIGN(I_VMT_RZ, BK_SCALE_R)
+
+N_VMT_TYPEID  = I_VMT_TYPE
+N_VMT_PATHID  = I_VMT_PATH
+N_VMT_PT_ID = I_VMT_POINT
+
+
+; acknowledge
+O_VMT_ACK = TRUE
+IF (I_VMT_STROBE == TRUE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+
+  REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == FALSE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV,12)
+  ENDIF
+ENDIF
+O_VMT_ACK = FALSE
+
+RETURN (TRUE)
+ENDFCT
+
+;==================================================
+; Empfangsroutine nur fuer den Status
+;==================================================
+GLOBAL DEFFCT BOOL BK_RecStateOnly( )
+;==================================================
+WAIT SEC 0 ;advance stop
+O_VMT_ACK = FALSE
+
+
+IF (I_VMT_STROBE == FALSE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+  REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == TRUE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV,21)
+    RETURN (FALSE)
+  ENDIF
+ENDIF
+
+DoErrorQuitt()
+
+;Recieve Stauts
+N_VMT_BKSTAT = I_VMT_STATE
+
+N_VMT_TYPEID  = I_VMT_TYPE
+N_VMT_PATHID  = I_VMT_PATH
+N_VMT_PT_ID = I_VMT_POINT
+
+
+; acknowledge
+O_VMT_ACK = TRUE
+IF (I_VMT_STROBE == TRUE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+  REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == FALSE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV,22)
+  ENDIF
+ENDIF
+O_VMT_ACK = FALSE
+
+RETURN (TRUE)
+ENDFCT
+
+;=================================================
+; receive status and shift data (the correction(s))
+;=================================================
+GLOBAL DEFFCT BOOL TBOX_RecShiftData( )
+;=================================================
+WAIT SEC 0 ;advance stop
+O_VMT_ACK = FALSE
+
+IF (I_VMT_STROBE == FALSE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+  REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == TRUE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV, 11)
+    RETURN (FALSE)
+  ENDIF
+ENDIF
+
+DoErrorQuitt()
+
+;Recieve Stauts
+N_VMT_TBSTAT = I_VMT_STATE2
+
+; Assign correction values
+; scaling / signing
+BK_SCALE_R = GetScaleFactor(I_VMT_FAC_R)
+BK_SCALE_T = GetScaleFactor(I_VMT_FAC_T)
+
+R_VMT_CORR_X = IN_SIGN(I_VMT_X, BK_SCALE_T)
+R_VMT_CORR_Y = IN_SIGN(I_VMT_Y, BK_SCALE_T)
+R_VMT_CORR_Z = IN_SIGN(I_VMT_Z, BK_SCALE_T)
+R_VMT_CORR_C = IN_SIGN(I_VMT_RX, BK_SCALE_R)
+R_VMT_CORR_B = IN_SIGN(I_VMT_RY, BK_SCALE_R)
+R_VMT_CORR_A = IN_SIGN(I_VMT_RZ, BK_SCALE_R)
+
+;update correction frame
+FR_VMT_TBCOR.X = R_VMT_CORR_X
+FR_VMT_TBCOR.Y = R_VMT_CORR_Y
+FR_VMT_TBCOR.Z = R_VMT_CORR_Z
+FR_VMT_TBCOR.C = R_VMT_CORR_C
+FR_VMT_TBCOR.B = R_VMT_CORR_B
+FR_VMT_TBCOR.A = R_VMT_CORR_A
+
+
+TB_TOOL_NUM  = I_VMT_TYPE
+
+; acknowledge
+O_VMT_ACK = TRUE
+IF (I_VMT_STROBE == TRUE) THEN
+  VMT_START_TIMER(3, N_VMT_RECVTO)
+
+  REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_STROBE == FALSE) OR VMT_IS_TIMER(3))
+  VMT_STOP_TIMER(3)
+  IF VMT_IS_TIMER(3) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_RECV,12)
+  ENDIF
+ENDIF
+O_VMT_ACK = FALSE
+
+RETURN (TRUE)
+ENDFCT
+
+
+
+
+
+
+
+;=================================================
+GLOBAL DEFFCT BOOL CheckISReady()
+;=================================================
+RETURN I_VMT_READY
+ENDFCT
+
+;=================================================
+GLOBAL DEFFCT BOOL CheckISFail()
+;=================================================
+RETURN I_VMT_FAIL
+ENDFCT
+
+;=================================================
+GLOBAL DEF WaitISReady()
+;=================================================
+IF (I_VMT_READY == FALSE) THEN
+  WaitForSignalMsg("Warte auf VMT Bereit", NI_VMT_READY, TRUE)
+ENDIF
+END
+
+
+;=================================================
+GLOBAL DEFFCT BOOL BK_STATUS()
+;=================================================
+BOOL FAILURE
+BOOL READY
+
+  READY = I_VMT_READY
+	FAILURE = I_VMT_FAIL
+	
+	IF (READY AND NOT FAILURE) THEN
+		RETURN (TRUE)
+	ELSE
+		IF (FAILURE) THEN
+			VMT_SET_ERROR_MSG(MsgSENSOR, 0, 0, 0)
+		ENDIF
+		IF (NOT READY) THEN
+			VMT_SET_ERROR_MSG(MsgBKBusy, 0, 0, 0)
+		ENDIF
+		RETURN (FALSE)
+	ENDIF
+ENDFCT
+
+
+;=================================================
+GLOBAL DEF DoErrorQuitt()
+;=================================================
+IF (B_VMT_UError == TRUE) THEN
+  IF (I_VMT_ERROR == TRUE) THEN
+    O_VMT_QUITT = TRUE
+    WAIT FOR (I_VMT_ERROR == FALSE)
+    O_VMT_QUITT = FALSE
+  ENDIF
+ENDIF
+END
+
+
+;=================================================
+;Watchdog Handling mit Fehlermeldung
+;=================================================
+GLOBAL DEF VMT_WATCHDOG()
+;=================================================
+IF B_VMT_UAlive THEN
+  IF (I_VMT_ALIVE <> WATCH_SET) THEN
+    WATCH_SET = NOT WATCH_SET
+    IF WATCH_LOST == TRUE THEN
+      WATCH_LOST = FALSE
+      VMT_SET_ERROR_MSG(MsgFound)
+    ENDIF
+    VMT_Start_TIMER(2, N_VMT_WTCHTO)
+  ENDIF
+  IF VMT_IS_TIMER(2) THEN
+    IF WATCH_LOST == FALSE THEN
+      VMT_SET_ERROR_MSG(MsgLost)
+      WATCH_LOST = TRUE
+    ENDIF
+  ENDIF
+ENDIF
+END
+
+;================================================
+; BK Funktion zum Senden von Telegrammen
+;================================================
+GLOBAL DEFFCT BOOL BK_SendCMD(nRobID: IN, nCommand: IN, nTypeId: IN, nPathId: IN, nPointId: IN, nCamId : IN,  pFrameToSend: IN)
+;================================================
+INT nRobID, nCommand
+INT nTypeId, nPathId, nPointId, nCamId
+FRAME pFrameToSend
+BOOL Result
+
+Result = VMT_SendCMD(nRobID, nCommand, nTypeId, nPathId, nPointId, nCamId, pFrameToSend, TRUE)
+
+RETURN Result
+ENDFCT
+
+;================================================
+; ToolBox3D Funktion zum Senden von Telegrammen
+;================================================
+GLOBAL DEFFCT BOOL TBOX_SendCMD(nRobID: IN, nCommand: IN, nToolNumber: IN, nPointId: IN, pFrameToSend: IN)
+;================================================
+INT nRobID, nCommand, nToolNumber, nPointId
+FRAME pFrameToSend
+BOOL Result
+Result = VMT_SendCMD(nRobID, nCommand, nToolNumber, nCommand, 0, nPointId, pFrameToSend, FALSE)
+
+RETURN Result
+ENDFCT
+
+
+;=================================================
+; Basis Funktion zum Seden von Telegrammen
+;=================================================
+GLOBAL DEFFCT BOOL VMT_SendCMD(nRobID: IN, nCommand: IN, nTypeId: IN, nPathId: IN, nPointId: IN, nCamId: IN, pFrameToSend: IN, bWaitForISReady : IN)
+;==================================================
+INT nRobID, nCommand
+INT nTypeId, nPathId, nPointId, nCamId
+FRAME pFrameToSend
+INT RetryCounter
+BOOL Locking_OK
+INT Factor
+REAL Value
+INT ScaleFactorT
+INT ScaleFactorR
+BOOL bWaitForISReady
+
+O_VMT_ACK = FALSE
+O_VMT_STROBE = FALSE
+
+DoErrorQuitt()
+; Kommunikationsueberwachung
+IF (I_VMT_ACK == TRUE) THEN
+  VMT_START_TIMER(1, N_VMT_SENDTO)
+	REPEAT
+		WAIT SEC 0.01
+	UNTIL ((I_VMT_ACK == FALSE) OR VMT_IS_TIMER(1))
+  VMT_STOP_TIMER(1)
+  IF VMT_IS_TIMER(1) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_SEND,1)
+  ENDIF
+ENDIF
+
+; Daten schreiben
+O_VMT_ID = nRobID
+O_VMT_CMD = nCommand
+O_VMT_TYPE = nTypeId
+O_VMT_PATH = nPathId
+O_VMT_POINT = nPointId
+O_VMT_CAM = nCamId
+
+;Faktoren berechnen
+CalcScaleFactors(pFrameToSend, ScaleFactorT, ScaleFactorR)
+
+IF ((ScaleFactorT < 0) OR (ScaleFactorR < 0)) THEN
+ ;TODO ErrorMessage
+ENDIF
+
+;Faktoren umwandeln
+O_VMT_FAC_T = ScaleFactorT
+Factor = GetScaleFactor(ScaleFactorT)
+;Werte schreiben
+Value = OUT_SIGN(pFrameToSend.X , Factor)
+O_VMT_X = Value
+Value = OUT_SIGN(pFrameToSend.Y , Factor)
+O_VMT_Y = Value
+Value = OUT_SIGN(pFrameToSend.Z , Factor)
+O_VMT_Z = Value
+;Faktoren umwandeln
+O_VMT_FAC_R = ScaleFactorR
+Factor = GetScaleFactor(ScaleFactorR)
+;Werte schreiben
+Value = OUT_SIGN(pFrameToSend.C , Factor)
+O_VMT_RX = Value
+Value = OUT_SIGN(pFrameToSend.B , Factor)
+O_VMT_RY = Value
+Value = OUT_SIGN(pFrameToSend.A , Factor)
+O_VMT_RZ = Value
+
+
+RetryCounter=0
+WAIT SEC 0 ;Vorlaufstop
+
+IF (bWaitForISReady == TRUE) THEN
+  WaitISReady()
+ENDIF
+
+DoErrorQuitt()
+
+;Locking wird bei parallem Betrieb
+;an zwei Robotern verwendet
+IF (B_VMT_ULock == TRUE) THEN
+  Locking_OK = FALSE
+  REPEAT
+    ; Will der andere senden ?
+    IF (I_VMT_LOCK == TRUE) THEN 
+      ; Wir wollen auch senden
+      O_VMT_LOCK = TRUE  
+      VMT_START_TIMER(1, 5000)
+			REPEAT
+				WAIT SEC 0.01
+			UNTIL ((I_VMT_LOCK == FALSE) OR VMT_IS_TIMER(1))
+      VMT_STOP_TIMER(1)
+      Locking_OK = TRUE
+    ELSE ; Keiner will senden
+      ;Wir wollen senden
+      O_VMT_LOCK = TRUE
+      IF (I_VMT_LOCK == TRUE) THEN
+        ; Genau jetzt will der andere senden !
+        ; Okay, warten wir ein wenig...
+        O_VMT_LOCK = FALSE
+        WAIT SEC 0.02 * (N_VMT_ROB_ID + 1)
+      ELSE
+        Locking_OK = TRUE
+      ENDIF
+    ENDIF
+  UNTIL Locking_OK == TRUE
+ENDIF
+
+
+REPEAT
+  O_VMT_STROBE = TRUE
+  IF (I_VMT_ACK == FALSE) THEN
+    VMT_START_TIMER(1, 1000)
+		REPEAT
+			WAIT SEC 0.01
+		UNTIL ((I_VMT_ACK == TRUE) OR VMT_IS_TIMER(1))
+    VMT_STOP_TIMER(1)
+    IF VMT_IS_TIMER(1) THEN
+      RetryCounter = RetryCounter + 1
+      O_VMT_STROBE = FALSE
+      WAIT SEC 0.2
+    ELSE
+      RetryCounter = N_VMT_RETRY
+    ENDIF
+  ELSE
+    RetryCounter = N_VMT_RETRY
+  ENDIF
+UNTIL RetryCounter >= N_VMT_RETRY
+
+
+O_VMT_STROBE = FALSE
+
+;For locking mechanism...
+IF VMT_IS_TIMER(1) THEN
+  IF (B_VMT_ULock == TRUE) THEN
+    O_VMT_LOCK = FALSE
+  ENDIF
+  VMT_SET_ERROR_MSG(MsgCOM_SEND, 2)
+  RETURN (FALSE)
+ENDIF
+
+
+WAIT SEC 0
+IF (I_VMT_ACK == TRUE) THEN
+  VMT_START_TIMER(1, N_VMT_SENDTO)
+	REPEAT
+		WAIT SEC 0.01
+  UNTIL ((I_VMT_ACK == FALSE) OR VMT_IS_TIMER(1))
+  VMT_STOP_TIMER(1)
+  IF VMT_IS_TIMER(1) THEN
+    VMT_SET_ERROR_MSG(MsgCOM_SEND, 3)
+  ENDIF
+ENDIF
+
+;For locking mechanism...
+IF (B_VMT_ULock == TRUE) THEN
+  O_VMT_LOCK = FALSE
+ENDIF
+
+N_VMT_DEBUG=0
+
+RETURN (TRUE)
+
+ENDFCT
+
+;================================================
+; display a message on the teach panel
+; if configured, some flags will be set
+; flags are never resetted by these functions
+;================================================
+GLOBAL DEF VMT_SET_STATUS_MSG(MSGNR:IN, QUITMSG:IN, PAR1:IN, PAR2:IN, PAR3:IN)
+;================================================
+INT  MSGNR
+BOOL QUITMSG
+REAL PAR1
+REAL PAR2
+REAL PAR3
+INT  MSGNR_OFF
+
+DECL STATE_T ST_AUSG
+INT  OFF_AUSG
+
+DECL KrlMsg_t MSG
+DECL KrlMsgPar_t M_par[3]
+DECL KrlMsgOpt_t M_opt
+INT nHandle
+MSGNR_OFF = 0
+
+IF (MSGNR == 0) THEN
+  RETURN
+ENDIF
+
+IF ((MSGNR > VMT_MESSAGES_COUNT)) THEN
+  PAR1 = MSGNR
+  MSGNR = MsgINVALID2
+ENDIF
+
+IF (VMT_MESSAGES[MSGNR].FLAG_NR > 0) THEN
+  $FLAG[VMT_MESSAGES[MSGNR].FLAG_NR] = TRUE
+ENDIF
+
+OFF_AUSG = 0
+
+SWITCH VMT_MESSAGES[MSGNR].PAR
+  CASE 1
+    MSG = {modul[] "VMT BK", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1)
+  CASE 2
+    MSG = {modul[] "VMT BK", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2)
+  CASE 3
+    MSG = {modul[] "VMT BK", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2, PAR3)
+  DEFAULT ;(Ohne Paramter)
+    MSG = {modul[] "VMT BK", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG,"%S", VMT_MESSAGES[MSGNR].TXT[])
+ENDSWITCH
+
+
+M_opt = {vl_stop true, clear_p_reset true, clear_p_SAW false,log_to_DB true}
+MSG.Nr = MSGNR + MSGNR_OFF
+
+IF (QUITMSG == TRUE) THEN
+  nHandle = Set_KrlMsg (#quit, MSG, M_par[], M_opt);fire ;MSG.TYP=#QUIT
+  while (Exists_KrlMsg(nHandle)) ;wait for quit
+    wait sec 0.1
+  endwhile
+ELSE
+  nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+ENDIF
+
+END
+
+;================================================
+; prepare a message to be displayed on the teach panel
+; if configured, some flags will be set
+; flags are never resetted by these functions
+;================================================
+GLOBAL DEF VMT_PREP_STAT_MSG(MSGNR:IN, QUITMSG:IN, PAR1:IN, PAR2:IN, PAR3:IN)
+;================================================
+INT  MSGNR
+BOOL QUITMSG
+REAL PAR1
+REAL PAR2
+REAL PAR3
+INT  MSGNR_OFF
+
+DECL STATE_T ST_AUSG
+INT  OFF_AUSG
+INT i, Found
+DECL KrlMsg_t MSG
+DECL KrlMsgPar_t M_par[3]
+DECL KrlMsgOpt_t M_opt
+INT nHandle
+MSGNR_OFF = 0
+
+IF (MSGNR == 0) THEN
+  RETURN
+ENDIF
+
+IF ((MSGNR > VMT_MESSAGES_COUNT)) THEN
+  PAR1 = MSGNR
+  MSGNR = MsgINVALID2
+ENDIF
+
+IF (VMT_MESSAGES[MSGNR].FLAG_NR > 0) THEN
+  $FLAG[VMT_MESSAGES[MSGNR].FLAG_NR] = TRUE
+ENDIF
+
+IF (QUITMSG == FALSE) THEN
+	OFF_AUSG = 0
+
+	SWITCH VMT_MESSAGES[MSGNR].PAR
+		CASE 1
+         MSG = {modul[] "VMT BK prep", Nr 1, msg_txt[] " "}
+			SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1)
+		CASE 2
+         MSG = {modul[] "VMT BK prep", Nr 1, msg_txt[] " "}
+			SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2)
+		CASE 3
+         MSG = {modul[] "VMT BK prep", Nr 1, msg_txt[] " "}
+			SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2, PAR3)
+		DEFAULT ;(Ohne Paramter)
+         MSG = {modul[] "VMT BK prep", Nr 1, msg_txt[] " "}
+			SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG,"%S", VMT_MESSAGES[MSGNR].TXT[])
+	ENDSWITCH
+
+	M_opt = {vl_stop true, clear_p_reset true, clear_p_SAW false,log_to_DB true}
+	MSG.Nr = MSGNR + MSGNR_OFF
+  nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+ELSE
+	; try to increase write counter
+	I = N_VMT_MSGNXT + 1
+	IF (I > 10) THEN
+		I = 1
+	ENDIF
+	IF (I <> N_VMT_MSGLST) THEN
+		MA_FIRED_MSG[I].MsgNr = MSGNR
+		MA_FIRED_MSG[I].Par1 = PAR1
+		MA_FIRED_MSG[I].Par2 = PAR2
+		MA_FIRED_MSG[I].Par3 = PAR3
+		MA_FIRED_MSG[I].Handle = 0
+		N_VMT_MSGNXT = I
+	ENDIF
+ENDIF
+
+END
+
+;================================================
+; display a message on the teach panel
+; if configured, some flags will be set
+; flags are never resetted by these functions
+;================================================
+GLOBAL DEF VMT_FIRE_MSG()
+
+INT MSGNR
+INT PAR1,PAR2,PAR3
+INT MSGNR_OFF
+
+DECL STATE_T ST_AUSG
+INT OFF_AUSG
+DECL KrlMsg_t MSG
+DECL KrlMsgPar_t M_par[3]
+DECL KrlMsgOpt_t M_opt
+
+MSGNR_OFF = 0
+OFF_AUSG=0
+;Check for new messages to display
+IF (N_VMT_MSGNXT == N_VMT_MSGLST) THEN
+	RETURN
+ENDIF
+;Increase read counter
+N_VMT_MSGLST = N_VMT_MSGLST + 1
+IF (N_VMT_MSGLST > 10) THEN
+	N_VMT_MSGLST = 1
+ENDIF
+
+MSGNR = MA_FIRED_MSG[N_VMT_MSGLST].MsgNr
+PAR1 = MA_FIRED_MSG[N_VMT_MSGLST].Par1
+PAR2 = MA_FIRED_MSG[N_VMT_MSGLST].Par2
+PAR3 = MA_FIRED_MSG[N_VMT_MSGLST].Par3
+
+
+SWITCH VMT_MESSAGES[MSGNR].PAR
+  CASE 1
+    MSG = {modul[] "VMT BK fired", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1)
+  CASE 2
+    MSG = {modul[] "VMT BK fired", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2)
+  CASE 3
+    MSG = {modul[] "VMT BK fired", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSGNR].TXT[], PAR1, PAR2, PAR3)
+  DEFAULT ;(Ohne Paramter)
+    MSG = {modul[] "VMT BK fired", Nr 1, msg_txt[] " "}
+    SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG,"%S", VMT_MESSAGES[MSGNR].TXT[])
+ENDSWITCH
+
+
+M_opt = {vl_stop true, clear_p_reset true, clear_p_SAW false,log_to_DB true}
+MSG.Nr = MSGNR + MSGNR_OFF
+
+IF (VMT_MESSAGES[MSGNR].QUIT_MSG == TRUE) THEN
+  MA_FIRED_MSG[N_VMT_MSGLST].Handle = Set_KrlMsg (#quit, MSG, M_par[], M_opt);fire ;MSG.TYP=#QUIT
+  while (Exists_KrlMsg(MA_FIRED_MSG[N_VMT_MSGLST].Handle)) ;wait for quit
+    wait sec 0.1
+  endwhile
+	MA_FIRED_MSG[N_VMT_MSGLST].Handle = 0
+ELSE
+ MA_FIRED_MSG[N_VMT_MSGLST].Handle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire ;MSG.TYP=#STATE
+
+ENDIF
+END
+
+
+;================================================
+; display a message on the teach panel
+; if configured, some flags will be set
+; flags are never resetted by these functions
+;================================================
+GLOBAL DEF VMT_SET_FRAME_MSG(ID:IN, CORR:IN, MsgType:IN)
+;================================================
+INT ID
+FRAME CORR
+INT MsgType
+
+DECL STATE_T ST_AUSG
+INT OFF_AUSG
+DECL KrlMsg_t MSG
+DECL KrlMsgPar_t M_par[3]
+DECL KrlMsgOpt_t M_opt
+INT nHandle
+
+CONTINUE
+OFF_AUSG = 0
+CONTINUE
+MSG = {modul[] "VMT BK", Nr 1, msg_txt[] " "}
+CONTINUE
+M_opt = {vl_stop false, clear_p_reset true, clear_p_SAW false,log_to_DB true}
+
+SWITCH  MsgType
+CASE 1		; Correction
+	CONTINUE
+	MSG.Nr = MsgCorr
+	CONTINUE
+	SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSG.Nr].TXT[], ID, CORR.X, CORR.Y,CORR.Z, CORR.A, CORR.B, CORR.C)
+	CONTINUE
+	nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+	
+CASE 2		; TCP Changed
+	MSG.Nr = MsgToolOK
+	SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSG.Nr].TXT[], ID)
+	nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+	MSG.msg_txt[] = " "
+	OFF_AUSG = 0
+	MSG.Nr = MsgXYZABC
+	SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSG.Nr].TXT[], CORR.X, CORR.Y,CORR.Z, CORR.A, CORR.B, CORR.C)
+	nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+
+CASE 3		; Base Changed
+	MSG.Nr = MsgBaseOK
+	SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSG.Nr].TXT[], ID, CORR.X, CORR.Y,CORR.Z, CORR.A, CORR.B, CORR.C)
+	nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+	MSG.msg_txt[] = " "
+	OFF_AUSG = 0
+	MSG.Nr = MsgXYZABC
+	SWRITE(MSG.msg_txt[], ST_AUSG, OFF_AUSG, VMT_MESSAGES[MSG.Nr].TXT[], CORR.X, CORR.Y,CORR.Z, CORR.A, CORR.B, CORR.C)
+	nHandle = Set_KrlMsg (#notify, MSG, M_par[], M_opt);fire  ;MSG.TYP=#STATE
+
+DEFAULT
+ENDSWITCH
+END
+
+
+;================================================
+; this function calls VMT_SET_STATUS_MSG
+; but additionally sets the ERROR_FLAG
+;================================================
+GLOBAL DEF VMT_SET_ERROR_MSG(MSGNR:IN, PAR1:IN, PAR2:IN, PAR3:IN)
+;================================================
+INT MSGNR
+REAL PAR1
+REAL PAR2
+REAL PAR3
+
+IF  ((MSGNR < 1) OR (MSGNR > VMT_MESSAGES_COUNT)) THEN
+  PAR1=MSGNR
+  MSGNR = MsgINVALID2
+ENDIF
+
+IF (F_VMT_ERROR <> 0) THEN
+  IF (VMT_MESSAGES[MSGNR].FLAG_NR > 0) THEN
+    $FLAG[F_VMT_ERROR] = TRUE
+    IF F_VMT_IO > 0 THEN
+       $FLAG[F_VMT_IO] = FALSE
+    ENDIF
+    IF F_VMT_NIO > 0 THEN
+       $FLAG[F_VMT_NIO] = TRUE
+    ENDIF
+  ENDIF
+ENDIF
+
+IF ($MODE_OP <= VMT_MESSAGES[MSGNR].OP_MODE) THEN
+  SWITCH VMT_MESSAGES[MSGNR].PAR
+    CASE 1
+      VMT_SET_STATUS_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1)
+    CASE 2
+      VMT_SET_STATUS_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1, PAR2)
+    CASE 3
+      VMT_SET_STATUS_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1, PAR2, PAR3)
+    DEFAULT
+      VMT_SET_STATUS_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG)
+  ENDSWITCH
+ENDIF
+END
+
+;================================================
+; this function calls VMT_SET_STATUS_MSG
+; but additionally sets the ERROR_FLAG
+;================================================
+GLOBAL DEF VMT_PREP_ERR_MSG(MSGNR:IN, PAR1:IN, PAR2:IN, PAR3:IN)
+;================================================
+INT MSGNR
+REAL PAR1
+REAL PAR2
+REAL PAR3
+
+IF  ((MSGNR < 1) OR (MSGNR > VMT_MESSAGES_COUNT)) THEN
+  PAR1=MSGNR
+  MSGNR = MsgINVALID2
+ENDIF
+
+IF (F_VMT_ERROR <> 0) THEN
+  IF (VMT_MESSAGES[MSGNR].FLAG_NR > 0) THEN
+    $FLAG[F_VMT_ERROR] = TRUE
+    IF F_VMT_IO > 0 THEN
+       $FLAG[F_VMT_IO] = FALSE
+    ENDIF
+    IF F_VMT_NIO > 0 THEN
+       $FLAG[F_VMT_NIO] = TRUE
+    ENDIF
+  ENDIF
+ENDIF
+
+IF ($MODE_OP <= VMT_MESSAGES[MSGNR].OP_MODE) THEN
+  SWITCH VMT_MESSAGES[MSGNR].PAR
+    CASE 1
+      VMT_PREP_STAT_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1,0,0)
+    CASE 2
+      VMT_PREP_STAT_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1, PAR2,0)
+    CASE 3
+      VMT_PREP_STAT_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG, PAR1, PAR2, PAR3)
+    DEFAULT
+      VMT_PREP_STAT_MSG(MSGNR, VMT_MESSAGES[MSGNR].QUIT_MSG,0,0,0)
+  ENDSWITCH
+ENDIF
+END
+
+;=================================================
+;                  BK_GetIndex
+; finds the matching index for given ID
+;=================================================
+GLOBAL DEFFCT INT BK_GetIndex(PathIndex :IN, PointID: IN)
+;=================================================
+INT PathIndex
+INT PointID
+INT i
+INT PointIndex
+
+PointIndex = -1
+IF (PathIndex < 1) THEN
+  return (-1)
+ENDIF
+IF (PathIndex > BK_MAXPATH) THEN
+  return (-1)
+ENDIF
+
+FOR i = 1 TO BK_MAXCORR
+  IF (NA_VMT_CORID[PathIndex, i] == PointID) THEN
+    PointIndex = i
+    i = BK_MAXCORR
+    EXIT
+  ENDIF
+ENDFOR
+RETURN (PointIndex)
+ENDFCT
+
+
+
+;=================================================
+;Ueberprueft die empfangen Datan auf Gueltigkeit
+;=================================================
+GLOBAL DEFFCT INT CheckReceivedData(OldIndex : IN)
+;=================================================
+INT OldIndex
+INT NewIndex
+BOOL ErrorFound
+
+ErrorFound = FALSE
+NewIndex = OldIndex
+
+IF (N_VMT_BKSTAT B_AND BK_S_OK) == BK_S_OK THEN
+   IF (N_VMT_BKMODE <> BK_M_CHECK) THEN
+		NewIndex = OldIndex + 1
+		IF (NewIndex <= BK_MAXCORR) THEN
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].X = R_VMT_CORR_X
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].Y = R_VMT_CORR_Y
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].Z = R_VMT_CORR_Z
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].C = R_VMT_CORR_C
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].B = R_VMT_CORR_B
+			FRA_VMT_CORR[N_VMT_PATHIX, NewIndex].A = R_VMT_CORR_A
+			NA_VMT_CORID[N_VMT_PATHIX, NewIndex] = N_VMT_PT_ID
+		ENDIF
+	ENDIF
+ELSE
+  IF (N_VMT_PT_ID <= 0) THEN
+    ; no correction available
+  ELSE
+    NewIndex = OldIndex + 1
+		NA_VMT_INVAL[N_VMT_PATHIX] = NA_VMT_INVAL[N_VMT_PATHIX] + 1
+    NA_VMT_CORID[N_VMT_PATHIX, NewIndex] = -N_VMT_PT_ID
+    IF (N_VMT_BKSTAT B_AND BK_E_COLLIS) == BK_E_COLLIS THEN
+      ;$MSG_T.RELEASE = TRUE
+      VMT_PREP_ERR_MSG(MsgCOLLKor, N_VMT_PT_ID, 0, 0)
+      ErrorFound = TRUE
+    ENDIF
+    IF (ErrorFound == FALSE) THEN
+      IF (N_VMT_BKSTAT B_AND BK_E_LIMIT) == BK_E_LIMIT THEN
+        ;$MSG_T.RELEASE = TRUE
+        VMT_PREP_ERR_MSG(MsgLIMITS, N_VMT_PT_ID, 0, 0)
+        ErrorFound = TRUE
+      ENDIF
+    ENDIF
+    IF (ErrorFound == FALSE) THEN
+      IF (N_VMT_BKSTAT B_AND BK_E_DETECT) == BK_E_DETECT THEN
+        ;$MSG_T.RELEASE = TRUE
+        VMT_PREP_ERR_MSG(MsgMEASURE, N_VMT_PT_ID, 0, 0)
+        ErrorFound = TRUE
+      ENDIF
+    ENDIF
+    IF (ErrorFound == FALSE) THEN
+      IF (N_VMT_BKSTAT B_AND BK_E_SENSOR) == BK_E_SENSOR THEN
+        ;$MSG_T.RELEASE = TRUE
+        VMT_PREP_ERR_MSG(MsgSENSOR, N_VMT_PT_ID, 0, 0)
+        ErrorFound = TRUE
+      ENDIF
+    ENDIF
+    IF (ErrorFound == FALSE) THEN
+      ;$MSG_T.RELEASE = TRUE
+      VMT_PREP_ERR_MSG(MsgGENERAL, N_VMT_PT_ID, 0, 0)
+      ErrorFound = TRUE
+    ENDIF
+  ENDIF
+ENDIF
+ return NewIndex
+ENDFCT
+
+
+;=================================================
+;Ueberprueft den Status eines Messpunktes
+;=================================================
+DEF CheckMPState(PointID : IN)
+;=================================================
+INT PointID
+
+IF (N_VMT_BKSTAT B_AND BK_E_COLLIS) == BK_E_COLLIS THEN
+  VMT_PREP_ERR_MSG(MsgMColl, PointID, 0, 0)
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_LIMIT) == BK_E_LIMIT THEN
+  VMT_PREP_ERR_MSG(MsgMLimits, PointID, 0, 0)
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_DETECT) == BK_E_DETECT THEN
+  VMT_PREP_ERR_MSG(MsgMMeasure, PointID, 0, 0)
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_SENSOR) == BK_E_SENSOR THEN
+  VMT_PREP_ERR_MSG(MsgMSensor, PointID, 0, 0)
+ENDIF
+IF (N_VMT_BKSTAT B_AND BK_E_GENERAL) == BK_E_GENERAL THEN
+  VMT_PREP_ERR_MSG(MsgMGeneral, PointID, 0, 0)
+ENDIF
+END
+
+
+;==================================================
+;                  VMT_STOP_TIMER
+;==================================================
+GLOBAL DEF VMT_STOP_TIMER(TNR :IN)
+;=================================================
+INT TNR
+NA_VMT_TIMER[TNR] = 0
+END
+
+;=================================================
+;                  VMT_START_TIMER
+;=================================================
+GLOBAL DEF VMT_START_TIMER(TNR : IN, TIME : IN)
+;=================================================
+INT TNR
+INT TIME
+NA_VMT_TIMER[TNR] = $ROB_TIMER + TIME
+BA_VMT_TIMER[TNR] = FALSE
+END ;ende von VMT_START_TIMER
+
+;=================================================
+;                  VMT_IS_TIMER
+;=================================================
+GLOBAL DEFFCT BOOL VMT_IS_TIMER(TNR : IN)
+;=================================================
+INT TNR
+IF ((NA_VMT_TIMER[TNR] > 0 ) AND (BA_VMT_TIMER[TNR] == FALSE)) THEN
+	IF ($ROB_TIMER > NA_VMT_TIMER[TNR]) THEN
+		BA_VMT_TIMER[TNR] = TRUE
+	ENDIF
+ENDIF
+RETURN (BA_VMT_TIMER[TNR])
+ENDFCT
+
+;=================================================
+; Berechnet die Anzahl der moeglichen 
+; Nachkommastellen zur Uebertragung
+;=================================================
+DEF CalcScaleFactors(Data : IN, FactorTrans : OUT, FactorRot : OUT)
+;=================================================
+FRAME Data
+INT FactorTrans
+INT FactorRot
+REAL Max
+REAL Value
+
+Max = Abs(Data.X)
+IF (Abs(Data.Y) > Max) THEN
+  Max = Abs(Data.Y)
+ENDIF
+IF (Abs(Data.Z) > Max) THEN
+  Max = Abs(Data.Z)
+ENDIF
+
+FactorTrans = 4
+IF Max > 0 THEN
+  Value = 32767 / Max
+  IF (Value < 10000) THEN
+    FactorTrans = 3
+  ENDIF
+  IF (Value < 1000) THEN
+    FactorTrans = 2
+  ENDIF
+  IF (Value < 100) THEN
+    FactorTrans = 1
+  ENDIF
+  IF (Value < 10) THEN
+    FactorTrans = 0
+  ENDIF
+  IF (Value < 1) THEN
+    FactorTrans = -1 ; Wert ist zu gross!
+  ENDIF
+ENDIF
+
+Max = Abs(Data.A)
+IF (Abs(Data.B) > Max) THEN
+  Max = Abs(Data.B)
+ENDIF
+IF (Abs(Data.C) > Max) THEN
+  Max = Abs(Data.C)
+ENDIF
+
+FactorRot = 4
+IF Max > 0 THEN
+  Value = 32767 / Max
+  IF (Value < 10000) THEN
+    FactorRot = 3
+  ENDIF
+  IF (Value < 1000) THEN
+    FactorRot = 2
+  ENDIF
+  IF (Value < 100) THEN
+    FactorRot = 1
+  ENDIF
+  IF (Value < 10) THEN
+    FactorRot = 0
+  ENDIF
+  IF (Value < 1) THEN
+    FactorRot = -1 ; Wert ist zu gross!
+  ENDIF
+ENDIF
+END
+
+
+;==================================================
+; Wandelt den Skalierungswert in einen Faktor um
+;==================================================
+DEFFCT INT GetScaleFactor(FactorInterface : IN)
+;==================================================
+INT FactorInterface
+INT ScaleFactor
+
+ScaleFactor = 10000
+
+
+SWITCH FactorInterface
+ CASE -1
+   ScaleFactor = 0 ; value would cause error
+ CASE 0
+   ScaleFactor = 1
+ CASE 1
+   ScaleFactor = 10
+ CASE 2
+   ScaleFactor = 100
+ CASE 3
+   ScaleFactor = 1000
+ CASE 4
+   ScaleFactor = 10000
+ENDSWITCH
+
+RETURN ScaleFactor
+ENDFCT
+
+;=================================================
+;Umrechnung REAL -> INT mit Vorzeichen
+;=================================================
+DEFFCT INT OUT_SIGN(Zahl:IN, Faktor:IN)
+REAL Zahl
+REAL Faktor
+INT Wert
+Wert = Zahl * Faktor
+IF (Wert < 0) THEN
+  Wert = 65536 + Wert
+ENDIF
+RETURN (Wert)
+ENDFCT
+
+;=================================================
+;Umrechnung INT -> REAL mit Vorzeichen
+;=================================================
+DEFFCT REAL IN_SIGN(ZAHL:IN,FAKTOR:IN)
+INT ZAHL
+REAL FAKTOR
+REAL DUMMY
+
+IF ZAHL>32767 THEN
+  DUMMY=ZAHL-65536
+ELSE
+  DUMMY=ZAHL
+ENDIF
+
+DUMMY=DUMMY/FAKTOR
+RETURN  (DUMMY)
+ENDFCT
+
+;=================================================
+;Berechnet die Inverse (und zwar richtig :-) )
+;=================================================
+GLOBAL DEFFCT FRAME MBF_INV_FRAME(trafo: IN)
+FRAME trafo
+
+FRAME trans
+FRAME roll
+FRAME pitch
+FRAME yaw
+FRAME result
+FRAME zero
+
+zero = {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+trans = zero
+roll  = zero
+pitch = zero
+yaw   = zero
+
+trans.X = -trafo.X
+trans.Y = -trafo.Y
+trans.Z = -trafo.Z
+roll.C  = -trafo.C
+pitch.B = -trafo.B
+yaw.A   = -trafo.A
+
+result = roll : pitch : yaw : trans
+
+RETURN result
+ENDFCT
+
+
+;=================================================
+GLOBAL DEF PulseTrigger(Value : IN, Length : IN)
+;=================================================
+BOOL Value
+REAL Length
+	PULSE(O_VMT_BKTRIG, Value, Length)
+END
+
+;=================================================
+GLOBAL DEF SetTrigger(Value : IN)
+;=================================================
+BOOL Value
+	O_VMT_BKTRIG = Value
+END
+
+;=================================================
+GLOBAL DEFFCT MESSAGE_TYPE GetMessage(MsgNr : IN)
+;=================================================
+INT MsgNr
+IF (MsgNr > 0) AND (MsgNr < VMT_MESSAGES_COUNT) THEN
+	RETURN VMT_MESSAGES[MsgNr]
+ENDIF
+RETURN VMT_MESSAGES[MsgInvalid2]
+ENDFCT
+
+
+;=================================================
+GLOBAL DEFFCT VMT_CAMERA_TYPE GetVMTCam(CamNr : IN)
+;=================================================
+INT CamNr
+IF (CamNr > 0) AND (CamNr <= 16) THEN
+	RETURN T_VMT_CAMS[CamNr]
+ENDIF
+RETURN T_VMT_CAMS[1]
+ENDFCT
+
+
+
+;ENDFOLD

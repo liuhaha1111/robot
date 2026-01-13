@@ -1,0 +1,188 @@
+<ArchiveInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="KUKARoboter.Contracts.Archive">
+  <Archive>
+    <Date>2025-08-30T02:09:43.040367+08:00</Date>
+    <Id>6396f6e8-15a0-4c45-8a3c-7da8c684b10e</Id>
+    <ArchivePath>\\10.210.193.230\Backups\KETVOL425100R01.zip</ArchivePath>
+    <Configuration>
+      <Name>All</Name>
+      <Description>Configuration "All" from registry. Converted at 8/30/2025 2:09:34 AM.</Description>
+      <EmbeddedLogFile>true</EmbeddedLogFile>
+      <FileConfig>
+        <DefaultExcludeFilters />
+        <FileSources>
+          <FileSource>
+            <Path>KRC:\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\Config\User\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\Config\System\Common\Mada\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\Init\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\Ir_Spec\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\Rdc\</Path>
+          </FileSource>
+          <FileSource>
+            <ExcludeFilter>\User\ProjectRoot\*\*</ExcludeFilter>
+            <Path>\User\</Path>
+          </FileSource>
+          <FileSource>
+            <Path>\Roboter\log\Mastery.log</Path>
+          </FileSource>
+          <FileSource>
+            <Path>C:\KRC\ROBOTER\ProConOS\*.*</Path>
+          </FileSource>
+          <FileSource>
+            <Path>C:\PROGRAM FILES\KUKA.CPC\apccache\</Path>
+          </FileSource>
+        </FileSources>
+      </FileConfig>
+      <LogConfig>
+        <ProtokollNames>
+          <string>KrcLog</string>
+          <string>KrcLogI</string>
+          <string>KrcLogU</string>
+          <string>KrcLogS</string>
+          <string>KrcLogP</string>
+          <string>KrcLogB</string>
+          <string>KrcLogC</string>
+        </ProtokollNames>
+      </LogConfig>
+      <ProjectConfig>
+        <ProjectFilter>Aktive</ProjectFilter>
+      </ProjectConfig>
+      <RegistryConfig>
+        <RegistryKeys>
+          <string>HKEY_LOCAL_MACHINE\SOFTWARE\KUKA ROBOTER GMBH\WorkVisual</string>
+          <string>HKEY_LOCAL_MACHINE\SOFTWARE\KUKA Roboter GmbH\Performance\</string>
+        </RegistryKeys>
+      </RegistryConfig>
+      <StoreIncremental>false</StoreIncremental>
+      <IsComplete>true</IsComplete>
+    </Configuration>
+  </Archive>
+  <Roboter>
+    <Name>KETVOL425100R01</Name>
+    <Serialnumber>1237684</Serialnumber>
+    <Runtime>279171</Runtime>
+    <Type>#KR210R3100 ULTRA C4 FLR</Type>
+    <IsPrecisionRobot>false</IsPrecisionRobot>
+  </Roboter>
+  <System>
+    <Description />
+    <DeviceID>S-1-5-21-3447176219-3527977930-660355612</DeviceID>
+    <InstallationType>Cabinet</InstallationType>
+    <InstallationDate>Date(MMDDYYYY): 7-30-2018    Time: 18:51:15</InstallationDate>
+    <Version>V8.3.21</Version>
+    <Build>456</Build>
+    <Type>VKR C</Type>
+    <ActiveProject>KETVOL425100R01 1.23.0</ActiveProject>
+  </System>
+  <Options>
+    <OptionData>
+      <Name>BoardPackage</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>0</Build>
+        <Major>1</Major>
+        <Minor>5</Minor>
+        <Revision>6</Revision>
+      </Version>
+      <InstalledIntegrated>false</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>DiagnoseSafety</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>0</Build>
+        <Major>2</Major>
+        <Minor>1</Minor>
+        <Revision>29</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>EthernetKRL</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>8</Build>
+        <Major>2</Major>
+        <Minor>2</Minor>
+        <Revision>155</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>LoadDataDetermination</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>8</Build>
+        <Major>6</Major>
+        <Minor>2</Minor>
+        <Revision>28</Revision>
+      </Version>
+      <InstalledIntegrated>false</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>ProConOS 4-1</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>4</Build>
+        <Major>4</Major>
+        <Minor>1</Minor>
+        <Revision>-1</Revision>
+      </Version>
+      <InstalledIntegrated>false</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>Profinet KRC-Nexxt</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>1</Build>
+        <Major>3</Major>
+        <Minor>3</Minor>
+        <Revision>8</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>VW_Basic</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>0</Build>
+        <Major>1</Major>
+        <Minor>0</Minor>
+        <Revision>0</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>WorkVisual AddOnVKR</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>0</Build>
+        <Major>1</Major>
+        <Minor>1</Minor>
+        <Revision>274</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+    <OptionData>
+      <Name>WristMamesOffset</Name>
+      <UserAccessibleDirs />
+      <Version>
+        <Build>1</Build>
+        <Major>1</Major>
+        <Minor>0</Minor>
+        <Revision>92</Revision>
+      </Version>
+      <InstalledIntegrated>true</InstalledIntegrated>
+    </OptionData>
+  </Options>
+</ArchiveInformation>

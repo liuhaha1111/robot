@@ -1,0 +1,20 @@
+&ACCESS RVO
+&REL 223
+&PARAM DISKPATH = VW_User/Applikation/RZ_Schweisszange
+&PARAM TPVW_VERSION = 8.3.0
+DEFDAT  vw_rz_usr_r PUBLIC
+; FOLD ;%{H}%MKUKATPVW
+; ENDFOLD
+; 
+;*-----------------------------------------------------*
+;*Technologiepaket RZ Schweisszange                    *
+;*                                                     *
+;*Konzernstandard                                      *
+;*-----------------------------------------------------*
+; 
+;FOLD RZ
+; 
+;ENDFOLD
+; 
+; 
+ENDDAT

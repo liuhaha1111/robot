@@ -1,0 +1,272 @@
+&ACCESS RV1
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/BU_Buersten
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_BU_USR_S( )
+;
+;***************************************************
+;*Technologiepaket Buersten                        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT BU 
+GLOBAL DEF BU_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_BU.Name[]="KS26.01.002_20190612"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_BUS_Handle[i]=-1
+  n_BUR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD BU BASE ADRESSEN INITIALISIEREN
+BU_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW BU 
+GLOBAL DEF BU_SAW( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET BU 
+GLOBAL DEF BU_RESET( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL BU 
+GLOBAL DEF BU_CANCEL( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP BU 
+GLOBAL DEF BU_LOOP( )
+BOOL bRet
+;
+;FOLD BU BASE ADRESSEN INITIALISIEREN
+BU_BASE_INIT( )
+;ENDFOLD
+;
+IF (BU_BASE_SL==HM_BASE_SL) THEN
+  BU_Msg(1,#StateMsg)
+ELSE
+  IF (n_BUS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_BUS_Handle[1])
+    n_BUS_Handle[1]=-1
+  ENDIF
+ENDIF
+;
+IF ($EXT==TRUE) THEN
+  $OUT[O_ACF_Teach]=FALSE
+ENDIF
+;
+;ACF ohne Kraft
+IF $IN[BU_BASE_SL+I_ACF_oh_Kra] THEN
+  $OUT[O_ACF_oh_Kra]=TRUE 
+ELSE
+  $OUT[O_ACF_oh_Kra]=FALSE
+ENDIF
+;
+;ACF BA-Hand
+IF $OUT[O_R_Hand] AND (NOT $COULD_START_MOTION) THEN
+  $OUT[O_ACF_R_Hand]=TRUE
+  $OUT[O_ACF_R_Auto]=FALSE
+ENDIF
+;
+;ACF BA-AUTO
+IF $OUT[O_R_Hand] AND ($OUT[O_R_Proz_akt] OR $OUT[O_R_bewegt]) OR $OUT[O_R_Auto] THEN
+  $OUT[O_ACF_R_Hand]=FALSE
+  $OUT[O_ACF_R_Auto]=TRUE
+ENDIF
+;
+;Visualisierung config.mon
+IF (ACF110==TRUE) THEN
+  ACF_max_WEG=355
+ENDIF
+IF (ACF111==TRUE) THEN
+  ACF_max_WEG=355
+ENDIF
+IF (ACF12x==TRUE) THEN
+  ACF_max_WEG=480
+ENDIF
+IF (ACF131==TRUE) THEN
+  ACF_max_WEG=480
+ENDIF
+ACF_Result_5=((SI_ACF_Istpos-ACF_max_WEG)*(-0.1))
+IF NOT $IN[ACF_istneg] THEN
+  ACF_istkraft_Hilf=SI_ACF_IstKraft
+ELSE
+  ACF_istkraft_Hilf=(SI_ACF_IstKraft*(-1))
+ENDIF
+ACF_Result_6=ACF_istkraft_Hilf
+;
+;Fehler Reset
+IF NOT $COULD_START_MOTION THEN
+  Timer_BUFeh=$ROB_TIMER
+  BU_AutoReset=TRUE
+ENDIF
+IF ((BU_AutoReset==TRUE) AND NOT $IN[I_ACF_Sammel]) THEN
+  BU_AutoReset=FALSE
+ENDIF
+$OUT[O_ACF_Reset]=(NOT $IN[I_ACF_Sammel] AND ($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei]) OR ($OUT[O_R_PERI_RDY] AND (BU_AutoReset==TRUE) AND (($ROB_TIMER-Timer_BUFeh)<1000))) 
+;
+;BU Antriebe EIN
+$OUT[O_BU_ANT_EIN]=$FLAG[F_BU_EIN] AND $FLAG[F_FB_PSPS] AND $OUT[O_R_Proz_akt] AND NOT $FLAG[F_o_Proz_SStep] AND NOT $FLAG[F_o_Proz_BMS] AND NOT $IN[I_FT_o_BT] 
+;
+;Ausgabe Statusmeldungen an BMS
+;Prozess aktiv
+$OUT[BU_BASE_SL+O_BU_Proz_aktiv]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($IN[I_BU_Proz_aktiv] OR (Messen_aktiv==TRUE))
+;Messen aktiv
+$OUT[BU_BASE_SL+O_BU_Messen_aktiv]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND (Messen_aktiv==TRUE)
+;Messfehler
+$OUT[BU_BASE_SL+O_BU_Messfehler]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND (Messfehler==TRUE)
+;Sammelstoerung
+$OUT[BU_BASE_SL+O_BU_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[I_BU_Sammel]
+;
+ACF_ZCode=1
+;
+L_Bit_ACF(1)
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Lebensbit_ACF
+DEF L_Bit_ACF(ACFNr:IN)
+INT ACFNr,RobTimer
+BOOL LBitACF,LBitFault,ErrLBit,bRet
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;
+;Setzen / Rueksetzen Lebensbit Roboter
+$OUT[O_ACF_LBit]=NOT $IN[I_ACF_LBit]
+RobTimer=$ROB_TIMER	
+IF $IN[I_ACF_LBit]<>LBitState[ACFNr] THEN
+  LBitTimeCnt[ACFNr]=RobTimer
+ENDIF
+IF ((RobTimer-LBitTimeCnt[ACFNr])>5000) THEN
+  ErrLBit=TRUE
+  ACF_LBitFeh[ACFNr]=TRUE
+ENDIF
+LBitState[ACFNr]=$IN[I_ACF_LBit]
+IF ErrLBit THEN
+  BU_Msg(2,#StateMsg)
+ELSE
+  IF (n_BUS_Handle[2]>-1) THEN
+    bRet=Clear_KrlMsg(n_BUS_Handle[2])
+    n_BUS_Handle[1]=-1
+  ENDIF
+  ACF_LBitFeh[ACFNr]=FALSE
+ENDIF
+;  
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD BU_BASE_INIT
+DEF BU_BASE_INIT()
+INT BaseResult
+;
+;BU SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_BU_BASE_SL)
+IF (BaseResult<>0) THEN
+  CF_BU_BASE_SL=HM_BASE_SL
+  BU_BASE_SL=HM_BASE_SL
+ELSE
+  BU_BASE_SL=CF_BU_BASE_SL
+ENDIF                      
+;
+END
+;ENDFOLD (BU_BASE_INIT)
+;
+;***************************************************
+;FOLD BU_Meldungen
+DEF BU_Msg(msg_nr:IN,MsgTyp:IN,BUNr:IN)
+INT msg_nr, BUNr, Answer
+DECL BUS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "BU_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("BUNr")==#initialized then
+  SWITCH BUNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_BUS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="BU: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="ACF: Keine Antwort auf Lebensbit"
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_BUS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_BUS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_BUS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_BUS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (BU Meldungen)

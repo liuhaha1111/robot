@@ -1,0 +1,1307 @@
+&ACCESS  RV
+&COMMENT KS_26.0
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/XML
+&PARAM EDITMASK = vw_xml_usr_conf
+&PARAM TPVW_VERSION = 8.3.0
+&REL 88
+DEFDAT  vw_xml_usr_conf PUBLIC
+
+; Port - Konfigurations Test fuer die IBN der Kamerasysteme
+
+GLOBAL INT EKI_ETH_VERS=28
+;EKI_ETH_VERS = 21  ; KUKA EthernetKRL Version V2.1 = 21 default
+
+GLOBAL BOOL B_EKI_INITSY[5]
+B_EKI_INITSY[1]=TRUE
+B_EKI_INITSY[2]=FALSE
+B_EKI_INITSY[3]=FALSE
+B_EKI_INITSY[4]=FALSE
+B_EKI_INITSY[5]=FALSE
+
+; Konfiguration fuer eine Einport -Datenuebertragung
+
+GLOBAL BOOL B_One_Port[5]
+B_One_Port[1]=FALSE
+B_One_Port[2]=FALSE
+B_One_Port[3]=FALSE
+B_One_Port[4]=FALSE
+B_One_Port[5]=FALSE
+
+; Konfiguration fuer eine Zweiport -Datenuebertragung
+
+GLOBAL BOOL B_Two_Port[5]
+B_Two_Port[1]=TRUE
+B_Two_Port[2]=FALSE
+B_Two_Port[3]=FALSE
+B_Two_Port[4]=FALSE
+B_Two_Port[5]=FALSE
+
+; Konfiguration fuer getrennte XML- Datenempfangsstruktur
+
+GLOBAL BOOL B_New_XML[5]
+B_New_XML[1]=FALSE
+B_New_XML[2]=FALSE
+B_New_XML[3]=FALSE
+B_New_XML[4]=FALSE
+B_New_XML[5]=FALSE
+
+; Konfiguration Datentransfer als ASCII - String
+
+GLOBAL BOOL B_EKI_ASCII[5]
+B_EKI_ASCII[1]=FALSE ; Default XML Protokoll SYS 1
+B_EKI_ASCII[2]=FALSE ; Default XML Protokoll SYS 2
+B_EKI_ASCII[3]=FALSE ; Default XML Protokoll SYS 3
+B_EKI_ASCII[4]=FALSE ; Default XML Protokoll SYS 4
+B_EKI_ASCII[5]=FALSE ; Default XML Protokoll SYS 5
+
+; End Port - Configuration
+
+; Timeout Zeiten nach Angabe des Kamerasystems 
+
+DECL GLOBAL INT EKI_TimerIns[5]
+EKI_TimerIns[1]=25000 ; [ms] SYS 1 TimeOut END "Calibrieren, Referenzieren, Validieren" 
+EKI_TimerIns[2]=5000 ; [ms] SYS 2 TimeOut END "Calibrieren, Referenzieren, Validieren" 
+EKI_TimerIns[3]=5000 ; [ms] SYS 3 TimeOut END "Calibrieren, Referenzieren, Validieren" 
+EKI_TimerIns[4]=5000 ; [ms] SYS 4 TimeOut END "Calibrieren, Referenzieren, Validieren" 
+EKI_TimerIns[5]=5000 ; [ms] SYS 5 TimeOut END "Calibrieren, Referenzieren, Validieren" 
+
+DECL GLOBAL INT EKI_TimerClc[5]
+EKI_TimerClc[1]=25000 ; [ms] SYS 1 TimeOut Reaktionszeit fuer "Messpunkt usw."
+EKI_TimerClc[2]=10000 ; [ms] SYS 2 TimeOut Reaktionszeit fuer "Messpunkt usw."
+EKI_TimerClc[3]=10000 ; [ms] SYS 3 TimeOut Reaktionszeit fuer "Messpunkt usw."
+EKI_TimerClc[4]=20000 ; [ms] SYS 4 TimeOut Reaktionszeit fuer "Messpunkt usw."
+EKI_TimerClc[5]=10000 ; [ms] SYS 5 TimeOut Reaktionszeit fuer "Messpunkt usw."
+
+DECL GLOBAL INT EKI_Pingtime[5]
+EKI_Pingtime[1]=5000 ; [ms] SYS 1 TimeOut Reaktionszeit fuer "Ping"
+EKI_Pingtime[2]=5000 ; [ms] SYS 2 TimeOut Reaktionszeit fuer "Ping"
+EKI_Pingtime[3]=5000 ; [ms] SYS 3 TimeOut Reaktionszeit fuer "Ping"
+EKI_Pingtime[4]=5000 ; [ms] SYS 4 TimeOut Reaktionszeit fuer "Ping"
+EKI_Pingtime[5]=1000 ; [ms] SYS 5 TimeOut Reaktionszeit fuer "Ping"
+; 
+; Kamera Stationaer (TRUE) oder am Roboter (FALSE)
+
+DECL GLOBAL BOOL B_EKI_KASTAT[5]
+B_EKI_KASTAT[1]=FALSE ; FALSE Kam 1 robotergefuehrt = BASE, TRUE stationaer = TOOL Korrektur
+B_EKI_KASTAT[2]=FALSE ; FALSE Kam 2 robotergefuehrt = BASE, TRUE stationaer = TOOL Korrektur
+B_EKI_KASTAT[3]=FALSE ; FALSE Kam 3 robotergefuehrt = BASE, TRUE stationaer = TOOL Korrektur
+B_EKI_KASTAT[4]=FALSE ; FALSE Kam 4 robotergefuehrt = BASE, TRUE stationaer = TOOL Korrektur
+B_EKI_KASTAT[5]=FALSE ; FALSE Kam 5 robotergefuehrt = BASE, TRUE stationaer = TOOL Korrektur
+
+; verrechnung der Korrekturwerte Relativ/Absolut
+
+DECL GLOBAL BOOL B_EKI_RELABS[5]
+B_EKI_RELABS[1]=FALSE ; FALSE Kam 1 relative BASE/TOOL Korrektur
+B_EKI_RELABS[2]=FALSE ; FALSE Kam 2 relative BASE/TOOL Korrektur
+B_EKI_RELABS[3]=FALSE ; FALSE Kam 3 relative BASE/TOOL Korrektur
+B_EKI_RELABS[4]=FALSE ; FALSE Kam 4 relative BASE/TOOL Korrektur
+B_EKI_RELABS[5]=FALSE ; FALSE Kam 5 relative BASE/TOOL Korrektur
+
+; Kamera Korrekturwerte FALSE = Relativ - Werte, TRUE = Absolut- Werte
+
+DECL GLOBAL BOOL B_EKI_CHKVAL[5]
+B_EKI_CHKVAL[1]=FALSE ; default Relativwerte else Absolutwerte von Camsys
+B_EKI_CHKVAL[2]=FALSE ; default Relativwerte else Absolutwerte von Camsys
+B_EKI_CHKVAL[3]=FALSE ; default Relativwerte else Absolutwerte von Camsys
+B_EKI_CHKVAL[4]=FALSE ; default Relativwerte else Absolutwerte von Camsys
+B_EKI_CHKVAL[5]=FALSE ; default Relativwerte else Absolutwerte von Camsys
+
+; Interrupts Freigabe fuer Datenempfang (spez. Funktionsaufruf)
+
+DECL GLOBAL BOOL B_IRQ_ENABLE[5]
+B_IRQ_ENABLE[1]=FALSE ; Default no IRQ on Receive Data SYS 1
+B_IRQ_ENABLE[2]=FALSE ; Default no IRQ on Receive Data SYS 2
+B_IRQ_ENABLE[3]=FALSE ; Default no IRQ on Receive Data SYS 3
+B_IRQ_ENABLE[4]=FALSE ; Default no IRQ on Receive Data SYS 4
+B_IRQ_ENABLE[5]=FALSE ; Default no IRQ on Receive Data SYS 5
+
+; Repositionieren nach Realign FALSE = repositionieren
+
+DECL GLOBAL BOOL B_EKI_NREPOS[5]
+B_EKI_NREPOS[1]=FALSE ; default reposition aktiv
+B_EKI_NREPOS[2]=FALSE ; default reposition aktiv
+B_EKI_NREPOS[3]=FALSE ; default reposition aktiv
+B_EKI_NREPOS[4]=FALSE ; default reposition aktiv
+B_EKI_NREPOS[5]=FALSE ; default reposition aktiv
+
+; Konfiguration fuer Pruefung END TAG im Empfangsstring
+
+DECL GLOBAL BOOL B_TAG_CONTRL[5]
+B_TAG_CONTRL[1]=FALSE ; bei TRUE pruefung des End - Tags im Empfangsstring 
+B_TAG_CONTRL[2]=FALSE ; bei TRUE pruefung des End - Tags im Empfangsstring
+B_TAG_CONTRL[3]=FALSE ; bei TRUE pruefung des End - Tags im Empfangsstring
+B_TAG_CONTRL[4]=FALSE ; bei TRUE pruefung des End - Tags im Empfangsstring
+B_TAG_CONTRL[5]=FALSE ; bei TRUE pruefung des End - Tags im Empfangsstring
+
+
+; User-Flags zur Trennung der globalen Flags. Werden nur verwendet bei Werten > 0 
+DECL GLOBAL INT UF_EKI_MES_IO[5] ; Flag Messwerte von Kamera IO
+UF_EKI_MES_IO[1]=851
+UF_EKI_MES_IO[2]=856
+UF_EKI_MES_IO[3]=861
+UF_EKI_MES_IO[4]=866
+UF_EKI_MES_IO[5]=0
+
+DECL GLOBAL INT UF_EKI_MES_NE[5] ; Flag Messwerte von Kamera NIO
+UF_EKI_MES_NE[1]=852
+UF_EKI_MES_NE[2]=857
+UF_EKI_MES_NE[3]=862
+UF_EKI_MES_NE[4]=867
+UF_EKI_MES_NE[5]=0
+
+DECL GLOBAL INT UF_EKI_RANGE[5] ; FLAG "out of range"
+UF_EKI_RANGE[1]=853
+UF_EKI_RANGE[2]=858
+UF_EKI_RANGE[3]=863
+UF_EKI_RANGE[4]=868
+UF_EKI_RANGE[5]=0
+
+DECL GLOBAL INT UF_EKI_REALI[5] ; FLAG "realign" out of range
+UF_EKI_REALI[1]=854
+UF_EKI_REALI[2]=859
+UF_EKI_REALI[3]=864
+UF_EKI_REALI[4]=869
+UF_EKI_REALI[5]=0
+
+DECL GLOBAL INT UF_EKI_EMPTY[5] ; FLAG "GIK set Behaelter = LEER"
+UF_EKI_EMPTY[1]=0
+UF_EKI_EMPTY[2]=0
+UF_EKI_EMPTY[3]=0
+UF_EKI_EMPTY[4]=0
+UF_EKI_EMPTY[5]=0
+
+DECL GLOBAL INT UF_EKI_WARN_F[5] ; Status Flag fuer Vornung Kistenfuellstand
+UF_EKI_WARN_F[1]=0
+UF_EKI_WARN_F[2]=0
+UF_EKI_WARN_F[3]=0
+UF_EKI_WARN_F[4]=0
+UF_EKI_WARN_F[5]=0
+
+
+
+;-------- hier Max Werte fuer Basekorrektur Aufrufparameter PAR4
+
+GLOBAL FRAME VIS_Max[32]
+VIS_Max[1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[2]={X 5.00000,Y 5.00000,Z 5.00000,A 3.00000,B 4.00000,C 3.00000}
+VIS_Max[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[8]={X 1650.10,Y 0.100000,Z 840.200,A 1.20000,B 15.2000,C 93.2000}
+VIS_Max[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[10]={X 702.200,Y 17.2000,Z 15.2000,A 3.02000,B 4.02000,C 3.62000}
+VIS_Max[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[21]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[22]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[23]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[24]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[25]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[26]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[27]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[28]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[29]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[30]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[31]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Max[32]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;-------- hier Min Werte fuer Basekorrektur Aufrufparameter PAR4
+
+GLOBAL FRAME VIS_Min[32]
+VIS_Min[1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[2]={X -400.000,Y -10.0000,Z -100.000,A -3.00000,B -4.00000,C -3.00000}
+VIS_Min[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[8]={X 0.300000,Y -560.300,Z 0.300000,A -180.300,B -1.30000,C -1.30000}
+VIS_Min[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[10]={X -40.3000,Y -25.3000,Z -18.3000,A -4.03000,B -4.03000,C -4.03000}
+VIS_Min[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[21]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[22]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[23]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[24]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[25]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[26]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[27]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[28]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[29]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[30]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[31]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+VIS_Min[32]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;-------- hier Max Abweich - Werte fuer Verifikation eintragen
+
+
+GLOBAL FRAME VIS_MaxVer[5] ; Verification FRAME 
+VIS_MaxVer[1]={X 1.00000,Y 1.00000,Z 1.00000,A 1.00000,B 1.00000,C 1.00000} ;Verification KAMsystem 1 X,Y,Z [mm] A,B,C [grad]
+VIS_MaxVer[2]={X 1.00000,Y 1.00000,Z 1.00000,A 1.00000,B 1.00000,C 1.00000} ;Verification KAMsystem 2 X,Y,Z [mm] A,B,C [grad]
+VIS_MaxVer[3]={X 1.00000,Y 1.00000,Z 1.00000,A 1.00000,B 1.00000,C 1.00000} ;Verification KAMsystem 3 X,Y,Z [mm] A,B,C [grad]
+VIS_MaxVer[4]={X 1.00000,Y 1.00000,Z 1.00000,A 1.00000,B 1.00000,C 1.00000} ;Verification KAMsystem 4 X,Y,Z [mm] A,B,C [grad]
+VIS_MaxVer[5]={X 1.00000,Y 1.00000,Z 1.00000,A 1.00000,B 1.00000,C 1.00000} ;Verification KAMsystem 5 X,Y,Z [mm] A,B,C [grad]
+
+;-------- hier Max Base - Werte fuer Realign Positionierung durch Kamera
+
+;GLOBAL FRAME KORR_Max[32]
+;KORR_Max[1]={X 5.00000,Y 2.00000,Z 5.00000,A 2.00000,B 2.00000,C 2.00000}
+;KORR_Max[2]={X 20.0000,Y 10.0000,Z 20.0000,A 3.00000,B 5.00000,C 3.00000}
+;KORR_Max[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[8]={X 31.4000,Y 28.4000,Z 112.400,A 4.94000,B 3.84000,C 2.40000}
+;KORR_Max[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[10]={X 34.0000,Y 25.0000,Z 25.4000,A 4.00000,B 4.00000,C 4.00000}
+;KORR_Max[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[21]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[22]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[23]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[24]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[25]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[26]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[27]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[28]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[29]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[30]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[31]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Max[32]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;-------- hier Max Base - Werte fuer Realign Positionierung durch Kamera
+
+;GLOBAL FRAME KORR_Min[32]
+;KORR_Min[1]={X 5.00000,Y 800.000,Z 5.00000,A 2.00000,B 2.00000,C 2.00000}
+;KORR_Min[2]={X -15.0000,Y -10.0000,Z -25.0000,A -3.00000,B -4.00000,C -3.00000}
+;KORR_Min[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[8]={X -33.1000,Y -35.1000,Z -25.1000,A -3.81000,B -6.71000,C -1.51000}
+;KORR_Min[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[10]={X -55.1000,Y -26.1001,Z -32.1000,A -4.01010,B -4.10010,C -4.10010}
+;KORR_Min[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[21]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[22]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[23]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[24]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[25]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[26]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[27]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[28]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[29]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[30]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[31]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;KORR_Min[32]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+; Konfiguration 
+; TRUE = GIK Greifer Tooldaten im Roboter
+; FALSE = TCP Daten vom GIK System uebernehmen
+
+GLOBAL BOOL GIK_ROB_TOOL[5]
+GIK_ROB_TOOL[1]=TRUE
+GIK_ROB_TOOL[2]=TRUE
+GIK_ROB_TOOL[3]=TRUE
+GIK_ROB_TOOL[4]=TRUE
+GIK_ROB_TOOL[5]=TRUE
+
+; GIK Tool Nr Default ab 06.02.2017 keine Verwendung !!!
+GLOBAL INT I_GIK_TOOLDEF[5]
+I_GIK_TOOLDEF[1]=-1 ; Default Tool Nr fuer System 1
+I_GIK_TOOLDEF[2]=-1 ; Default Tool Nr fuer System 2
+I_GIK_TOOLDEF[3]=-1 ; Default Tool Nr fuer System 3
+I_GIK_TOOLDEF[4]=-1 ; Default Tool Nr fuer System 4
+I_GIK_TOOLDEF[5]=-1 ; Default Tool Nr fuer System 5
+
+; GIK Tool Speed Limit for Grp Point
+GLOBAL REAL speed_limit[5]
+speed_limit[1]=0.500000 ; Speed limit in [m/s] Sys 1
+speed_limit[2]=0.500000 ; Speed limit in [m/s] Sys 2
+speed_limit[3]=0.500000 ; Speed limit in [m/s] Sys 3
+speed_limit[4]=0.500000 ; Speed limit in [m/s] Sys 4
+speed_limit[5]=0.500000 ; Speed limit in [m/s] Sys 5
+
+GLOBAL INT ROB_TOOL_ID[5,4]
+;                      \ \___ bis zu 4 im Roboter festgelegte TOOLs 
+;                       \____ Kamera System Nummer
+
+; GIK System 1
+ROB_TOOL_ID[1,1]=-1 ; GIK - System 1 Tool - Config 1
+ROB_TOOL_ID[1,2]=-1 ; GIK - System 1 Tool - Config 2
+ROB_TOOL_ID[1,3]=-1 ; GIK - System 1 Tool - Config 3
+ROB_TOOL_ID[1,4]=-1 ; GIK - System 1 Tool - Config 4
+; GIK System 2
+ROB_TOOL_ID[2,1]=-1 ; GIK - System 2 Tool - Config 1
+ROB_TOOL_ID[2,2]=-1 ; GIK - System 2 Tool - Config 2
+ROB_TOOL_ID[2,3]=-1 ; GIK - System 2 Tool - Config 3
+ROB_TOOL_ID[2,4]=-1 ; GIK - System 2 Tool - Config 4
+;GIK System 3
+ROB_TOOL_ID[3,1]=-1 ; GIK - System 3 Tool - Config 1
+ROB_TOOL_ID[3,2]=-1 ; GIK - System 3 Tool - Config 2
+ROB_TOOL_ID[3,3]=-1 ; GIK - System 3 Tool - Config 3
+ROB_TOOL_ID[3,4]=-1 ; GIK - System 3 Tool - Config 4
+; GIK System 4
+ROB_TOOL_ID[4,1]=-1 ; GIK - System 4 Tool - Config 1
+ROB_TOOL_ID[4,2]=-1 ; GIK - System 4 Tool - Config 2
+ROB_TOOL_ID[4,3]=-1 ; GIK - System 4 Tool - Config 3
+ROB_TOOL_ID[4,4]=-1 ; GIK - System 4 Tool - Config 4
+; GIK System 5
+ROB_TOOL_ID[5,1]=-1 ; GIK - System 5 Tool - Config 1
+ROB_TOOL_ID[5,2]=-1 ; GIK - System 5 Tool - Config 2
+ROB_TOOL_ID[5,3]=-1 ; GIK - System 5 Tool - Config 3
+ROB_TOOL_ID[5,4]=-1 ; GIK - System 5 Tool - Config 4
+
+; GIK Tool Suchlauf Kontakt Nummer
+GLOBAL INT I_GIK_TGCont[5]
+I_GIK_TGCont[1]=-1 ; Suchfahrt $IN Nr fuer System 1, bei -1 kein IRQ
+I_GIK_TGCont[2]=-1 ; Suchfahrt $IN Nr fuer System 2, bei -1 kein IRQ
+I_GIK_TGCont[3]=-1 ; Suchfahrt $IN Nr fuer System 3, bei -1 kein IRQ
+I_GIK_TGCont[4]=-1 ; Suchfahrt $IN Nr fuer System 4, bei -1 kein IRQ
+I_GIK_TGCont[5]=-1 ; Suchfahrt $IN Nr fuer System 5, bei -1 kein IRQ
+
+; GIK Tool Nr
+GLOBAL INT I_GIK_TOOLNR[5]
+I_GIK_TOOLNR[1]=-1 ; Tool Nr fuer System 1
+I_GIK_TOOLNR[2]=-1 ; Tool Nr fuer System 2
+I_GIK_TOOLNR[3]=-1 ; Tool Nr fuer System 3
+I_GIK_TOOLNR[4]=-1 ; Tool Nr fuer System 4
+I_GIK_TOOLNR[5]=-1 ; Tool Nr fuer System 5
+
+; GIK System Makro - Aufruf im Greifpunkt
+
+DECL GLOBAL INT GIK_GP_MAKRO[5,32]
+;                            \ \___ Tool Nr
+;                             \____ Kamera System Nr
+; 
+; Kam SYS 1 Makro Nummer fuer Tool Nr
+GIK_GP_MAKRO[1,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GP_MAKRO[1,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GP_MAKRO[1,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GP_MAKRO[1,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GP_MAKRO[1,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GP_MAKRO[1,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GP_MAKRO[1,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GP_MAKRO[1,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GP_MAKRO[1,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GP_MAKRO[1,10]=-1 ; Makro - Nr fuer Tool 10
+GIK_GP_MAKRO[1,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GP_MAKRO[1,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GP_MAKRO[1,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GP_MAKRO[1,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GP_MAKRO[1,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GP_MAKRO[1,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GP_MAKRO[1,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GP_MAKRO[1,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GP_MAKRO[1,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GP_MAKRO[1,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GP_MAKRO[1,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GP_MAKRO[1,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GP_MAKRO[1,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GP_MAKRO[1,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GP_MAKRO[1,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GP_MAKRO[1,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GP_MAKRO[1,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GP_MAKRO[1,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GP_MAKRO[1,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GP_MAKRO[1,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GP_MAKRO[1,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GP_MAKRO[1,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 2 Makro Nummer fuer Tool Nr
+GIK_GP_MAKRO[2,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GP_MAKRO[2,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GP_MAKRO[2,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GP_MAKRO[2,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GP_MAKRO[2,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GP_MAKRO[2,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GP_MAKRO[2,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GP_MAKRO[2,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GP_MAKRO[2,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GP_MAKRO[2,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GP_MAKRO[2,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GP_MAKRO[2,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GP_MAKRO[2,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GP_MAKRO[2,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GP_MAKRO[2,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GP_MAKRO[2,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GP_MAKRO[2,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GP_MAKRO[2,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GP_MAKRO[2,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GP_MAKRO[2,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GP_MAKRO[2,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GP_MAKRO[2,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GP_MAKRO[2,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GP_MAKRO[2,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GP_MAKRO[2,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GP_MAKRO[2,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GP_MAKRO[2,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GP_MAKRO[2,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GP_MAKRO[2,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GP_MAKRO[2,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GP_MAKRO[2,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GP_MAKRO[2,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 3 Makro Nummer fuer Tool Nr
+GIK_GP_MAKRO[3,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GP_MAKRO[3,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GP_MAKRO[3,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GP_MAKRO[3,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GP_MAKRO[3,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GP_MAKRO[3,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GP_MAKRO[3,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GP_MAKRO[3,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GP_MAKRO[3,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GP_MAKRO[3,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GP_MAKRO[3,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GP_MAKRO[3,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GP_MAKRO[3,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GP_MAKRO[3,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GP_MAKRO[3,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GP_MAKRO[3,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GP_MAKRO[3,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GP_MAKRO[3,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GP_MAKRO[3,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GP_MAKRO[3,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GP_MAKRO[3,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GP_MAKRO[3,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GP_MAKRO[3,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GP_MAKRO[3,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GP_MAKRO[3,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GP_MAKRO[3,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GP_MAKRO[3,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GP_MAKRO[3,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GP_MAKRO[3,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GP_MAKRO[3,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GP_MAKRO[3,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GP_MAKRO[3,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 4 Makro Nummer fuer Tool Nr
+GIK_GP_MAKRO[4,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GP_MAKRO[4,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GP_MAKRO[4,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GP_MAKRO[4,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GP_MAKRO[4,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GP_MAKRO[4,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GP_MAKRO[4,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GP_MAKRO[4,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GP_MAKRO[4,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GP_MAKRO[4,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GP_MAKRO[4,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GP_MAKRO[4,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GP_MAKRO[4,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GP_MAKRO[4,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GP_MAKRO[4,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GP_MAKRO[4,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GP_MAKRO[4,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GP_MAKRO[4,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GP_MAKRO[4,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GP_MAKRO[4,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GP_MAKRO[4,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GP_MAKRO[4,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GP_MAKRO[4,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GP_MAKRO[4,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GP_MAKRO[4,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GP_MAKRO[4,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GP_MAKRO[4,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GP_MAKRO[4,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GP_MAKRO[4,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GP_MAKRO[4,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GP_MAKRO[4,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GP_MAKRO[4,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 5 Makro Nummer fuer Tool Nr
+GIK_GP_MAKRO[5,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GP_MAKRO[5,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GP_MAKRO[5,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GP_MAKRO[5,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GP_MAKRO[5,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GP_MAKRO[5,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GP_MAKRO[5,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GP_MAKRO[5,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GP_MAKRO[5,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GP_MAKRO[5,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GP_MAKRO[5,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GP_MAKRO[5,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GP_MAKRO[5,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GP_MAKRO[5,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GP_MAKRO[5,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GP_MAKRO[5,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GP_MAKRO[5,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GP_MAKRO[5,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GP_MAKRO[5,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GP_MAKRO[5,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GP_MAKRO[5,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GP_MAKRO[5,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GP_MAKRO[5,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GP_MAKRO[5,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GP_MAKRO[5,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GP_MAKRO[5,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GP_MAKRO[5,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GP_MAKRO[5,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GP_MAKRO[5,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GP_MAKRO[5,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GP_MAKRO[5,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GP_MAKRO[5,32]=-1 ; Makro - Nr fuer Tool 32
+
+; GIK System Makro - Aufruf Greiferwinkel einstellen
+
+DECL GLOBAL INT GIK_GW_MAKRO[5,32]
+;                            \ \___ Tool Nr
+;                             \____ Kamera System Nr
+; 
+; Kam SYS 1 Makro Nummer fuer Tool Winkel stellen
+GIK_GW_MAKRO[1,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GW_MAKRO[1,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GW_MAKRO[1,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GW_MAKRO[1,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GW_MAKRO[1,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GW_MAKRO[1,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GW_MAKRO[1,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GW_MAKRO[1,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GW_MAKRO[1,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GW_MAKRO[1,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GW_MAKRO[1,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GW_MAKRO[1,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GW_MAKRO[1,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GW_MAKRO[1,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GW_MAKRO[1,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GW_MAKRO[1,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GW_MAKRO[1,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GW_MAKRO[1,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GW_MAKRO[1,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GW_MAKRO[1,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GW_MAKRO[1,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GW_MAKRO[1,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GW_MAKRO[1,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GW_MAKRO[1,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GW_MAKRO[1,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GW_MAKRO[1,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GW_MAKRO[1,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GW_MAKRO[1,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GW_MAKRO[1,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GW_MAKRO[1,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GW_MAKRO[1,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GW_MAKRO[1,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 2 Makro Nummer fuer Tool Winkel stellen
+GIK_GW_MAKRO[2,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GW_MAKRO[2,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GW_MAKRO[2,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GW_MAKRO[2,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GW_MAKRO[2,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GW_MAKRO[2,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GW_MAKRO[2,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GW_MAKRO[2,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GW_MAKRO[2,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GW_MAKRO[2,10]=-1 ; Makro - Nr fuer Tool 1?
+GIK_GW_MAKRO[2,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GW_MAKRO[2,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GW_MAKRO[2,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GW_MAKRO[2,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GW_MAKRO[2,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GW_MAKRO[2,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GW_MAKRO[2,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GW_MAKRO[2,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GW_MAKRO[2,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GW_MAKRO[2,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GW_MAKRO[2,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GW_MAKRO[2,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GW_MAKRO[2,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GW_MAKRO[2,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GW_MAKRO[2,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GW_MAKRO[2,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GW_MAKRO[2,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GW_MAKRO[2,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GW_MAKRO[2,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GW_MAKRO[2,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GW_MAKRO[2,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GW_MAKRO[2,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 3 Makro Nummer fuer Tool Winkel stellen
+GIK_GW_MAKRO[3,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GW_MAKRO[3,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GW_MAKRO[3,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GW_MAKRO[3,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GW_MAKRO[3,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GW_MAKRO[3,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GW_MAKRO[3,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GW_MAKRO[3,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GW_MAKRO[3,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GW_MAKRO[3,10]=-1 ; Makro - Nr fuer Tool 10
+GIK_GW_MAKRO[3,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GW_MAKRO[3,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GW_MAKRO[3,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GW_MAKRO[3,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GW_MAKRO[3,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GW_MAKRO[3,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GW_MAKRO[3,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GW_MAKRO[3,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GW_MAKRO[3,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GW_MAKRO[3,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GW_MAKRO[3,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GW_MAKRO[3,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GW_MAKRO[3,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GW_MAKRO[3,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GW_MAKRO[3,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GW_MAKRO[3,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GW_MAKRO[3,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GW_MAKRO[3,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GW_MAKRO[3,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GW_MAKRO[3,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GW_MAKRO[3,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GW_MAKRO[3,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 4 Makro Nummer fuer Tool Winkel stellen
+GIK_GW_MAKRO[4,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GW_MAKRO[4,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GW_MAKRO[4,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GW_MAKRO[4,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GW_MAKRO[4,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GW_MAKRO[4,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GW_MAKRO[4,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GW_MAKRO[4,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GW_MAKRO[4,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GW_MAKRO[4,10]=-1 ; Makro - Nr fuer Tool 10
+GIK_GW_MAKRO[4,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GW_MAKRO[4,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GW_MAKRO[4,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GW_MAKRO[4,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GW_MAKRO[4,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GW_MAKRO[4,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GW_MAKRO[4,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GW_MAKRO[4,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GW_MAKRO[4,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GW_MAKRO[4,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GW_MAKRO[4,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GW_MAKRO[4,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GW_MAKRO[4,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GW_MAKRO[4,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GW_MAKRO[4,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GW_MAKRO[4,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GW_MAKRO[4,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GW_MAKRO[4,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GW_MAKRO[4,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GW_MAKRO[4,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GW_MAKRO[4,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GW_MAKRO[4,32]=-1 ; Makro - Nr fuer Tool 32
+
+; KAM SYS 5 Makro Nummer fuer Tool Winkel stellen
+GIK_GW_MAKRO[5,1]=-1 ; Makro - Nr fuer Tool  1
+GIK_GW_MAKRO[5,2]=-1 ; Makro - Nr fuer Tool  2
+GIK_GW_MAKRO[5,3]=-1 ; Makro - Nr fuer Tool  3
+GIK_GW_MAKRO[5,4]=-1 ; Makro - Nr fuer Tool  4
+GIK_GW_MAKRO[5,5]=-1 ; Makro - Nr fuer Tool  5
+GIK_GW_MAKRO[5,6]=-1 ; Makro - Nr fuer Tool  6
+GIK_GW_MAKRO[5,7]=-1 ; Makro - Nr fuer Tool  7
+GIK_GW_MAKRO[5,8]=-1 ; Makro - Nr fuer Tool  8
+GIK_GW_MAKRO[5,9]=-1 ; Makro - Nr fuer Tool  9
+GIK_GW_MAKRO[5,10]=-1 ; Makro - Nr fuer Tool 10
+GIK_GW_MAKRO[5,11]=-1 ; Makro - Nr fuer Tool 11
+GIK_GW_MAKRO[5,12]=-1 ; Makro - Nr fuer Tool 12
+GIK_GW_MAKRO[5,13]=-1 ; Makro - Nr fuer Tool 13
+GIK_GW_MAKRO[5,14]=-1 ; Makro - Nr fuer Tool 14
+GIK_GW_MAKRO[5,15]=-1 ; Makro - Nr fuer Tool 15
+GIK_GW_MAKRO[5,16]=-1 ; Makro - Nr fuer Tool 16
+GIK_GW_MAKRO[5,17]=-1 ; Makro - Nr fuer Tool 17
+GIK_GW_MAKRO[5,18]=-1 ; Makro - Nr fuer Tool 18
+GIK_GW_MAKRO[5,19]=-1 ; Makro - Nr fuer Tool 19
+GIK_GW_MAKRO[5,20]=-1 ; Makro - Nr fuer Tool 20
+GIK_GW_MAKRO[5,21]=-1 ; Makro - Nr fuer Tool 21
+GIK_GW_MAKRO[5,22]=-1 ; Makro - Nr fuer Tool 22
+GIK_GW_MAKRO[5,23]=-1 ; Makro - Nr fuer Tool 23
+GIK_GW_MAKRO[5,24]=-1 ; Makro - Nr fuer Tool 24
+GIK_GW_MAKRO[5,25]=-1 ; Makro - Nr fuer Tool 25
+GIK_GW_MAKRO[5,26]=-1 ; Makro - Nr fuer Tool 26
+GIK_GW_MAKRO[5,27]=-1 ; Makro - Nr fuer Tool 27
+GIK_GW_MAKRO[5,28]=-1 ; Makro - Nr fuer Tool 28
+GIK_GW_MAKRO[5,29]=-1 ; Makro - Nr fuer Tool 29
+GIK_GW_MAKRO[5,30]=-1 ; Makro - Nr fuer Tool 30
+GIK_GW_MAKRO[5,31]=-1 ; Makro - Nr fuer Tool 31
+GIK_GW_MAKRO[5,32]=-1 ; Makro - Nr fuer Tool 32
+
+;-------- hier optional Relativwerte fuer automatische Kalibriersequenz ------
+
+; UP Nummern fuer Bauteil Ablegen je CAM - SYS
+
+DECL GLOBAL INT GIK_UP_NUM[5,5,10]
+;                          \ \ \___ Greifposition Nummer
+;                           \ \____ Bauteil - Nummer
+;                            \_____ Kamera System Nummer
+; 
+; Kamera System 1, Bauteil 1
+GIK_UP_NUM[1,1,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[1,1,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[1,1,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[1,1,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[1,1,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[1,1,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[1,1,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[1,1,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[1,1,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[1,1,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 1, Bauteil 2
+GIK_UP_NUM[1,2,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[1,2,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[1,2,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[1,2,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[1,2,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[1,2,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[1,2,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[1,2,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[1,2,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[1,2,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 1, Bauteil 3
+GIK_UP_NUM[1,3,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[1,3,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[1,3,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[1,3,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[1,3,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[1,3,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[1,3,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[1,3,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[1,3,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[1,3,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 1, Bauteil 4
+GIK_UP_NUM[1,4,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[1,4,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[1,4,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[1,4,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[1,4,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[1,4,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[1,4,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[1,4,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[1,4,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[1,4,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 1, Bauteil 5
+GIK_UP_NUM[1,5,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[1,5,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[1,5,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[1,5,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[1,5,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[1,5,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[1,5,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[1,5,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[1,5,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[1,5,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 2, Bauteil 1
+GIK_UP_NUM[2,1,1]=-1 ; UP Nr SYS 2, Pos 1
+GIK_UP_NUM[2,1,2]=-1 ; UP Nr SYS 2, Pos 2
+GIK_UP_NUM[2,1,3]=-1 ; UP Nr SYS 2, Pos 3
+GIK_UP_NUM[2,1,4]=-1 ; UP Nr SYS 2, Pos 4
+GIK_UP_NUM[2,1,5]=-1 ; UP Nr SYS 2, Pos 5
+GIK_UP_NUM[2,1,6]=-1 ; UP Nr SYS 2, Pos 6
+GIK_UP_NUM[2,1,7]=-1 ; UP Nr SYS 2, Pos 7
+GIK_UP_NUM[2,1,8]=-1 ; UP Nr SYS 2, Pos 8
+GIK_UP_NUM[2,1,9]=-1 ; UP Nr SYS 2, Pos 9
+GIK_UP_NUM[2,1,10]=-1 ; UP Nr SYS 2, Pos 10
+
+; Kamera System 2, Bauteil 2
+GIK_UP_NUM[2,2,1]=-1 ; UP Nr SYS 2, Pos 1
+GIK_UP_NUM[2,2,2]=-1 ; UP Nr SYS 2, Pos 2
+GIK_UP_NUM[2,2,3]=-1 ; UP Nr SYS 2, Pos 3
+GIK_UP_NUM[2,2,4]=-1 ; UP Nr SYS 2, Pos 4
+GIK_UP_NUM[2,2,5]=-1 ; UP Nr SYS 2, Pos 5
+GIK_UP_NUM[2,2,6]=-1 ; UP Nr SYS 2, Pos 6
+GIK_UP_NUM[2,2,7]=-1 ; UP Nr SYS 2, Pos 7
+GIK_UP_NUM[2,2,8]=-1 ; UP Nr SYS 2, Pos 8
+GIK_UP_NUM[2,2,9]=-1 ; UP Nr SYS 2, Pos 9
+GIK_UP_NUM[2,2,10]=-1 ; UP Nr SYS 2, Pos 10
+
+; Kamera System 2, Bauteil 3
+GIK_UP_NUM[2,3,1]=-1 ; UP Nr SYS 2, Pos 1
+GIK_UP_NUM[2,3,2]=-1 ; UP Nr SYS 2, Pos 2
+GIK_UP_NUM[2,3,3]=-1 ; UP Nr SYS 2, Pos 3
+GIK_UP_NUM[2,3,4]=-1 ; UP Nr SYS 2, Pos 4
+GIK_UP_NUM[2,3,5]=-1 ; UP Nr SYS 2, Pos 5
+GIK_UP_NUM[2,3,6]=-1 ; UP Nr SYS 2, Pos 6
+GIK_UP_NUM[2,3,7]=-1 ; UP Nr SYS 2, Pos 7
+GIK_UP_NUM[2,3,8]=-1 ; UP Nr SYS 2, Pos 8
+GIK_UP_NUM[2,3,9]=-1 ; UP Nr SYS 2, Pos 9
+GIK_UP_NUM[2,3,10]=-1 ; UP Nr SYS 2, Pos 10
+
+; Kamera System 2, Bauteil 4
+GIK_UP_NUM[2,4,1]=-1 ; UP Nr SYS 2, Pos 1
+GIK_UP_NUM[2,4,2]=-1 ; UP Nr SYS 2, Pos 2
+GIK_UP_NUM[2,4,3]=-1 ; UP Nr SYS 2, Pos 3
+GIK_UP_NUM[2,4,4]=-1 ; UP Nr SYS 2, Pos 4
+GIK_UP_NUM[2,4,5]=-1 ; UP Nr SYS 2, Pos 5
+GIK_UP_NUM[2,4,6]=-1 ; UP Nr SYS 2, Pos 6
+GIK_UP_NUM[2,4,7]=-1 ; UP Nr SYS 2, Pos 7
+GIK_UP_NUM[2,4,8]=-1 ; UP Nr SYS 2, Pos 8
+GIK_UP_NUM[2,4,9]=-1 ; UP Nr SYS 2, Pos 9
+GIK_UP_NUM[2,4,10]=-1 ; UP Nr SYS 2, Pos 10
+
+; Kamera System 2, Bauteil 5
+GIK_UP_NUM[2,5,1]=-1 ; UP Nr SYS 2, Pos 1
+GIK_UP_NUM[2,5,2]=-1 ; UP Nr SYS 2, Pos 2
+GIK_UP_NUM[2,5,3]=-1 ; UP Nr SYS 2, Pos 3
+GIK_UP_NUM[2,5,4]=-1 ; UP Nr SYS 2, Pos 4
+GIK_UP_NUM[2,5,5]=-1 ; UP Nr SYS 2, Pos 5
+GIK_UP_NUM[2,5,6]=-1 ; UP Nr SYS 2, Pos 6
+GIK_UP_NUM[2,5,7]=-1 ; UP Nr SYS 2, Pos 7
+GIK_UP_NUM[2,5,8]=-1 ; UP Nr SYS 2, Pos 8
+GIK_UP_NUM[2,5,9]=-1 ; UP Nr SYS 2, Pos 9
+GIK_UP_NUM[2,5,10]=-1 ; UP Nr SYS 2, Pos 10
+
+; Kamera System 3, Bauteil 1
+GIK_UP_NUM[3,1,1]=-1 ; UP Nr SYS 3, Pos 1
+GIK_UP_NUM[3,1,2]=-1 ; UP Nr SYS 3, Pos 2
+GIK_UP_NUM[3,1,3]=-1 ; UP Nr SYS 3, Pos 3
+GIK_UP_NUM[3,1,4]=-1 ; UP Nr SYS 3, Pos 4
+GIK_UP_NUM[3,1,5]=-1 ; UP Nr SYS 3, Pos 5
+GIK_UP_NUM[3,1,6]=-1 ; UP Nr SYS 3, Pos 6
+GIK_UP_NUM[3,1,7]=-1 ; UP Nr SYS 3, Pos 7
+GIK_UP_NUM[3,1,8]=-1 ; UP Nr SYS 3, Pos 8
+GIK_UP_NUM[3,1,9]=-1 ; UP Nr SYS 3, Pos 9
+GIK_UP_NUM[3,1,10]=-1 ; UP Nr SYS 3, Pos 10
+
+; Kamera System 3, Bauteil 2
+GIK_UP_NUM[3,2,1]=-1 ; UP Nr SYS 3, Pos 1
+GIK_UP_NUM[3,2,2]=-1 ; UP Nr SYS 3, Pos 2
+GIK_UP_NUM[3,2,3]=-1 ; UP Nr SYS 3, Pos 3
+GIK_UP_NUM[3,2,4]=-1 ; UP Nr SYS 3, Pos 4
+GIK_UP_NUM[3,2,5]=-1 ; UP Nr SYS 3, Pos 5
+GIK_UP_NUM[3,2,6]=-1 ; UP Nr SYS 3, Pos 6
+GIK_UP_NUM[3,2,7]=-1 ; UP Nr SYS 3, Pos 7
+GIK_UP_NUM[3,2,8]=-1 ; UP Nr SYS 3, Pos 8
+GIK_UP_NUM[3,2,9]=-1 ; UP Nr SYS 3, Pos 9
+GIK_UP_NUM[3,2,10]=-1 ; UP Nr SYS 3, Pos 10
+
+; Kamera System 3, Bauteil 3
+GIK_UP_NUM[3,3,1]=-1 ; UP Nr SYS 3, Pos 1
+GIK_UP_NUM[3,3,2]=-1 ; UP Nr SYS 3, Pos 2
+GIK_UP_NUM[3,3,3]=-1 ; UP Nr SYS 3, Pos 3
+GIK_UP_NUM[3,3,4]=-1 ; UP Nr SYS 3, Pos 4
+GIK_UP_NUM[3,3,5]=-1 ; UP Nr SYS 3, Pos 5
+GIK_UP_NUM[3,3,6]=-1 ; UP Nr SYS 3, Pos 6
+GIK_UP_NUM[3,3,7]=-1 ; UP Nr SYS 3, Pos 7
+GIK_UP_NUM[3,3,8]=-1 ; UP Nr SYS 3, Pos 8
+GIK_UP_NUM[3,3,9]=-1 ; UP Nr SYS 3, Pos 9
+GIK_UP_NUM[3,3,10]=-1 ; UP Nr SYS 3, Pos 10
+
+; Kamera System 3, Bauteil 4
+GIK_UP_NUM[3,4,1]=-1 ; UP Nr SYS 3, Pos 1
+GIK_UP_NUM[3,4,2]=-1 ; UP Nr SYS 3, Pos 2
+GIK_UP_NUM[3,4,3]=-1 ; UP Nr SYS 3, Pos 3
+GIK_UP_NUM[3,4,4]=-1 ; UP Nr SYS 3, Pos 4
+GIK_UP_NUM[3,4,5]=-1 ; UP Nr SYS 3, Pos 5
+GIK_UP_NUM[3,4,6]=-1 ; UP Nr SYS 3, Pos 6
+GIK_UP_NUM[3,4,7]=-1 ; UP Nr SYS 3, Pos 7
+GIK_UP_NUM[3,4,8]=-1 ; UP Nr SYS 3, Pos 8
+GIK_UP_NUM[3,4,9]=-1 ; UP Nr SYS 3, Pos 9
+GIK_UP_NUM[3,4,10]=-1 ; UP Nr SYS 3, Pos 10
+
+; Kamera System 3, Bauteil 5
+GIK_UP_NUM[3,5,1]=-1 ; UP Nr SYS 3, Pos 1
+GIK_UP_NUM[3,5,2]=-1 ; UP Nr SYS 3, Pos 2
+GIK_UP_NUM[3,5,3]=-1 ; UP Nr SYS 3, Pos 3
+GIK_UP_NUM[3,5,4]=-1 ; UP Nr SYS 3, Pos 4
+GIK_UP_NUM[3,5,5]=-1 ; UP Nr SYS 3, Pos 5
+GIK_UP_NUM[3,5,6]=-1 ; UP Nr SYS 3, Pos 6
+GIK_UP_NUM[3,5,7]=-1 ; UP Nr SYS 3, Pos 7
+GIK_UP_NUM[3,5,8]=-1 ; UP Nr SYS 3, Pos 8
+GIK_UP_NUM[3,5,9]=-1 ; UP Nr SYS 3, Pos 9
+GIK_UP_NUM[3,5,10]=-1 ; UP Nr SYS 3, Pos 10
+
+; Kamera System 4, Bauteil 1
+GIK_UP_NUM[4,1,1]=-1 ; UP Nr SYS 4, Pos 1
+GIK_UP_NUM[4,1,2]=-1 ; UP Nr SYS 4, Pos 2
+GIK_UP_NUM[4,1,3]=-1 ; UP Nr SYS 4, Pos 3
+GIK_UP_NUM[4,1,4]=-1 ; UP Nr SYS 4, Pos 4
+GIK_UP_NUM[4,1,5]=-1 ; UP Nr SYS 4, Pos 5
+GIK_UP_NUM[4,1,6]=-1 ; UP Nr SYS 4, Pos 6
+GIK_UP_NUM[4,1,7]=-1 ; UP Nr SYS 4, Pos 7
+GIK_UP_NUM[4,1,8]=-1 ; UP Nr SYS 4, Pos 8
+GIK_UP_NUM[4,1,9]=-1 ; UP Nr SYS 4, Pos 9
+GIK_UP_NUM[4,1,10]=-1 ; UP Nr SYS 4, Pos 10
+
+; Kamera System 4, Bauteil 2
+GIK_UP_NUM[4,2,1]=-1 ; UP Nr SYS 4, Pos 1
+GIK_UP_NUM[4,2,2]=-1 ; UP Nr SYS 4, Pos 2
+GIK_UP_NUM[4,2,3]=-1 ; UP Nr SYS 4, Pos 3
+GIK_UP_NUM[4,2,4]=-1 ; UP Nr SYS 4, Pos 4
+GIK_UP_NUM[4,2,5]=-1 ; UP Nr SYS 4, Pos 5
+GIK_UP_NUM[4,2,6]=-1 ; UP Nr SYS 4, Pos 6
+GIK_UP_NUM[4,2,7]=-1 ; UP Nr SYS 4, Pos 7
+GIK_UP_NUM[4,2,8]=-1 ; UP Nr SYS 4, Pos 8
+GIK_UP_NUM[4,2,9]=-1 ; UP Nr SYS 4, Pos 9
+GIK_UP_NUM[4,2,10]=-1 ; UP Nr SYS 4, Pos 10
+
+; Kamera System 4, Bauteil 3
+GIK_UP_NUM[4,3,1]=-1 ; UP Nr SYS 4, Pos 1
+GIK_UP_NUM[4,3,2]=-1 ; UP Nr SYS 4, Pos 2
+GIK_UP_NUM[4,3,3]=-1 ; UP Nr SYS 4, Pos 3
+GIK_UP_NUM[4,3,4]=-1 ; UP Nr SYS 4, Pos 4
+GIK_UP_NUM[4,3,5]=-1 ; UP Nr SYS 4, Pos 5
+GIK_UP_NUM[4,3,6]=-1 ; UP Nr SYS 4, Pos 6
+GIK_UP_NUM[4,3,7]=-1 ; UP Nr SYS 4, Pos 7
+GIK_UP_NUM[4,3,8]=-1 ; UP Nr SYS 4, Pos 8
+GIK_UP_NUM[4,3,9]=-1 ; UP Nr SYS 4, Pos 9
+GIK_UP_NUM[4,3,10]=-1 ; UP Nr SYS 4, Pos 10
+
+; Kamera System 4, Bauteil 4
+GIK_UP_NUM[4,4,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[4,4,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[4,4,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[4,4,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[4,4,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[4,4,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[4,4,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[4,4,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[4,4,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[4,4,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 4, Bauteil 5
+GIK_UP_NUM[4,5,1]=-1 ; UP Nr SYS 1, Pos 1
+GIK_UP_NUM[4,5,2]=-1 ; UP Nr SYS 1, Pos 2
+GIK_UP_NUM[4,5,3]=-1 ; UP Nr SYS 1, Pos 3
+GIK_UP_NUM[4,5,4]=-1 ; UP Nr SYS 1, Pos 4
+GIK_UP_NUM[4,5,5]=-1 ; UP Nr SYS 1, Pos 5
+GIK_UP_NUM[4,5,6]=-1 ; UP Nr SYS 1, Pos 6
+GIK_UP_NUM[4,5,7]=-1 ; UP Nr SYS 1, Pos 7
+GIK_UP_NUM[4,5,8]=-1 ; UP Nr SYS 1, Pos 8
+GIK_UP_NUM[4,5,9]=-1 ; UP Nr SYS 1, Pos 9
+GIK_UP_NUM[4,5,10]=-1 ; UP Nr SYS 1, Pos 10
+
+; Kamera System 5, Bauteil 1
+GIK_UP_NUM[5,1,1]=-1 ; UP Nr SYS 5, Pos 1
+GIK_UP_NUM[5,1,2]=-1 ; UP Nr SYS 5, Pos 2
+GIK_UP_NUM[5,1,3]=-1 ; UP Nr SYS 5, Pos 3
+GIK_UP_NUM[5,1,4]=-1 ; UP Nr SYS 5, Pos 4
+GIK_UP_NUM[5,1,5]=-1 ; UP Nr SYS 5, Pos 5
+GIK_UP_NUM[5,1,6]=-1 ; UP Nr SYS 5, Pos 6
+GIK_UP_NUM[5,1,7]=-1 ; UP Nr SYS 5, Pos 7
+GIK_UP_NUM[5,1,8]=-1 ; UP Nr SYS 5, Pos 8
+GIK_UP_NUM[5,1,9]=-1 ; UP Nr SYS 5, Pos 9
+GIK_UP_NUM[5,1,10]=-1 ; UP Nr SYS 5, Pos 10
+
+; Kamera System 5, Bauteil 2
+GIK_UP_NUM[5,2,1]=-1 ; UP Nr SYS 5, Pos 1
+GIK_UP_NUM[5,2,2]=-1 ; UP Nr SYS 5, Pos 2
+GIK_UP_NUM[5,2,3]=-1 ; UP Nr SYS 5, Pos 3
+GIK_UP_NUM[5,2,4]=-1 ; UP Nr SYS 5, Pos 4
+GIK_UP_NUM[5,2,5]=-1 ; UP Nr SYS 5, Pos 5
+GIK_UP_NUM[5,2,6]=-1 ; UP Nr SYS 5, Pos 6
+GIK_UP_NUM[5,2,7]=-1 ; UP Nr SYS 5, Pos 7
+GIK_UP_NUM[5,2,8]=-1 ; UP Nr SYS 5, Pos 8
+GIK_UP_NUM[5,2,9]=-1 ; UP Nr SYS 5, Pos 9
+GIK_UP_NUM[5,2,10]=-1 ; UP Nr SYS 5, Pos 10
+
+; Kamera System 5, Bauteil 3
+GIK_UP_NUM[5,3,1]=-1 ; UP Nr SYS 5, Pos 1
+GIK_UP_NUM[5,3,2]=-1 ; UP Nr SYS 5, Pos 2
+GIK_UP_NUM[5,3,3]=-1 ; UP Nr SYS 5, Pos 3
+GIK_UP_NUM[5,3,4]=-1 ; UP Nr SYS 5, Pos 4
+GIK_UP_NUM[5,3,5]=-1 ; UP Nr SYS 5, Pos 5
+GIK_UP_NUM[5,3,6]=-1 ; UP Nr SYS 5, Pos 6
+GIK_UP_NUM[5,3,7]=-1 ; UP Nr SYS 5, Pos 7
+GIK_UP_NUM[5,3,8]=-1 ; UP Nr SYS 5, Pos 8
+GIK_UP_NUM[5,3,9]=-1 ; UP Nr SYS 5, Pos 9
+GIK_UP_NUM[5,3,10]=-1 ; UP Nr SYS 5, Pos 10
+
+; Kamera System 5, Bauteil 4
+GIK_UP_NUM[5,4,1]=-1 ; UP Nr SYS 5, Pos 1
+GIK_UP_NUM[5,4,2]=-1 ; UP Nr SYS 5, Pos 2
+GIK_UP_NUM[5,4,3]=-1 ; UP Nr SYS 5, Pos 3
+GIK_UP_NUM[5,4,4]=-1 ; UP Nr SYS 5, Pos 4
+GIK_UP_NUM[5,4,5]=-1 ; UP Nr SYS 5, Pos 5
+GIK_UP_NUM[5,4,6]=-1 ; UP Nr SYS 5, Pos 6
+GIK_UP_NUM[5,4,7]=-1 ; UP Nr SYS 5, Pos 7
+GIK_UP_NUM[5,4,8]=-1 ; UP Nr SYS 5, Pos 8
+GIK_UP_NUM[5,4,9]=-1 ; UP Nr SYS 5, Pos 9
+GIK_UP_NUM[5,4,10]=-1 ; UP Nr SYS 5, Pos 10
+
+; Kamera System 5, Bauteil 5
+GIK_UP_NUM[5,5,1]=-1 ; UP Nr SYS 5, Pos 1
+GIK_UP_NUM[5,5,2]=-1 ; UP Nr SYS 5, Pos 2
+GIK_UP_NUM[5,5,3]=-1 ; UP Nr SYS 5, Pos 3
+GIK_UP_NUM[5,5,4]=-1 ; UP Nr SYS 5, Pos 4
+GIK_UP_NUM[5,5,5]=-1 ; UP Nr SYS 5, Pos 5
+GIK_UP_NUM[5,5,6]=-1 ; UP Nr SYS 5, Pos 6
+GIK_UP_NUM[5,5,7]=-1 ; UP Nr SYS 5, Pos 7
+GIK_UP_NUM[5,5,8]=-1 ; UP Nr SYS 5, Pos 8
+GIK_UP_NUM[5,5,9]=-1 ; UP Nr SYS 5, Pos 9
+GIK_UP_NUM[5,5,10]=-1 ; UP Nr SYS 5, Pos 10
+
+GLOBAL CONST INT MAX_KAL_POS=20
+GLOBAL INT ANZ_KAL_POS[5]
+ANZ_KAL_POS[1]=0 ; ANnzahl der Kalibrierposen im Array 1
+ANZ_KAL_POS[2]=0 ; ANnzahl der Kalibrierposen im Array 2
+ANZ_KAL_POS[3]=0 ; ANnzahl der Kalibrierposen im Array 3
+ANZ_KAL_POS[4]=0 ; ANnzahl der Kalibrierposen im Array 4
+ANZ_KAL_POS[5]=0 ; ANnzahl der Kalibrierposen im Array 5
+
+
+DECL GLOBAL FRAME EKI_KAL_POS[5,20]
+
+;--------- optionale relativ Frametable Cam SYS 1 ------
+
+EKI_KAL_POS[1,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[1,20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;--------- optionale relativ Frametable Cam SYS 2 ------
+
+EKI_KAL_POS[2,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[2,19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;--------- optionale relativ Frametable Cam SYS 3 ------
+
+EKI_KAL_POS[3,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[3,19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;--------- optionale relativ Frametable Cam SYS 4 ------
+
+EKI_KAL_POS[4,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[4,19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+;--------- optionale relativ Frametable Cam SYS 5 ------
+
+EKI_KAL_POS[5,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+EKI_KAL_POS[5,19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+DECL GLOBAL INT EKI_LOG_NR[5]
+EKI_LOG_NR[1]=3
+EKI_LOG_NR[2]=21
+EKI_LOG_NR[3]=7
+EKI_LOG_NR[4]=11
+EKI_LOG_NR[5]=1
+
+GLOBAL STRUC XML_LOG INT Nr,CHAR text[100]
+DECL GLOBAL XML_LOG EKI_VAL_DAT[5,20] ; max 5 Kamerasysteme
+EKI_VAL_DAT[1,1]={Nr 1,text[] "2021-06-10 17:28:58  J_ID=8 M_ID=28 Korr=0.995 6.337 13.301 0.574 -1.538 -0.18034 90.6153           "}
+EKI_VAL_DAT[1,2]={Nr 1,text[] "2021-06-10 17:28:59  J_ID=8 M_ID=28 Korr=1019.638 -467.758 753.144 -169.937 11.332 89.94941         "}
+EKI_VAL_DAT[1,3]={Nr 1,text[] "2021-06-10 17:24:57  J_ID=8 M_ID=2 Korr=0.000 0.000 0.000 0.000 0.000 0.0000.7057 89.6890           "}
+EKI_VAL_DAT[1,4]={Nr 1,text[] "2021-06-10 17:25:07  J_ID=8 M_ID=28 Korr=-2.745 4.311 1.383 0.025 0.403 -0.120234 90.368693         "}
+EKI_VAL_DAT[1,5]={Nr 1,text[] "2021-06-10 17:25:09  J_ID=8 M_ID=28 Korr=-0.937 1.759 8.306 0.162 -1.066 -0.04314 90.6207           "}
+EKI_VAL_DAT[1,6]={Nr 1,text[] "2021-06-10 17:25:10  J_ID=8 M_ID=28 Korr=1032.860 -473.753 760.080 -170.128 11.598 90.01862         "}
+EKI_VAL_DAT[1,7]={Nr 1,text[] "2021-06-10 17:25:55  J_ID=8 M_ID=2 Korr=0.000 0.000 0.000 0.000 0.000 0.000.73662 90.4761           "}
+EKI_VAL_DAT[1,8]={Nr 1,text[] "2021-06-10 17:26:04  J_ID=8 M_ID=28 Korr=-4.825 3.617 -3.122 0.000 0.942 -0.03341 90.52862          "}
+EKI_VAL_DAT[1,9]={Nr 1,text[] "2021-06-10 17:26:06  J_ID=8 M_ID=28 Korr=0.970 5.183 11.810 0.540 -1.490 -0.089165 89.770           "}
+EKI_VAL_DAT[1,10]={Nr 1,text[] "2021-06-10 17:26:08  J_ID=8 M_ID=28 Korr=1038.237 -467.610 748.139 -169.890 11.171 89.866           "}
+EKI_VAL_DAT[1,11]={Nr 1,text[] "2021-06-10 17:26:52  J_ID=8 M_ID=2 Korr=0.000 0.000 0.000 0.000 0.000 0.000217598490.497036         "}
+EKI_VAL_DAT[1,12]={Nr 1,text[] "2021-06-10 17:27:02  J_ID=8 M_ID=28 Korr=-2.652 5.575 1.151 0.191 0.351 -0.068319 90.578194         "}
+EKI_VAL_DAT[1,13]={Nr 1,text[] "2021-06-10 17:27:04  J_ID=8 M_ID=28 Korr=-0.005 3.560 10.451 0.376 -1.360 -0.0243 90.5433           "}
+EKI_VAL_DAT[1,14]={Nr 1,text[] "2021-06-10 17:27:06  J_ID=8 M_ID=28 Korr=1030.569 -458.751 758.411 -169.531 11.598 89.92716         "}
+EKI_VAL_DAT[1,15]={Nr 1,text[] "2021-06-10 17:27:49  J_ID=8 M_ID=2 Korr=0.000 0.000 0.000 0.000 0.000 0.0000.1918 90.3802           "}
+EKI_VAL_DAT[1,16]={Nr 1,text[] "2021-06-10 17:27:59  J_ID=8 M_ID=28 Korr=2.880 6.588 2.732 0.275 0.444 -0.2190371142.221129         "}
+EKI_VAL_DAT[1,17]={Nr 1,text[] "2021-06-10 17:28:01  J_ID=8 M_ID=28 Korr=-0.524 1.579 7.820 0.229 -1.172 0.078984 90.4554           "}
+EKI_VAL_DAT[1,18]={Nr 1,text[] "2021-06-10 17:28:03  J_ID=8 M_ID=28 Korr=1035.906 -461.781 750.392 -169.657 11.219 89.9191          "}
+EKI_VAL_DAT[1,19]={Nr 1,text[] "2021-06-10 17:28:46  J_ID=8 M_ID=2 Korr=0.000 0.000 0.000 0.000 0.000 0.0000.7853 90.425408         "}
+EKI_VAL_DAT[1,20]={Nr 1,text[] "2021-06-10 17:28:56  J_ID=8 M_ID=28 Korr=-8.522 3.454 -2.139 -0.003 0.718 0.01845562.42761          "}
+
+EKI_VAL_DAT[2,1]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,2]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,3]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,4]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,5]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,6]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,7]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,8]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,9]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,10]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,11]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,12]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,13]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,14]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,15]={Nr 1,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,16]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,17]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,18]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,19]={Nr 2,text[] "                                                                                                    "}
+EKI_VAL_DAT[2,20]={Nr 2,text[] "                                                                                                    "}
+
+EKI_VAL_DAT[3,1]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,2]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,3]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,4]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,5]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,6]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,7]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,8]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,9]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,10]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,11]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,12]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,13]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,14]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,15]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,16]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,17]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,18]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,19]={Nr 3,text[] "                                                                                                    "}
+EKI_VAL_DAT[3,20]={Nr 3,text[] "                                                                                                    "}
+
+EKI_VAL_DAT[4,1]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,2]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,3]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,4]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,5]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,6]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,7]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,8]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,9]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,10]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,11]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,12]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,13]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,14]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,15]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,16]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,17]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,18]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,19]={Nr 4,text[] "                                                                                                    "}
+EKI_VAL_DAT[4,20]={Nr 4,text[] "                                                                                                    "}
+
+EKI_VAL_DAT[5,1]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,2]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,3]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,4]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,5]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,6]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,7]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,8]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,9]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,10]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,11]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,12]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,13]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,14]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,15]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,16]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,17]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,18]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,19]={Nr 5,text[] "                                                                                                    "}
+EKI_VAL_DAT[5,20]={Nr 5,text[] "                                                                                                    "}
+
+;------- end Changeable ------------
+ENDDAT

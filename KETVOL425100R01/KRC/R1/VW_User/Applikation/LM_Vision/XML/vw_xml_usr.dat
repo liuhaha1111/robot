@@ -1,0 +1,441 @@
+&ACCESS  RV
+&COMMENT KS_26.0
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/XML
+&PARAM EDITMASK = vw_xml_usr
+&PARAM TPVW_VERSION = 8.3.0
+&REL 181
+DEFDAT  vw_xml_usr PUBLIC
+;FOLD EKI
+;***************************************************
+;* Kamera Systemschnittstelle XML                  *
+;* Version V2.0                                    *
+;***************************************************
+; 
+;ENDFOLD
+;FOLD USER_Version
+;GLOBAL INT Ver_Tech_EKI=20180418
+;ENDFOLD
+;FOLD Glob Daten
+; 
+GLOBAL BOOL B_MIT_VIS=TRUE
+DECL CONST INT MAX_ANZ_CAM=5
+; 
+;FOLD EKI-Schnittstelle
+;enum zum Setzen von Flags
+GLOBAL ENUM EKI_FLAG_TYPE EKI_MES_IO,EKI_MES_NE,EKI_RANGE,EKI_REALI,EKI_EMPTY,EKI_WARN_F,EKI_DAT_OK,EKI_SP_ACT,EKI_RP_ACT,EKI_KMD_DT
+DECL CONST INT F_EKI_MES_IO=886 ; Flag Messwerte von Kamera IO
+DECL CONST INT F_EKI_MES_NE=887 ; Flag Messwerte von Kamera NIO
+DECL CONST INT F_EKI_RANGE=888 ; FLAG "out of range"
+DECL CONST INT F_EKI_REALI=889 ; FLAG "realign" out of range
+DECL CONST INT F_EKI_NIU_00=890 ; FLAG noch frei
+DECL CONST INT F_EKI_EMPTY=891 ; FLAG "GIK set Behaelter = LEER"
+DECL CONST INT F_EKI_WARN_F=892 ; Status Flag fuer Vornung Kistenfuellstand
+DECL CONST INT F_EKI_NIU_01=893 ; FLAG noch frei
+
+DECL CONST INT F_EKI_Dat_OK[5]
+F_EKI_Dat_OK[1]=871 ; Flag Datenempfang siehe XML_Kuka_VISION_2.xml
+F_EKI_Dat_OK[2]=874 ; Flag Datenempfang siehe XML_Kuka_VISION_4.xml 
+F_EKI_Dat_OK[3]=877 ; Flag Datenempfang siehe XML_Kuka_VISION_6.xml
+F_EKI_Dat_OK[4]=880 ; Flag Datenempfang siehe XML_Kuka_VISION_8.xml
+F_EKI_Dat_OK[5]=883 ; Flag Datenempfang siehe XML_Kuka_VISION_10.xml
+
+DECL CONST INT F_EKI_SP_Act[5]
+F_EKI_SP_Act[1]=872 ; Flag Port 1 aktiv siehe XML_Kuka_VISION_1.xml
+F_EKI_SP_Act[2]=875 ; Flag Port 1 aktiv siehe XML_Kuka_VISION_3.xml
+F_EKI_SP_Act[3]=878 ; Flag Port 1 aktiv siehe XML_Kuka_VISION_5.xml
+F_EKI_SP_Act[4]=881 ; Flag Port 1 aktiv siehe XML_Kuka_VISION_7.xml
+F_EKI_SP_Act[5]=884 ; Flag Port 1 aktiv siehe XML_Kuka_VISION_9.xml
+
+DECL CONST INT F_EKI_Rp_Act[5]
+F_EKI_Rp_Act[1]=873 ; Flag Port 2 aktiv siehe XML_Kuka_VISION_2.xml
+F_EKI_Rp_Act[2]=876 ; Flag Port 2 aktiv siehe XML_Kuka_VISION_4.xml
+F_EKI_Rp_Act[3]=879 ; Flag Port 2 aktiv siehe XML_Kuka_VISION_6.xml
+F_EKI_Rp_Act[4]=882 ; Flag Port 2 aktiv siehe XML_Kuka_VISION_8.xml
+F_EKI_Rp_Act[5]=885 ; Flag Port 2 aktiv siehe XML_Kuka_VISION_10.xml
+
+DECL CONST INT F_EKI_KMD_DT[5]
+F_EKI_KMD_DT[1]=894 ; Flag COM - Port siehe XML_Kuka_KAMSYS_1.xml
+F_EKI_KMD_DT[2]=895 ; Flag COM - Port siehe XML_Kuka_KAMSYS_2.xml
+F_EKI_KMD_DT[3]=896 ; Flag COM - Port siehe XML_Kuka_KAMSYS_3.xml
+F_EKI_KMD_DT[4]=897 ; Flag COM - Port siehe XML_Kuka_KAMSYS_4.xml
+F_EKI_KMD_DT[5]=898 ; Flag COM - Port siehe XML_Kuka_KAMSYS_5.xml
+; 
+; Auftrag Codes "Mode_ID" an KAM System 
+; 
+DECL CONST INT EKI_LIFE_BIT=2
+DECL CONST INT EKI_CANCEL=10
+DECL CONST INT EKI_CALIBRAT=20
+DECL CONST INT EKI_CALI_END=21
+DECL CONST INT EKI_VALIDAT=22
+DECL CONST INT EKI_VALI_END=23
+DECL CONST INT EKI_VERIFIFY=24
+DECL CONST INT EKI_VERI_END=25
+DECL CONST INT EKI_REFERECE=26
+DECL CONST INT EKI_REFE_END=27
+DECL CONST INT EKI_PRODUCT=28
+DECL CONST INT EKI_PROD_END=29
+; ab hier neue CMD ab Version 2.x
+DECL CONST INT EKI_SEND_DAT=31 ; Auftrag nur Daten senden
+DECL CONST INT EKI_GET_DAT=32 ; Auftrag nur Daten abholen
+DECL CONST INT EKI_KAL_SEQ=33 ; Auftrag fuer Abfahren automatischer Kalibriersequez
+DECL CONST INT EKI_GET_IRQ=34 ; Auftrag fuer Receive via Interrupt
+DECL CONST INT GET_REF_POS=35 ; Auftrag Referenzpositionsdaten erfassen
+; additional Mode IDs
+DECL CONST INT EKI_MESS_PKT=50 ; Auftrag fuer Messpunkt  Daten aufnehmen
+DECL CONST INT EKI_LIGHT_ON=51 ; Auftrag prepair Messen start
+DECL CONST INT EKI_LIGHT_OF=52 ; Auftrag  Messungen fertig
+
+; Auftrag Codes "Mode_ID" an System "Griff in Kiste"
+
+DECL CONST INT GIK_MESS_KMS=40 ; Auftrag an Kamerasystem Behaelter messen
+DECL CONST INT GIK_MESS_BTM=41 ; Auftrag an Kamerasystem Bauteil messen
+DECL CONST INT GIK_GET_POS=42 ; Auftrag an Kamerasystem Start Uebertragung Positionsdaten
+DECL CONST INT GIK_GET_PART=43 ; BT aus Kiste Holen
+DECL CONST INT GIK_BT_ABLEG=44 ; UP aufrufen fuer BT ableegen
+DECL CONST INT GIK_STRT_KMS=45 ; Auftrag an Kamerasystem Start Behaelter messen
+DECL CONST INT GIK_STRT_BTM=46 ; Auftrag an Kamerasystem Start Bauteil messen
+DECL CONST INT GIK_RECV_KMS=47 ; Ergebnis lesen Behaeltervermessung
+DECL CONST INT GIK_RECV_BTM=48 ; Ergebnis lesen Bauteil - Messen
+
+; Interrupt Declarations fuer Datenempfang
+
+DECL CONST INT EKI_RCV_IRQ[5]
+EKI_RCV_IRQ[1]=24
+EKI_RCV_IRQ[2]=25
+EKI_RCV_IRQ[3]=26
+EKI_RCV_IRQ[4]=27
+EKI_RCV_IRQ[5]=28
+
+; Interrupt Declaration 
+DECL CONST INT TARGET_IRQ=33
+
+; Kamera System Nummern
+
+DECL CONST INT KAM0_PRG_NR=0
+DECL CONST INT KAM1_PRG_NR=100
+DECL CONST INT KAM2_PRG_NR=200
+DECL CONST INT KAM3_PRG_NR=300
+DECL CONST INT KAM4_PRG_NR=400
+DECL CONST INT KAM5_PRG_NR=500
+
+DECL CONST INT KAM00_PRG_NR=1000
+DECL CONST INT KAM11_PRG_NR=2000
+DECL CONST INT KAM22_PRG_NR=3000
+DECL CONST INT KAM33_PRG_NR=4000
+DECL CONST INT KAM44_PRG_NR=5000
+DECL CONST INT KAM55_PRG_NR=6000
+
+; Status ID Rueckmeldungen von Kamerasystem
+
+DECL CONST INT EKI_STAT_ERR=0 ; Rueckmeldung ERROR
+DECL CONST INT EKI_STAT_IO=1 ; Rueckmeldung IO
+DECL CONST INT EKI_STAT_LBB=2 ; Rueckmeldung Lebensbit Port open
+DECL CONST INT EKI_STAT_REA=3 ; Rueckmeldung Umpositionieren Roboter
+DECL CONST INT EKI_STAT_KBT=4 ; Rueckmeldung IO, fuer Kalibrierung Sensor BASE/TOOL
+
+; Status ID Return Werte Funktion get_gik_data() von GIK System
+
+DECL CONST INT GIK_VALID_DT=0
+DECL CONST INT GIK_LAST_DAT=1
+DECL CONST INT GIK_GRBT_POS=2
+DECL CONST INT GIK_GRP_WIPO=3
+DECL CONST INT GIK_SEQ_ERR=-1
+
+; STATUS_ID von GIK Kamerasystem an Roboter
+
+DECL CONST INT GIK_ERG_KMS=40 ; Rueckmeldung Positionsdaten fuer Base Kiste
+DECL CONST INT GIK_ERG_LOWW=41 ; Rueckmeldung Positionsdaten fuer Base Kiste, F?llstand < 20%
+DECL CONST INT GIK_ERR_KMS=50 ; Rueckmeldung Fehler Kiste vermessen
+DECL CONST INT GIK_LEER_KMS=51 ; Rueckmeldung Kiste Kiste leer
+DECL CONST INT GIK_DATA_POS=60 ; Rueckmeldung Positionsdaten fuer Zwischenpunkte
+DECL CONST INT GIK_GRIP_DAT=61 ; Rueckmeldung Daten Greifer X = Winkel, Y = Greifpositionsnummer
+DECL CONST INT GIK_GRIP_POS=62 ; Rueckmeldung Positionsdaten fuer Greifer
+DECL CONST INT GIK_LAST_POS=63 ; Rueckmeldung letzte Positionsdaten
+
+; Defines for internal funktions
+
+DECL CONST INT MAX_TEL_ID=99
+DECL CONST INT MAX_KORR_ARR=32
+; 
+; Return values of function "check_"
+DECL CONST INT STAT_RET_ERR=-1 ; allgemeiner Fehler
+DECL CONST INT STAT_RET_LBE=-2 ; Error send life bit
+DECL CONST INT STAT_RET_IO=1 ; IO - Status
+DECL CONST INT STAT_RET_GLT=2 ; GIK IO Status last target
+DECL CONST INT STAT_RET_REA=3 ; Realign request
+DECL CONST INT STAT_RET_KBT=4 ; Kalibration mit BASE/TOOL Daten
+; 
+GLOBAL INT cam_sys_nr
+; 
+INT I_EKI_Sp_Act[5]
+I_EKI_Sp_Act[1]=872 ; Vorbelegung Send Port Flag Nr SYS 1
+I_EKI_Sp_Act[2]=875 ; Vorbelegung Send Port Flag Nr SYS 2
+I_EKI_Sp_Act[3]=878 ; Vorbelegung Send Port Flag Nr SYS 3
+I_EKI_Sp_Act[4]=881 ; Vorbelegung Send Port Flag Nr SYS 4
+I_EKI_Sp_Act[5]=884 ; Vorbelegung Send Port Flag Nr SYS 5
+
+INT I_EKI_Rp_Act[5]
+I_EKI_Rp_Act[1]=873 ; Vorbelegung Recv Port Flag Nr SYS 1
+I_EKI_Rp_Act[2]=876 ; Vorbelegung Recv Port Flag Nr SYS 2
+I_EKI_Rp_Act[3]=878 ; Vorbelegung Recv Port Flag Nr SYS 3
+I_EKI_Rp_Act[4]=881 ; Vorbelegung Recv Port Flag Nr SYS 4
+I_EKI_Rp_Act[5]=885 ; Vorbelegung Recv Port Flag Nr SYS 1
+
+INT EKI_JOB_NR[5]
+EKI_JOB_NR[1]=1
+EKI_JOB_NR[2]=5
+EKI_JOB_NR[3]=3
+EKI_JOB_NR[4]=4
+EKI_JOB_NR[5]=-1
+
+INT send_Tel_ID[5]
+send_Tel_ID[1]=1
+send_Tel_ID[2]=1
+send_Tel_ID[3]=36
+send_Tel_ID[4]=14
+send_Tel_ID[5]=1
+
+BOOL REF_POS_VAL[16] ; Merker fuer gueltige Referenz Posen 
+REF_POS_VAL[1]=FALSE
+REF_POS_VAL[2]=FALSE
+REF_POS_VAL[3]=FALSE
+REF_POS_VAL[4]=FALSE
+REF_POS_VAL[5]=FALSE
+REF_POS_VAL[6]=FALSE
+REF_POS_VAL[7]=FALSE
+REF_POS_VAL[8]=FALSE
+REF_POS_VAL[9]=FALSE
+REF_POS_VAL[10]=FALSE
+REF_POS_VAL[11]=FALSE
+REF_POS_VAL[12]=FALSE
+REF_POS_VAL[13]=FALSE
+REF_POS_VAL[14]=FALSE
+REF_POS_VAL[15]=FALSE
+REF_POS_VAL[16]=FALSE
+
+GLOBAL FRAME REF_POS_DATA[16] ; 16 Referenz Positionsdaten
+REF_POS_DATA[1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+REF_POS_DATA[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+
+DECL DATE actDate
+
+; Strukturen fuer Daten senden/empfangen
+GLOBAL STRUC SEND_DAT INT send_Job_ID,send_Mode_ID,send_Tel_ID
+DECL SEND_DAT EKI_SND
+GLOBAL STRUC RECEIVE_DAT INT cam_nr,get_Stat_ID,get_Error_ID,get_Telgr_ID,CHAR Err_Text[32],CHAR Param_Text[32],CHAR end_sign[1]
+DECL RECEIVE_DAT EKI_RECEIVE
+GLOBAL STRUC VIS_EKI_DATA INT i_RobTimer,i_EKI_Timer,counter_Cali,counter_Vali,counter_Very,i_base_eki,log_nr,PAR2,PAR4,SEND_DAT EKI_SND,RECEIVE_DAT EKI_RECEIVE,BOOL B_One_Port,BOOL New_XML,BOOL B_Verify,FRAME Send_Val_Pos,FRAME Get_Val_Pos,FRAME realign,CHAR XML_ch1_String[20],CHAR XML_ch2_String[20],CHAR XML_RCV_TXT[20]
+DECL GLOBAL VIS_EKI_DATA EKI_VARS[5] ; max 5 Kamerasysteme
+EKI_VARS[1]={i_RobTimer 490892827,i_EKI_Timer 25000,counter_Cali 0,counter_Vali 0,counter_Very 0,i_base_eki 31,log_nr 0,PAR2 0,PAR4 0,EKI_SND {send_Job_ID 8,send_Mode_ID 28,send_Tel_ID 1},EKI_RECEIVE {cam_nr 0,get_Stat_ID 1,get_Error_ID 0,get_Telgr_ID 5,Err_Text[] "OK'H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00''H00'",Param_Text[] "'H0000000000000000000000000000000000000000000000000000000000000000'",end_sign[] "#"},B_One_Port FALSE,New_XML FALSE,B_Verify FALSE,Send_Val_Pos {X 718.230835,Y 86.6204910,Z 560.855835,A 99.8105164,B -0.348246604,C 87.2293396},Get_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},realign {X -7.36004543,Y 9.78676,Z 11.1504765,A 0.570368767,B -0.820216179,C -0.154806986},XML_ch1_String[] "XML_KUKA_VISION_1",XML_ch2_String[] "XML_KUKA_VISION_2",XML_RCV_TXT[] "VISION"}
+EKI_VARS[2]={i_RobTimer 375614954,i_EKI_Timer 10000,counter_Cali 0,counter_Vali 0,counter_Very 0,i_base_eki 26,log_nr 0,PAR2 2,PAR4 0,EKI_SND {send_Job_ID 105,send_Mode_ID 2,send_Tel_ID 1},EKI_RECEIVE {cam_nr 0,get_Stat_ID 0,get_Error_ID 0,get_Telgr_ID 0,Err_Text[] " ",Param_Text[] " ",end_sign[] "#"},B_One_Port FALSE,New_XML FALSE,B_Verify FALSE,Send_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},Get_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},realign {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},XML_ch1_String[] " ",XML_ch2_String[] " ",XML_RCV_TXT[] " "}
+EKI_VARS[3]={i_RobTimer 0,i_EKI_Timer 0,counter_Cali 0,counter_Vali 0,counter_Very 0,i_base_eki 0,log_nr 0,PAR2 0,PAR4 0,EKI_SND {send_Job_ID 0,send_Mode_ID 0,send_Tel_ID 0},EKI_RECEIVE {cam_nr 0,get_Stat_ID 0,get_Error_ID 0,get_Telgr_ID 0,Err_Text[] " ",Param_Text[] " ",end_sign[] "#"},B_One_Port FALSE,New_XML FALSE,B_Verify FALSE,Send_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},Get_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},realign {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},XML_ch1_String[] " ",XML_ch2_String[] " ",XML_RCV_TXT[] " "}
+EKI_VARS[4]={i_RobTimer 0,i_EKI_Timer 0,counter_Cali 0,counter_Vali 0,counter_Very 0,i_base_eki 0,log_nr 0,PAR2 0,PAR4 0,EKI_SND {send_Job_ID 0,send_Mode_ID 0,send_Tel_ID 0},EKI_RECEIVE {cam_nr 0,get_Stat_ID 0,get_Error_ID 0,get_Telgr_ID 0,Err_Text[] " ",Param_Text[] " ",end_sign[] "#"},B_One_Port FALSE,New_XML FALSE,B_Verify FALSE,Send_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},Get_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},realign {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},XML_ch1_String[] " ",XML_ch2_String[] " ",XML_RCV_TXT[] " "}
+EKI_VARS[5]={i_RobTimer 0,i_EKI_Timer 0,counter_Cali 0,counter_Vali 0,counter_Very 0,i_base_eki 0,log_nr 0,PAR2 0,PAR4 0,EKI_SND {send_Job_ID 0,send_Mode_ID 0,send_Tel_ID 0},EKI_RECEIVE {cam_nr 0,get_Stat_ID 0,get_Error_ID 0,get_Telgr_ID 0,Err_Text[] " ",Param_Text[] " ",end_sign[] "#"},B_One_Port FALSE,New_XML FALSE,B_Verify FALSE,Send_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},Get_Val_Pos {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},realign {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},XML_ch1_String[] " ",XML_ch2_String[] " ",XML_RCV_TXT[] " "}
+
+; GIK DATA Position
+GLOBAL STRUC GIK_SEQ_DAT BOOL Data_valid,INT pos_nr,INT GRP_Winkel,INT GRP_Pos_Nr,INT TOOL_ID,INT GRP_Makro_do,INT bauteil_nr,FRAME GRP_TCP,REAL f_rob_speed
+DECL GLOBAL GIK_SEQ_DAT GIK_POSDAT[5] ; 
+GIK_POSDAT[1]={Data_valid FALSE,pos_nr 0,GRP_Winkel 0,GRP_Pos_Nr 0,TOOL_ID 0,GRP_Makro_do 0,bauteil_nr 1,GRP_TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},f_rob_speed 0.500000} ; GIK - System Varialben
+GIK_POSDAT[2]={Data_valid FALSE,pos_nr 0,GRP_Winkel 0,GRP_Pos_Nr 0,TOOL_ID 0,GRP_Makro_do 0,bauteil_nr 2,GRP_TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},f_rob_speed 0.500000} ; GIK - System Varialben
+GIK_POSDAT[3]={Data_valid FALSE,pos_nr 0,GRP_Winkel 0,GRP_Pos_Nr 0,TOOL_ID 0,GRP_Makro_do 0,bauteil_nr 3,GRP_TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},f_rob_speed 0.500000} ; GIK - System Varialben
+GIK_POSDAT[4]={Data_valid FALSE,pos_nr 0,GRP_Winkel 0,GRP_Pos_Nr 0,TOOL_ID 0,GRP_Makro_do 0,bauteil_nr 4,GRP_TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},f_rob_speed 0.500000} ; GIK - System Varialben
+GIK_POSDAT[5]={Data_valid FALSE,pos_nr 0,GRP_Winkel 0,GRP_Pos_Nr 0,TOOL_ID 0,GRP_Makro_do 0,bauteil_nr 5,GRP_TCP {X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0},f_rob_speed 0.500000} ; GIK - System Varialben
+
+GLOBAL FRAME GIK_position[5,15] ; GIK Systeme mit max 10 Positionsdaten
+GIK_position[1,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[1,15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+GIK_position[2,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[2,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+GIK_position[3,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[3,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+GIK_position[4,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[4,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+GIK_position[5,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GIK_position[5,10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+
+
+STRUC XML_CH_STRING INT Nr,CHAR text[20]
+DECL CONST XML_CH_STRING XML_string[4,5]
+XML_string[1,1]={Nr 1,text[] "XML_KUKA_VISION_1"}
+XML_string[1,2]={Nr 1,text[] "XML_KUKA_VISION_3"}
+XML_string[1,3]={Nr 1,text[] "XML_KUKA_VISION_5"}
+XML_string[1,4]={Nr 1,text[] "XML_KUKA_VISION_7"}
+XML_string[1,5]={Nr 1,text[] "XML_KUKA_VISION_8"}
+
+XML_string[2,1]={Nr 2,text[] "XML_KUKA_VISION_2"}
+XML_string[2,2]={Nr 2,text[] "XML_KUKA_VISION_4"}
+XML_string[2,3]={Nr 2,text[] "XML_KUKA_VISION_6"}
+XML_string[2,4]={Nr 2,text[] "XML_KUKA_VISION_8"}
+XML_string[2,5]={Nr 2,text[] "XML_KUKA_VISION_10"}
+
+XML_string[3,1]={Nr 3,text[] "XML_KUKA_KAMSYS_1"}
+XML_string[3,2]={Nr 3,text[] "XML_KUKA_KAMSYS_2"}
+XML_string[3,3]={Nr 3,text[] "XML_KUKA_KAMSYS_3"}
+XML_string[3,4]={Nr 3,text[] "XML_KUKA_KAMSYS_4"}
+XML_string[3,5]={Nr 3,text[] "XML_KUKA_KAMSYS_5"}
+
+XML_string[4,1]={Nr 4,text[] "XML_KUKA_Binaer_1"}
+XML_string[4,2]={Nr 4,text[] "XML_KUKA_Binaer_2"}
+XML_string[4,3]={Nr 4,text[] "XML_KUKA_Binaer_3"}
+XML_string[4,4]={Nr 4,text[] "XML_KUKA_Binaer_4"}
+XML_string[4,5]={Nr 4,text[] "XML_KUKA_Binaer_5"}
+; 
+STRUC XML_RCV_STRING INT Nr,CHAR text[20]
+; new XML Strings
+DECL CONST XML_RCV_STRING XML_get_strg[8,20]
+XML_get_strg[1,1]={Nr 1,text[] "VISION1/TEL_ID"}
+XML_get_strg[1,2]={Nr 1,text[] "VISION1/STAT_ID"}
+XML_get_strg[1,3]={Nr 1,text[] "VISION1/ERR_ID"}
+XML_get_strg[1,4]={Nr 1,text[] "VISION1/ERR_TEXT"}
+XML_get_strg[1,5]={Nr 1,text[] "VISION1/POS"}
+XML_get_strg[1,6]={Nr 1,text[] "VISION1/PAR"}
+XML_get_strg[1,7]={Nr 1,text[] "VISION1/T"}
+XML_get_strg[1,8]={Nr 1,text[] "VISION1"}
+
+XML_get_strg[2,1]={Nr 2,text[] "VISION2/TEL_ID"}
+XML_get_strg[2,2]={Nr 2,text[] "VISION2/STAT_ID"}
+XML_get_strg[2,3]={Nr 2,text[] "VISION2/ERR_ID"}
+XML_get_strg[2,4]={Nr 2,text[] "VISION2/ERR_TEXT"}
+XML_get_strg[2,5]={Nr 2,text[] "VISION2/POS"}
+XML_get_strg[2,6]={Nr 2,text[] "VISION2/PAR"}
+XML_get_strg[2,7]={Nr 2,text[] "VISION2/T"}
+XML_get_strg[2,8]={Nr 2,text[] "VISION2"}
+
+XML_get_strg[3,1]={Nr 3,text[] "VISION3/TEL_ID"}
+XML_get_strg[3,2]={Nr 3,text[] "VISION3/STAT_ID"}
+XML_get_strg[3,3]={Nr 3,text[] "VISION3/ERR_ID"}
+XML_get_strg[3,4]={Nr 3,text[] "VISION3/ERR_TEXT"}
+XML_get_strg[3,5]={Nr 3,text[] "VISION3/POS"}
+XML_get_strg[3,6]={Nr 3,text[] "VISION3/PAR"}
+XML_get_strg[3,7]={Nr 3,text[] "VISION3/T"}
+XML_get_strg[3,8]={Nr 3,text[] "VISION3"}
+
+XML_get_strg[4,1]={Nr 4,text[] "VISION4/TEL_ID"}
+XML_get_strg[4,2]={Nr 4,text[] "VISION4/STAT_ID"}
+XML_get_strg[4,3]={Nr 4,text[] "VISION4/ERR_ID"}
+XML_get_strg[4,4]={Nr 4,text[] "VISION4/ERR_TEXT"}
+XML_get_strg[4,5]={Nr 4,text[] "VISION4/POS"}
+XML_get_strg[4,6]={Nr 4,text[] "VISION4/PAR"}
+XML_get_strg[4,7]={Nr 4,text[] "VISION4/T"}
+XML_get_strg[4,8]={Nr 4,text[] "VISION4"}
+
+XML_get_strg[5,1]={Nr 5,text[] "VISION5/TEL_ID"}
+XML_get_strg[5,2]={Nr 5,text[] "VISION5/STAT_ID"}
+XML_get_strg[5,3]={Nr 5,text[] "VISION5/ERR_ID"}
+XML_get_strg[5,4]={Nr 5,text[] "VISION5/ERR_TEXT"}
+XML_get_strg[5,5]={Nr 5,text[] "VISION5/POS"}
+XML_get_strg[5,6]={Nr 5,text[] "VISION5/PAR"}
+XML_get_strg[5,7]={Nr 5,text[] "VISION5/T"}
+XML_get_strg[5,8]={Nr 5,text[] "VISION5"}
+; 
+; old XML Strings
+; 
+XML_get_strg[6,1]={Nr 6,text[] "VISION/TEL_ID"}
+XML_get_strg[6,2]={Nr 6,text[] "VISION/STAT_ID"}
+XML_get_strg[6,3]={Nr 6,text[] "VISION/ERR_ID"}
+XML_get_strg[6,4]={Nr 6,text[] "VISION/ERR_TEXT"}
+XML_get_strg[6,5]={Nr 6,text[] "VISION/POS"}
+XML_get_strg[6,6]={Nr 6,text[] "VISION/PAR"}
+XML_get_strg[6,7]={Nr 6,text[] "VISION/T"}
+XML_get_strg[6,8]={Nr 6,text[] "VISION"}
+; 
+; ASCII Daten String transfer
+; 
+XML_get_strg[7,1]={Nr 1,text[] "VIS_1/STR"}
+XML_get_strg[7,8]={Nr 1,text[] "VIS_1"}
+; 
+ENUM EKI_MsgType StateMsg,QuitMsg,NotifyMsg,DialogMsg
+DECL EKI_MsgType MsgTyp=#DialogMsg
+DECL CONST INT TASTE_0=0 ; keine Taste 
+DECL CONST INT TASTE_1=1 ; Taste Nr 1
+DECL CONST INT TASTE_2=2 ; Taste Nr 2
+DECL CONST INT TASTE_3=3 ; Taste Nr 3
+DECL CONST INT TASTE_4=4 ; Taste Nr 4
+DECL CONST INT TASTE_5=5 ; Taste Nr 5
+DECL CONST INT TASTE_6=6 ; Taste Nr 6
+DECL CONST INT TASTE_7=7 ; Taste Nr 7
+; 
+; Debug FRAME fuer Funktion VIS_MLD()
+DECL FRAME debug_Frame
+; 
+CHAR Get_Terminat[1] ; from Vision
+Get_Terminat[]="#"
+CHAR Send_Param[32] ;optional to Vision
+Send_Param[]=" "
+CHAR Send_Termina[1] ; to Vision
+Send_Termina[]="#"
+CHAR korrwert_msg[12]
+korrwert_msg[]="Korr.Wert "
+CHAR realign_msg[12]
+realign_msg[]="RealignWert "
+CHAR gwrt_min_msg[12]
+gwrt_min_msg[]="min. Grenze "
+CHAR gwrt_max_msg[12]
+gwrt_max_msg[]="max. Grenze "
+; 
+;ENDFOLD
+ENDDAT

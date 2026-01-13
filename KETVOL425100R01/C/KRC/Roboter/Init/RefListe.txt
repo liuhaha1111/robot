@@ -1,0 +1,2124 @@
+                      Referenzliste Roboter KETVOL425100R01
+                      =====================================
+
+1237684                             23.7.2022
+--------------------------------------------------------------------------------
+
+输入端:
+----
+E 13       [SPS: Schutzkreis ist geschlossen]              Makro Step, Step 1, Step 2, Step 3, Step 9
+E 14       [SPS: Maschinelle Sicherheiten]                 Makro 50
+E 15       [SPS: Funktionstest ohne Bauteil]               UP 1, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 712, 713, 716, 717, Makro 52, 53, 360, 361, 362, 363, 364, 365, Step, Step 9
+E 16       [SPS: Halt zum Korrigieren]                     UP 81, 82, 83, 84, 85, 86
+E 17       [SPS: Quittierung Wartungsstellung]             Folge 1, 41, 61, 71, 123, UP 112, 113, 114, 201, 202, 203, 206
+E 18       [SPS: Halt in Wartungsbereich]                  Folge 1, 41, 61, 71
+E 19       [SPS: Wartung in Arbeitsfolge]                  Folge 1, 41, 61, 71
+E 20       [SPS: Anwahl Werkzeugwechselposition]           Folge 124
+E 21       [SPS: Anwahl Referenzposition]                  Folge 124
+E 23       [SPS: Keine Zutrittsanforderung]                Folge 1, 41, 61, 71, 123, 124, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 203, 206, 712, 713, 716, 717
+E 24       [SPS: Medien vorhanden]                         Makro 50
+E 26       [SPS: Quitt mit Wiederholung]                   Makro Step, Step 1, Step 2, Step 3, Step 9
+E 27       [SPS: Quitt Weiter]                             Makro Step, Step 1, Step 2, Step 3, Step 9
+E 41       [Roboterfreigabe 1 5100R01 > 5101R01]           Folge 1, 61, 71, Makro 20, 50
+E 42       [Roboterfreigabe 2 5100R01 > 5101R01]           Makro 20
+E 43       [Roboterfreigabe 3 5100R01 > 5105R01]           Makro 20, 50
+E 44       [Roboterfreigabe 4 5100R01 > 5105R01]           Makro 20
+E 45       [Roboterfreigabe 5 5100R01 > 5104R01]           Folge 1, 61, 71, Makro 20, 50
+E 46       [Roboterfreigabe 6 5100R01 > 5104R01]           Makro 20
+E 47       [Roboterfreigabe 7 5100R01 > 5105R02]           Folge 1, 61, 71, Makro 20, 50
+E 48       [Roboterfreigabe 8 5100R01 > 5105R02]           Makro 20
+E 49       [SPS: Roboterfreigabe 9 Rob < Rob]              Makro 20
+E 50       [SPS: Roboterfreigabe 10 Rob < Rob]             Makro 20
+E 51       [Roboterfreigabe 11 5100R01 > 5110R01]          Folge 1, 61, 71, Makro 20, 50
+E 52       [SPS: Roboterfreigabe 12 Rob < Rob]             Makro 20
+E 53       [SPS: Roboterfreigabe 13 Rob < Rob]             Makro 20
+E 54       [SPS: Roboterfreigabe 14 Rob < Rob]             Makro 20
+E 55       [SPS: Roboterfreigabe 15 Rob < Rob]             Makro 20
+E 56       [SPS: Roboterfreigabe 16 Rob < Rob]             Makro 20
+E 58       [Stellungsfreigabe 23]                          UP 18, 19, 24, 25
+E 59       [OP. 5104 Frei]                                 Folge 1, 41, 61, 71
+E 60       [OP. 5104 Belegt]                               Folge 1, 41, 61, 71
+E 62       [OP. 5085 Belegt]                               Folge 1, 41, 61, 71, UP 2, 4, 13, 15, 17, 21, 23, 104, 713, 717
+E 63       [OP. 5085 Frei]                                 Folge 1
+E 64       [OP. 5085 Belegt]                               Folge 1, 41, 61, 71, UP 1, 3, 12, 14, 16, 20, 22, 26, 71, 103, 712, 716
+E 65       [Stellungsfreigabe 16]                          UP 12, 13, 22, 23, 81, 82, 83, 84, 85, 86, 712, 713
+E 66       [Stellungsfreigabe 15]                          UP 81, 82, 83, 84, 85, 86
+E 67       [Stellungsfreigabe 14]                          UP 81, 82, 83, 84, 85, 86
+E 68       [Freigabe Einlegen/Entnahme OP. 5101]           UP 81, 82, 83, 84, 85, 86
+E 71       [Stellungsfreigabe 10]                          UP 18, 19, 24, 25
+E 72       [Stellungsfreigabe 9]                           UP 3, 4, 12, 13, 22, 23, 103, 104, 112, 113, 114, 712, 713
+E 73       [Freigabe Einlegen Ausfahrt OP. 5104]           Folge 1, 41, 61, 71
+E 74       [Freigabe Einlegen Einfahrt OP. 5104]           Folge 1, 41, 61, 71
+E 77       [Freigabe Einlegen Ein-/Ausfahrt OP. 5085]      Folge 1, 41, 61, 71, UP 3, 4, 12, 13, 22, 23, 103, 104, 712, 713
+E 80       [Freigabe Einlegen Ein-/Ausfahrt OP. 5085]      Folge 1, 41, 61, 71, UP 1, 2, 14, 15, 16, 17, 20, 21, 26, 71, 716, 717
+E 81       [Quitt. Verriegelung 1 5100R01 > 5101R01]       Makro 20
+E 82       [Quitt. Verriegelung 2 5100R01 > 5101R01]       Makro 20
+E 83       [Quitt. Verriegelung 3 5100R01 > 5105R01]       Makro 20
+E 84       [Quitt. Verriegelung 4 5100R01 > 5105R01]       Makro 20
+E 85       [Quitt. Verriegelung 5 5100R01 > 5104R01]       Makro 20
+E 86       [Quitt. Verriegelung 6 5100R01 > 5104R01]       Makro 20
+E 87       [Quitt. Verriegelung 7 5100R01 > 5105R02]       Makro 20
+E 88       [Quitt. Verriegelung 8 5100R01 > 5105R02]       Makro 20
+E 89       [SPS: Quitt. Verriegelung 9 Rob > Rob]          Makro 20
+E 90       [SPS: Quitt. Verriegelung 10 Rob > Rob]         Makro 20
+E 91       [Quitt. Verriegelung 11 5100R01 > 5110R01]      Makro 20
+E 92       [SPS: Quitt. Verriegelung 12 Rob > Rob]         Makro 20
+E 93       [SPS: Quitt. Verriegelung 13 Rob > Rob]         Makro 20
+E 94       [SPS: Quitt. Verriegelung 14 Rob > Rob]         Makro 20
+E 95       [SPS: Quitt. Verriegelung 15 Rob > Rob]         Makro 20
+E 96       [SPS: Quitt. Verriegelung 16 Rob > Rob]         Makro 20
+E 121      [SPSk: (G) Anwahl Multi-Greifer 1 in Wartung]   Folge 124
+E 122      [SPSk: (G) Anwahl Multi-Greifer 2 in Wartung]   Folge 124
+E 123      [SPSk: (G) Anwahl Multi-Greifer 3 in Wartung]   Folge 124
+E 193      [ ]                                             Makro Step 9
+E 195      [ ]                                             Makro Step 9
+E 233      [SPS: Typinfo von SPS W1]                       Folge 1, 41, 61, 71
+E 234      [SPS: Typinfo von SPS W2]                       Folge 1, 41, 61, 71
+E 235      [SPS: Typinfo von SPS W4]                       Folge 1, 41, 61, 71
+E 516      [ ]                                             Makro 50
+E 537      [DS: Dockingsystem angedockt]                   Makro 50, 420, 421, 428, 429
+E 538      [DS: Dockingsystem verriegelt]                  UP 81, 82, 83, 84, 85, 86, Makro 50, 420, 421
+E 539      [DS: Dockingsystem entriegelt]                  UP 81, 82, 83, 84, 85, 86, Makro 50, 420, 421
+E 540      [DS: Dockingsystem i.O.]                        UP 81, 82, 83, 84, 85, 86, Makro 422
+E 541      [DS: Werkzeugkodierung W1]                      Makro 50
+E 542      [DS: Werkzeugkodierung W2]                      Makro 50
+E 543      [DS: Werkzeugkodierung W4]                      Makro 50
+E 544      [DS: Werkzeugkodierung W8]                      Makro 50
+E 577      [G: G1BD01E Steuerluft vorhanden]               Makro 342, 343
+E 579      [G: Magnetic Ein BGE11aV]                       Makro 51, 52
+E 580      [G: Magnetic Aus BGE11aR]                       Makro 51, 52
+E 581      [G: Stiftzieher zuruck BGE13aR]                 Makro 51, 52, 53
+E 582      [G: Stiftzieher vorn BGE13aV]                   Makro 51, 52, 53
+E 583      [G: Stiftzieher zuruck BGE13bR]                 Makro 51, 52, 53
+E 584      [G: Stiftzieher vorn BGE13bV]                   Makro 51, 52, 53
+E 585      [G: Spanner zuruck BGE14aR]                     Makro 51, 52, 53
+E 586      [G: Spanner vorn BGE14aV]                       Makro 51, 52, 53
+E 587      [G: Spanner zuruck BGE14bR]                     Makro 51, 52, 53
+E 588      [G: Spanner vorn BGE14bV]                       Makro 51, 52, 53
+E 589      [G: Spanner zuruck BGE14cR]                     Makro 51, 52, 53
+E 590      [G: Spanner vorn BGE14cV]                       Makro 51, 52, 53
+E 591      [G: Spanner zuruck BGE14dR]                     Makro 51, 52, 53
+E 592      [G: Spanner vorn BGE14dV]                       Makro 51, 52, 53
+E 593      [G: Vaccum Ein BGE12aV]                         Makro 51, 52, 53
+E 594      [G3: Vaccum Ein BGE15bV]                        Makro 51, 52, 53
+E 595      [G3: Vaccum Ein BP12]                           Makro 51, 52, 53
+E 603      [G3: Bauteilkontrollen BGT12b]                  Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51, 52, 53
+E 605      [G: Bauteilkontrollen BGT11b]                   Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51, 52, 53
+E 607      [G: Bauteilkontrollen BGT11a]                   UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 103, 104, 712, 713, 716, 717
+E 608      [G: Handling / Greifer]                         UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 103, 104, 712, 713, 716, 717
+E 611      [G: Handling / Greifer]                         UP 71
+E 701      [G: G1BD03E Steuerluft vorhanden]               Makro 342, 343
+E 703      [G: G1BD02E Steuerluft vorhanden]               Makro 342, 343
+E 717      [ ]                                             Makro Step
+E 718      [ ]                                             Makro Step
+E 757      [ ]                                             Makro Step
+E 776      [ ]                                             Makro Step
+E 777      [ ]                                             Makro Step
+E 778      [ ]                                             Makro Step
+E 785      [ ]                                             Makro Step
+E 786      [ ]                                             Makro Step, Step 9
+E 787      [ ]                                             Makro Step, Step 9
+E 788      [ ]                                             Makro Step, Step 9
+E 802      [ ]                                             Makro Step
+E 804      [ ]                                             Makro Step, Step 9
+E 805      [ ]                                             Makro Step, Step 9
+E 806      [ ]                                             Makro Step, Step 9
+E 835      [ ]                                             Makro Step, Step 9
+E 836      [ ]                                             Makro Step, Step 9
+E 837      [ ]                                             Makro Step, Step 9
+E 838      [ ]                                             Makro Step, Step 9
+E 839      [ ]                                             Makro Step, Step 9
+E 858      [ ]                                             Makro Step
+E 863      [ ]                                             Makro Step
+E 877      [ ]                                             Makro Step
+E 878      [ ]                                             Makro Step
+E 917      [ ]                                             Makro Step
+E 936      [ ]                                             Makro Step
+E 937      [ ]                                             Makro Step
+E 938      [ ]                                             Makro Step
+E 945      [ ]                                             Makro Step
+E 946      [ ]                                             Makro Step, Step 9
+E 947      [ ]                                             Makro Step, Step 9
+E 948      [ ]                                             Makro Step, Step 9
+E 962      [ ]                                             Makro Step
+E 964      [ ]                                             Makro Step, Step 9
+E 965      [ ]                                             Makro Step, Step 9
+E 966      [ ]                                             Makro Step 9
+E 995      [ ]                                             Makro Step, Step 9
+E 996      [ ]                                             Makro Step, Step 9
+E 997      [ ]                                             Makro Step, Step 9
+E 998      [ ]                                             Makro Step, Step 9
+E 999      [ ]                                             Makro Step, Step 9
+E 1024     [ ]                                             Makro Step 9
+E 1026     [ ]                                             Makro Step 9
+E 1037     [ ]                                             Makro Step
+E 1038     [ ]                                             Makro Step
+E 1077     [ ]                                             Makro Step
+E 1096     [ ]                                             Makro Step
+E 1097     [ ]                                             Makro Step
+E 1098     [ ]                                             Makro Step
+E 1105     [ ]                                             Makro Step
+E 1106     [ ]                                             Makro Step, Step 9
+E 1107     [ ]                                             Makro Step
+E 1108     [ ]                                             Makro Step, Step 9
+E 1122     [ ]                                             Makro Step
+E 1124     [ ]                                             Makro Step
+E 1125     [ ]                                             Makro Step
+E 1126     [ ]                                             Makro Step
+E 1155     [ ]                                             Makro Step, Step 9
+E 1156     [ ]                                             Makro Step, Step 9
+E 1157     [ ]                                             Makro Step, Step 9
+E 1158     [ ]                                             Makro Step, Step 9
+E 1159     [ ]                                             Makro Step, Step 9
+E 1798     [ ]                                             Makro Step
+E 1802     [ ]                                             Makro Step
+E 1812     [ ]                                             Makro Step
+E 1818     [ ]                                             Makro Step
+E 1819     [ ]                                             Makro Step
+E 1820     [ ]                                             Makro Step
+E 1864     [ ]                                             Makro Step
+E 1896     [ ]                                             Makro Step
+E 2113     [ ]                                             Makro Step 1
+E 2114     [ ]                                             Makro Step 1
+E 2115     [ ]                                             Makro Step 1
+E 2116     [ ]                                             Makro Step 1
+E 2117     [ ]                                             Makro Step 1
+E 2118     [ ]                                             Makro Step 1
+E 2121     [ ]                                             Makro Step 2
+E 2122     [ ]                                             Makro Step 2
+E 2123     [ ]                                             Makro Step 2
+E 2124     [ ]                                             Makro Step 2
+E 2125     [ ]                                             Makro Step 2
+E 2126     [ ]                                             Makro Step 2
+E 2129     [ ]                                             Makro Step 3
+E 2130     [ ]                                             Makro Step 3
+E 2131     [ ]                                             Makro Step 3
+E 2132     [ ]                                             Makro Step 3
+E 2133     [ ]                                             Makro Step 3
+E 2134     [ ]                                             Makro Step 3
+E 2161     [ ]                                             Makro Step
+E 2162     [ ]                                             Makro Step
+E 2163     [ ]                                             Makro Step
+E 2164     [ ]                                             Makro Step
+E 2165     [ ]                                             Makro Step
+E 2166     [ ]                                             Makro Step
+E 2167     [ ]                                             Makro Step
+E 2168     [ ]                                             Makro Step
+E 2169     [ ]                                             Makro Step
+E 2170     [ ]                                             Makro Step
+E 2171     [ ]                                             Makro Step
+E 2172     [ ]                                             Makro Step
+E 2173     [ ]                                             Makro Step
+E 2174     [ ]                                             Makro Step
+E 2175     [ ]                                             Makro Step
+E 2176     [ ]                                             Makro Step
+E 2273     [ ]                                             Makro Step 1
+E 2276     [ ]                                             Makro Step 1
+E 2277     [ ]                                             Makro Step 1
+E 2278     [ ]                                             Makro Step 1
+E 2279     [ ]                                             Makro Step 1
+E 2281     [ ]                                             Makro Step 2
+E 2284     [ ]                                             Makro Step 2
+E 2285     [ ]                                             Makro Step 2
+E 2286     [ ]                                             Makro Step 2
+E 2287     [ ]                                             Makro Step 2
+E 2289     [ ]                                             Makro Step 3
+E 2292     [ ]                                             Makro Step 3
+E 2293     [ ]                                             Makro Step 3
+E 2294     [ ]                                             Makro Step 3
+E 2295     [ ]                                             Makro Step 3
+E 2953     [ ]                                             Makro 428, 429
+E 2954     [ ]                                             Makro 429
+E 2955     [ ]                                             Makro 428, 429
+E 2956     [ ]                                             Makro 429
+E 2957     [ ]                                             Makro 428, 429
+E 2958     [ ]                                             Makro 428, 429
+E 2959     [ ]                                             Makro 428, 429
+E 2960     [ ]                                             Makro 428, 429
+E 2961     [ ]                                             Makro 428, 429
+E 2962     [ ]                                             Makro 428, 429
+E 2963     [ ]                                             Makro 428, 429
+E 2964     [ ]                                             Makro 428, 429
+E 2965     [ ]                                             Makro 428
+E 2966     [ ]                                             Makro 428
+E 2967     [ ]                                             Makro 428
+
+输出端:
+----
+A 15       [SPS: Roboter ist im Punkt 0]                 Folge 1*, 41*, 61*, 71*, 123*, 124*, 125*, Makro 0
+A 17       [SPS: Roboter in Wartungsstellung]            Folge 1*, 41*, 61*, 71*, 123*, UP 112*, 113*, 114*, 201*, 202*, 203*, 206*
+A 18       [SPS: Roboter in Wartungsbereich]             Folge 1*, 41*, 61*, 71*
+A 23       [SPS: Schutzgitter gesperrt]                  Makro 420*, 421*, 422*
+A 33       [SPS: Arbeitsfertigmeldung W1]                Makro 0*
+A 34       [SPS: Arbeitsfertigmeldung W2]                Makro 0*
+A 35       [SPS: Arbeitsfertigmeldung W4]                Makro 0*
+A 36       [SPS: Arbeitsfertigmeldung W8]                Makro 0*
+A 37       [SPS: Typinfo W1 von Roboter]                 Makro 0*
+A 38       [SPS: Typinfo W2 von Roboter]                 Makro 0*
+A 39       [SPS: Typinfo W4 von Roboter]                 Makro 0*
+A 40       [SPS: Typinfo W8 von Roboter]                 Makro 0*
+A 41       [Roboterverriegelung 1 5100R01 > 5101R01]     Folge 1*, 41*, 61*, 71*, Makro 20*, 45*, 0*
+A 42       [Roboterverriegelung 2 5100R01 > 5101R01]     Makro 20*, 45*, 0*
+A 43       [Roboterverriegelung 3 5100R01 > 5105R01]     Folge 1*, 41*, 61*, 71*, Makro 20*, 45*, 0*
+A 44       [Roboterverriegelung 4 5100R01 > 5105R01]     Makro 20*, 45*, 0*
+A 45       [Roboterverriegelung 5 5100R01 > 5104R01]     Folge 1*, 41*, 61*, 71*, Makro 20*, 45*, 0*
+A 46       [Roboterverriegelung 6 5100R01 > 5104R01]     Makro 20*, 45*, 0*
+A 47       [Roboterverriegelung 7 5100R01 > 5105R02]     Folge 1*, 41*, 61*, 71*, Makro 20*, 45*, 0*
+A 48       [Roboterverriegelung 8 5100R01 > 5105R02]     Makro 20*, 45*, 0*
+A 49       [SPS: Roboterverriegelung 9 Rob > Rob]        Makro 20*, 45*, 0*
+A 50       [SPS: Roboterverriegelung 10 Rob > Rob]       Makro 20*, 45*, 0*
+A 51       [Roboterverriegelung 11 5100R01 > 5110R01]    Folge 1*, 41*, 61*, 71*, Makro 20*, 45*, 0*
+A 52       [SPS: Roboterverriegelung 12 Rob > Rob]       Makro 20*, 45*, 0*
+A 53       [SPS: Roboterverriegelung 13 Rob > Rob]       Makro 20*, 45*, 0*
+A 54       [SPS: Roboterverriegelung 14 Rob > Rob]       Makro 20*, 45*, 0*
+A 55       [SPS: Roboterverriegelung 15 Rob > Rob]       Makro 20*, 45*, 0*
+A 56       [SPS: Roboterverriegelung 16 Rob > Rob]       Makro 20*, 45*, 0*
+A 57       [Werkzeugfreigabe 24]                         Makro 0*
+A 58       [Werkzeugfreigabe 23]                         Makro 0*
+A 59       [Werkzeugfreigabe 22]                         Makro 0*
+A 60       [Roboter in Position 5104 (PoT)]              Folge 1*, 41*, 61*, 71*, Makro 46*, 0*
+A 61       [Werkzeugfreigabe 20]                         Makro 0*
+A 62       [Roboter in Position 5085 (PoT)]              UP 2*, 4*, 13*, 15*, 17*, 21*, 23*, 104*, 713*, 717*, Makro 46*, 0*
+A 63       [Werkzeugfreigabe 18]                         Makro 0*
+A 64       [Roboter in Position 5085 (PoT)]              UP 1*, 3*, 12*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 24*, 25*, 26*, 71*, 103*, 712*, 716*, 717*, Makro 46*, 0*
+A 65       [Werkzeugfreigabe 16]                         Makro 0*
+A 66       [Werkzeugfreigabe 15]                         Makro 0*
+A 67       [Profilfrei Werkzeuganforderung OP. 5101]     UP 81*, 82*, 83*, 84*, 85*, 86*, Makro 46*, 0*
+A 68       [Profilfrei Entnahme OP. 5101]                UP 3*, 4*, 12*, 13*, 22*, 23*, 81*, 82*, 83*, 84*, 85*, 86*, 103*, 104*, 112*, 113*, 114*, 712*, 713*, Makro 46*, 0*
+A 69       [Werkzeugfreigabe 12]                         Makro 0*
+A 70       [Werkzeugfreigabe 11]                         Makro 0*
+A 71       [Werkzeugfreigabe 10]                         UP 18*, 19*, 24*, 25*, Makro 46*, 0*
+A 72       [Werkzeugfreigabe 9]                          Makro 0*
+A 73       [Profilfrei Einlegeposition OP. 5104]         Folge 1*, 41*, 61*, 71*, Makro 46*, 0*
+A 74       [Profilfrei Einlegen OP. 5104]                Folge 1*, 41*, 61*, 71*, Makro 46*, 0*
+A 75       [Werkzeugfreigabe 6]                          Makro 0*
+A 76       [Werkzeugfreigabe 5]                          Makro 0*
+A 77       [Profilfrei Entnahme OP. 5085]                UP 3*, 4*, 12*, 13*, 22*, 23*, 103*, 104*, 712*, 713*, Makro 46*, 0*
+A 78       [Werkzeugfreigabe 3]                          Makro 0*
+A 79       [Werkzeugfreigabe 2]                          Makro 0*
+A 80       [Profilfrei Entnahme OP. 5085]                UP 1*, 2*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 24*, 25*, 26*, 71*, 716*, 717*, Makro 46*, 0*
+A 81       [Anford. Verriegelung 1 5100R01 > 5101R01]    Folge 1*, 41*, 61*, 71*, Makro 20*, 0*
+A 82       [Anford. Verriegelung 2 5100R01 > 5101R01]    Makro 20*, 0*
+A 83       [Anford. Verriegelung 3 5100R01 > 5105R01]    Folge 1*, 41*, 61*, 71*, Makro 20*, 0*
+A 84       [Anford. Verriegelung 4 5100R01 > 5105R01]    Makro 20*, 0*
+A 85       [Anford. Verriegelung 5 5100R01 > 5104R01]    Folge 1*, 41*, 61*, 71*, Makro 20*, 0*
+A 86       [Anford. Verriegelung 6 5100R01 > 5104R01]    Makro 20*, 0*
+A 87       [Anford. Verriegelung 7 5100R01 > 5105R02]    Folge 1*, 41*, 61*, 71*, Makro 20*, 0*
+A 88       [Anford. Verriegelung 8 5100R01 > 5105R02]    Makro 20*, 0*
+A 89       [SPS: Anford. Verriegelung 9 Rob > Rob]       Makro 20*, 0*
+A 90       [SPS: Anford. Verriegelung 10 Rob > Rob]      Makro 20*, 0*
+A 91       [Anford. Verriegelung 11 5100R01 > 5110R01]   Folge 1*, 41*, 61*, 71*, Makro 20*, 0*
+A 92       [SPS: Anford. Verriegelung 12 Rob > Rob]      Makro 20*, 0*
+A 93       [SPS: Anford. Verriegelung 13 Rob > Rob]      Makro 20*, 0*
+A 94       [SPS: Anford. Verriegelung 14 Rob > Rob]      Makro 20*, 0*
+A 95       [SPS: Anford. Verriegelung 15 Rob > Rob]      Makro 20*, 0*
+A 96       [SPS: Anford. Verriegelung 16 Rob > Rob]      Makro 20*, 0*
+A 113      [SPSk: (DS) Prozess aktiv]                    Makro 428*, 429*
+A 114      [SPSk: (DS) Verklemmanzeige]                  Makro 428*, 429*
+A 115      [SPSk: (DS) Stoerung Dockingsystem]           Makro 428*, 429*
+A 116      [SPSk: (KF, KS, ZS) Prozess aktiv]            Makro Step 9*
+A 121      [SPSk: (G) Prozess aktiv]                     Makro 342*, 343*, 430*, 432*, 433*, 434*, 435*, 436*, 437*, 438*, 439*, 440*, 441*
+A 122      [SPSk: (G) Verklemmanzeige]                   Makro 342*, 343*
+A 125      [SPSk: (G) Sammelstoerung]                    Makro 342*, 343*
+A 130      [ ]                                           Makro Step 9*
+A 140      [ ]                                           Makro Step 9*
+A 144      [ ]                                           Makro Step 9*
+A 150      [ ]                                           Makro Step 9*
+A 162      [ ]                                           Makro Step 9*
+A 172      [ ]                                           Makro Step 9*
+A 176      [ ]                                           Makro Step 9*
+A 182      [ ]                                           Makro Step 9*
+A 192      [ ]                                           Makro Step 9*
+A 204      [ ]                                           Makro Step 9*
+A 233      [SPS: Typinfo an SPS W1]                      UP 81*, 85*, Makro 0*
+A 234      [SPS: Typinfo an SPS W2]                      UP 82*, 86*, Makro 0*
+A 235      [SPS: Typinfo an SPS W4]                      UP 83*, 84*, Makro 0*
+A 236      [SPS: Typinfo an SPS W8]                      Makro 0*
+A 237      [SPS: Typinfo an SPS W16]                     Makro 0*
+A 238      [SPS: Typinfo an SPS W32]                     Makro 0*
+A 239      [SPS: Typinfo an SPS W64]                     Makro 0*
+A 240      [SPS: Typinfo an SPS W128]                    Makro 0*
+A 514      [ ]                                           Makro Step
+A 520      [ ]                                           Makro Step*
+A 528      [ ]                                           Makro Step*
+A 539      [DS: Dockingsystem entriegeln]                UP 81*, 82*, 83*, 84*, 85*, 86*, Makro 420*, 421*, 422*
+A 540      [DS: Stoerung quittieren]                     Makro 422*
+A 545      [DB: Freigabe Steuerluft]                     Makro 430*, 432*, 433*, 434*, 435*
+A 547      [DB: Abdeckklappe 1 auf]                      Makro 430*, 434*
+A 548      [DB: Abdeckklappe 1 zu]                       Makro 430*, 434*
+A 549      [DB: Abdeckklappe 2 auf]                      Makro 430*, 435*
+A 550      [DB: Abdeckklappe 2 zu]                       Makro 430*, 435*
+A 553      [DB: Freigabe Steuerluft*]                    Makro 430*, 432*, 433*, 436*, 437*
+A 555      [DB: Abdeckklappe 3 auf]                      Makro 430*, 436*
+A 556      [DB: Abdeckklappe 3 zu]                       Makro 430*, 436*
+A 557      [DB: Abdeckklappe 4 auf]                      Makro 430*, 437*
+A 558      [DB: Abdeckklappe 4 zu]                       Makro 430*, 437*
+A 561      [DB: Freigabe Steuerluft*]                    Makro 430*, 432*, 433*, 438*, 439*
+A 563      [DB: Abdeckklappe 5 auf]                      Makro 430*, 438*
+A 564      [DB: Abdeckklappe 5 zu]                       Makro 430*, 438*
+A 565      [DB: Abdeckklappe 6 auf]                      Makro 430*, 439*
+A 566      [DB: Abdeckklappe 6 zu]                       Makro 430*, 439*
+A 569      [DB: Freigabe Steuerluft*]                    Makro 430*, 432*, 433*, 440*, 441*
+A 571      [DB: Abdeckklappe 7 auf]                      Makro 430*, 440*
+A 572      [DB: Abdeckklappe 7 zu]                       Makro 430*, 440*
+A 573      [DB: Abdeckklappe 8 auf]                      Makro 430*, 441*
+A 574      [DB: Abdeckklappe 8 zu]                       Makro 430*, 441*
+A 577      [G: Freigabe Steuerluft]                      Makro 342*, 343*, 0*
+A 579      [G: Spanngruppe 1 ZU]                         Makro 343*, 344*
+A 580      [G: Spanngruppe 1 AUF]                        Makro 342*, 344*
+A 581      [G: Spanngruppe 2 ZU]                         Makro 343*, 345*
+A 582      [G: Spanngruppe 2 AUF]                        Makro 342*, 345*
+A 583      [G: Spanngruppe 3 ZU]                         Makro 343*, 346*
+A 584      [G: Spanngruppe 3 AUF]                        Makro 342*, 346*
+A 585      [G: Spanngruppe 4 ZU]                         Makro 343*, 347*
+A 586      [G: Spanngruppe 4 AUF]                        Makro 342*, 347*
+A 587      [G: Spanngruppe 5 ZU]                         Makro 343*, 348*
+A 588      [G: Spanngruppe 5 AUF]                        Makro 342*, 348*
+A 589      [G: Spanngruppe 6 ZU]                         Makro 343*, 349*
+A 590      [G: Spanngruppe 6 AUF]                        Makro 342*, 349*
+A 591      [G: Spanngruppe 7 ZU]                         Makro 343*, 350*
+A 592      [G: Spanngruppe 7 AUF]                        Makro 342*, 350*
+A 593      [G: Spanngruppe 8 ZU]                         Makro 343*, 351*
+A 594      [G: Spanngruppe 8 AUF]                        Makro 342*, 351*
+A 595      [G: Spanngruppe 9 ZU]                         Makro 343*, 352*
+A 596      [G: Spanngruppe 9 AUF]                        Makro 342*, 352*
+A 597      [G: Spanngruppe 10 ZU]                        Makro 343*, 353*
+A 598      [G: Spanngruppe 10 AUF]                       Makro 342*, 353*
+A 599      [G: Spanngruppe 11 ZU]                        Makro 343*, 354*
+A 600      [G: Spanngruppe 11 AUF]                       Makro 342*, 354*
+A 601      [G: Spanngruppe 12 ZU]                        Makro 343*, 355*
+A 602      [G: Spanngruppe 12 AUF]                       Makro 342*, 355*
+A 603      [G: Spanngruppe 13 ZU]                        Makro 343*, 356*
+A 604      [G: Spanngruppe 13 AUF]                       Makro 342*, 356*
+A 605      [G: Spanngruppe 14 ZU]                        Makro 343*, 357*
+A 606      [G: Spanngruppe 14 AUF]                       Makro 342*, 357*
+A 607      [G: Spanngruppe 15 ZU]                        Makro 343*, 358*
+A 608      [G: Spanngruppe 15 AUF]                       Makro 342*, 358*
+A 609      [G: Spanngruppe 16 ZU]                        Makro 343*, 359*
+A 610      [G: Spanngruppe 16 AUF]                       Makro 342*, 359*
+A 617      [G: Saugkreis 1 Saugen EIN]                   Makro 343*, 360*
+A 618      [G: Saugkreis 1 Saugen AUS / Ablasen]         Makro 342*, 360*
+A 619      [G: Saugkreis 2 Saugen EIN]                   Makro 343*, 361*
+A 620      [G: Saugkreis 2 Saugen AUS / Ablasen]         Makro 342*, 361*
+A 621      [G: Saugkreis 3 Saugen EIN]                   Makro 343*, 362*
+A 622      [G: Saugkreis 3 Saugen AUS / Ablasen]         Makro 342*, 362*
+A 623      [G: Saugkreis 4 Saugen EIN]                   Makro 343*, 363*
+A 624      [G: Saugkreis 4 Saugen AUS / Ablasen]         Makro 342*, 363*
+A 625      [G: Saugkreis 5 Saugen EIN]                   Makro 343*, 364*
+A 626      [G: Saugkreis 5 Saugen AUS / Ablasen]         Makro 342*, 364*
+A 627      [G: Saugkreis 6 Saugen EIN]                   Makro 343*, 365*
+A 628      [G: Saugkreis 6 Saugen AUS / Ablasen]         Makro 342*, 365*
+A 701      [G: Freigabe Steuerluft]                      Makro 342*, 343*, 0*
+A 703      [G: Freigabe Steuerluft]                      Makro 342*, 343*, 0*
+A 717      [ ]                                           Makro Step*
+A 718      [ ]                                           Makro Step*
+A 720      [ ]                                           Makro Step*
+A 722      [ ]                                           Makro Step 9*
+A 757      [ ]                                           Makro Step*, Step 9*
+A 758      [ ]                                           Makro Step*
+A 759      [ ]                                           Makro Step*
+A 766      [ ]                                           Makro Step*
+A 785      [ ]                                           Makro Step*, Step 9
+A 786      [ ]                                           Makro Step*, Step 9*
+A 787      [ ]                                           Makro Step 9*
+A 834      [ ]                                           Makro Step*, Step 9*
+A 835      [ ]                                           Makro Step*, Step 9*
+A 836      [ ]                                           Makro Step*, Step 9*
+A 840      [ ]                                           Makro Step*, Step 9*
+A 857      [ ]                                           Makro 0*
+A 858      [ ]                                           Makro Step*, Step 9*
+A 859      [ ]                                           Makro Step 9*
+A 860      [ ]                                           Makro Step*
+A 863      [ ]                                           Makro Step*
+A 864      [ ]                                           Makro Step*
+A 877      [ ]                                           Makro Step*
+A 878      [ ]                                           Makro Step*
+A 882      [ ]                                           Makro Step 9*
+A 917      [ ]                                           Makro Step*
+A 918      [ ]                                           Makro Step*
+A 919      [ ]                                           Makro Step*
+A 926      [ ]                                           Makro Step*
+A 945      [ ]                                           Makro Step*, Step 9
+A 946      [ ]                                           Makro Step*, Step 9*
+A 947      [ ]                                           Makro Step 9*
+A 994      [ ]                                           Makro Step*, Step 9*
+A 995      [ ]                                           Makro Step*, Step 9*
+A 996      [ ]                                           Makro Step*, Step 9*
+A 1000     [ ]                                           Makro Step*, Step 9*
+A 1037     [ ]                                           Makro Step*
+A 1038     [ ]                                           Makro Step*
+A 1042     [ ]                                           Makro Step 9*
+A 1077     [ ]                                           Makro Step*
+A 1078     [ ]                                           Makro Step*
+A 1079     [ ]                                           Makro Step*
+A 1086     [ ]                                           Makro Step*
+A 1105     [ ]                                           Makro Step*
+A 1106     [ ]                                           Makro Step*, Step 9*
+A 1107     [ ]                                           Makro Step 9*
+A 1154     [ ]                                           Makro Step*, Step 9*
+A 1155     [ ]                                           Makro Step*, Step 9*
+A 1156     [ ]                                           Makro Step*, Step 9*
+A 1160     [ ]                                           Makro Step*, Step 9*
+A 1163     [ ]                                           Makro Step*
+A 1166     [ ]                                           Makro Step*
+A 1797     [ ]                                           Makro Step*
+A 1798     [ ]                                           Makro Step*
+A 1802     [ ]                                           Makro Step*
+A 1812     [ ]                                           Makro Step*
+A 1813     [ ]                                           Makro Step*
+A 1864     [ ]                                           Makro Step*
+A 1870     [ ]                                           Makro Step*
+A 1871     [ ]                                           Makro Step*
+A 1896     [ ]                                           Makro Step*
+A 1902     [ ]                                           Makro Step*
+A 1903     [ ]                                           Makro Step*
+A 2113     [ ]                                           Makro 0*, Step 1*
+A 2115     [ ]                                           Makro Step 1*
+A 2116     [ ]                                           Makro Step 1*
+A 2117     [ ]                                           Makro Step 1*
+A 2118     [ ]                                           Makro Step 1*
+A 2121     [ ]                                           Makro 0*, Step 2*
+A 2123     [ ]                                           Makro Step 2*
+A 2124     [ ]                                           Makro Step 2*
+A 2125     [ ]                                           Makro Step 2*
+A 2126     [ ]                                           Makro Step 2*
+A 2129     [ ]                                           Makro 0*, Step 3*
+A 2131     [ ]                                           Makro Step 3*
+A 2132     [ ]                                           Makro Step 3*
+A 2133     [ ]                                           Makro Step 3*
+A 2134     [ ]                                           Makro Step 3*
+A 2137     [ ]                                           Makro 0*
+A 2145     [ ]                                           Makro 0*
+A 2153     [ ]                                           Makro 0*
+A 2161     [ ]                                           Makro 0*, Step*
+A 2163     [ ]                                           Makro Step*
+A 2164     [ ]                                           Makro Step*
+A 2165     [ ]                                           Makro Step*
+A 2166     [ ]                                           Makro Step*
+A 2167     [ ]                                           Makro Step*
+A 2168     [ ]                                           Makro Step*
+A 2169     [ ]                                           Makro 0*, Step*
+A 2171     [ ]                                           Makro Step*
+A 2172     [ ]                                           Makro Step*
+A 2173     [ ]                                           Makro Step*
+A 2174     [ ]                                           Makro Step*
+A 2175     [ ]                                           Makro Step*
+A 2176     [ ]                                           Makro Step*
+A 2177     [ ]                                           Makro 0*
+A 2185     [ ]                                           Makro 0*
+A 2193     [ ]                                           Makro 0*
+A 2201     [ ]                                           Makro 0*
+A 2280     [ ]                                           Makro Step 1*
+A 2288     [ ]                                           Makro Step 2*
+A 2296     [ ]                                           Makro Step 3*
+A 2953     [ ]                                           Makro 428*
+A 2954     [ ]                                           Makro 428*
+A 2955     [ ]                                           Makro 428*, 429*
+A 2956     [ ]                                           Makro 428*, 429*
+A 2957     [ ]                                           Makro 428*, 429*
+A 2958     [ ]                                           Makro 428*, 429*
+A 2959     [ ]                                           Makro 428*, 429*
+A 2960     [ ]                                           Makro 428*, 429*
+A 2961     [ ]                                           Makro 428*, 429*
+A 2962     [ ]                                           Makro 428*, 429*
+A 2963     [ ]                                           Makro 429*
+A 2964     [ ]                                           Makro 429*
+A 3505     [ ]                                           Makro Step 9
+A 3506     [ ]                                           Makro Step 9
+A 3507     [ ]                                           Makro Step 9
+A 3508     [ ]                                           Makro Step 9
+A 3509     [ ]                                           Makro Step 9
+A 3510     [ ]                                           Makro Step 9*
+A 3511     [ ]                                           Makro Step 9*
+A 3512     [ ]                                           Makro Step 9*
+A 3513     [ ]                                           Makro Step 9*
+A 3514     [ ]                                           Makro Step 9*
+A 3518     [ ]                                           Makro Step 9*
+A 3519     [ ]                                           Makro Step 9*
+A 3520     [ ]                                           Makro Step 9
+A 3533     [ ]                                           Makro Step 9*
+A 3534     [ ]                                           Makro Step 9*
+A 3535     [ ]                                           Makro Step 9*
+A 3536     [ ]                                           Makro Step 9*
+A 3857     [Reserviert]                                  Makro Step 9*
+A 3858     [Reserviert]                                  Makro Step 9*
+A 3862     [ ]                                           Makro Step 9
+A 3864     [ ]                                           Makro Step 9
+A 3871     [ ]                                           Makro Step 9*
+A 3872     [ ]                                           Makro Step 9*
+A 3889     [ ]                                           Makro Step 9*
+A 3890     [ ]                                           Makro Step 9*
+A 3894     [ ]                                           Makro Step 9
+A 3895     [ ]                                           Makro Step 9*
+A 3896     [ ]                                           Makro Step 9
+A 3903     [ ]                                           Makro Step 9*
+A 3904     [ ]                                           Makro Step 9*
+A 3926     [ ]                                           Makro Step 9
+A 3928     [ ]                                           Makro Step 9
+A 3935     [ ]                                           Makro Step 9*
+A 3936     [ ]                                           Makro Step 9*
+
+标记器:
+----
+M 1        [Ohne teil 1]                        Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51*, 52*, 53*
+M 2        [Mit teil 1]                         Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 712, 713, 716, 717, Makro 51*, 52*, 53*
+M 8        [Sammelmerker Robverriegelungen 1]   Folge 1, 41, 61, 71, Makro 50*
+M 21       [KKP11 AUF / KKP14 AUF]              Makro 51*, 52*, 53*
+M 22       [KKP11 ZU / KKP14 ZU]                Makro 51*, 52*, 53*
+M 28       [Oeffner von Fernlichttaster]        UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 712*, 713*, 716*, 717*
+M 29       [Oeffner von Nahlichttaster]         UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 712*, 713*, 716*, 717*
+M 30       [Maschinelle Sicherheiten]           Folge 1, 41, 61, 71, 123, 124, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 203, 206, 712, 713, 716, 717, Makro 50*
+M 31       [Greifer Spanngruppe 1 AUF]          Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 32       [Greifer Spanngruppe 1 ZU]           Folge 1, 41, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 71, 103, 104, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 33       [Greifer Spanngruppe 2 AUF]          Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 34       [Greifer Spanngruppe 2 ZU]           UP 1, 3, 4, 12, 13, 14, 15, 22, 23, 71, 103, 104, 712, 713, Makro 51*, 52*, 53*, 342, 343
+M 35       [Greifer Spanngruppe 3 AUF]          Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 36       [Greifer Spanngruppe 3 ZU]           Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 37       [Greifer Spanngruppe 4 AUF]          Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 38       [Greifer Spanngruppe 4 ZU]           Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 71, 82, 83, 84, 85, 86, 103, 104, 712, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 39       [Greifer Spanngruppe 5 AUF]          Makro 342, 343
+M 40       [Greifer Spanngruppe 5 ZU]           Makro 342, 343
+M 41       [Greifer Spanngruppe 6 AUF]          Makro 342, 343
+M 42       [Greifer Spanngruppe 6 ZU]           Makro 342, 343
+M 43       [Greifer Spanngruppe 7 AUF]          Makro 342, 343
+M 44       [Greifer Spanngruppe 7 ZU]           Makro 342, 343
+M 45       [Greifer Spanngruppe 8 AUF]          Makro 342, 343
+M 46       [Greifer Spanngruppe 8 ZU]           Makro 342, 343
+M 47       [Greifer Spanngruppe 9 AUF]          Makro 342, 343
+M 48       [Greifer Spanngruppe 9 ZU]           Makro 342, 343
+M 49       [Greifer Spanngruppe 10 AUF]         Makro 342, 343
+M 50       [Greifer Spanngruppe 10 ZU]          Makro 342, 343
+M 51       [Greifer Spanngruppe 11 AUF]         Makro 342, 343
+M 52       [Greifer Spanngruppe 11 ZU]          Makro 342, 343
+M 53       [Greifer Spanngruppe 12 AUF]         Makro 342, 343
+M 54       [Greifer Spanngruppe 12 ZU]          Makro 342, 343
+M 55       [Greifer Spanngruppe 13 AUF]         Makro 342, 343
+M 56       [Greifer Spanngruppe 13 ZU]          Makro 342, 343
+M 57       [Greifer Spanngruppe 14 AUF]         Makro 342, 343
+M 58       [Greifer Spanngruppe 14 ZU]          Makro 342, 343
+M 59       [Greifer Spanngruppe 15 AUF]         Makro 342, 343
+M 60       [Greifer Spanngruppe 15 ZU]          Makro 342, 343
+M 61       [Greifer Spanngruppe 16 AUF]         Makro 342, 343
+M 62       [Greifer Spanngruppe 16 ZU]          Makro 342, 343
+M 63       [Sauger 1 EIN]                       Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 712, 713, 716, 717, Makro 51*, 52*, 53*, 342, 343
+M 64       [Sauger 2 EIN]                       Makro 342, 343
+M 65       [Sauger 3 EIN]                       Makro 342, 343
+M 66       [Sauger 4 EIN]                       Makro 342, 343
+M 67       [Sauger 5 EIN]                       Makro 342, 343
+M 68       [Sauger 6 EIN]                       Makro 342, 343
+M 81       [Dockingkupplung angedockt]          UP 81, 82, 83, 84, 85, 86, Makro 50*
+M 82       [Docking-Bahnhof 1 frei]             UP 81, 82, 83, 85, Makro 50*
+M 83       [Docking-Bahnhof 2 frei]             UP 81, 82, 84, 86, Makro 50*
+M 84       [Docking-Bahnhof 3 frei]             UP 83, 84, 85, 86, Makro 50*
+M 97       [ ]                                  Makro Trigger
+M 98       [ ]                                  Makro Trigger
+M 99       [ ]                                  Makro Trigger
+M 100      [ ]                                  Makro Trigger
+M 104      [ ]                                  Makro Trigger
+M 111      [ ]                                  Makro Trigger
+M 172      [Kein Werkzeug angedockt]            Makro 50*
+M 173      [Werkzeug 1 angedockt]               Folge 1, 41, 61, 71, 124, UP 1, 2, 3, 4, 71, 103, 104, 112, Makro 50*
+M 174      [Werkzeug 2 angedockt]               Folge 1, 41, 61, 71, 124, UP 12, 13, 14, 15, 16, 17, 18, 19, 26, 113, 712, 713, 716, 717, Makro 50*
+M 175      [Werkzeug 3 angedockt]               Folge 1, 41, 61, 71, 124, UP 20, 21, 22, 23, 24, 25, 114, Makro 50*
+M 190      [Hilfsmerker Bauteil im Greifer]     Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 112*, 113*, 114*, 201*, 202*, 206*, 712*, 713*, 716*, 717*, Makro 340*, 342
+
+计数器:
+----
+I 1        [ ]   Makro Trigger*, Step*, Step 9*
+I 2        [ ]   Makro Trigger
+I 3        [ ]   Makro Trigger
+I 4        [ ]   Makro Trigger, Step*, Step 9*
+I 5        [ ]   Makro Trigger
+I 6        [ ]   Makro Trigger
+I 7        [ ]   Makro Trigger, Step*, Step 9*
+I 8        [ ]   Makro Trigger
+I 9        [ ]   Makro Trigger
+I 10       [ ]   Makro Trigger
+I 11       [ ]   Makro Trigger
+I 12       [ ]   Makro Trigger
+I 13       [ ]   Makro Trigger
+I 14       [ ]   Makro Trigger
+I 15       [ ]   Makro Trigger
+I 16       [ ]   Makro Trigger
+I 17       [ ]   Makro Trigger
+I 18       [ ]   Makro Trigger
+I 19       [ ]   Makro Trigger, Step*, Step 9*
+I 23       [ ]   Makro Step
+I 24       [ ]   Makro Step, Step 9
+I 33       [ ]   Makro Step, Step 9
+I 34       [ ]   Makro Step
+I 36       [ ]   Makro Step*
+I 43       [ ]   Makro Step, Step 9
+I 44       [ ]   Makro Step, Step 9
+I 45       [ ]   Makro Step*, Step 9*
+
+二进制输出端:
+-------
+bin 1      [ ]   Makro Step*, Step 9*
+bin 3      [ ]   Makro Step*, Step 9*
+bin 4      [ ]   Makro Step*, Step 9*
+bin 6      [ ]   Makro Step*, Step 9*
+bin 7      [ ]   Makro Step*, Step 9*
+bin 9      [ ]   Makro Step*, Step 9*
+bin 19     [ ]   Folge 1*, 41*, 61*, 71*
+bin 28     [ ]   Makro Step 9*
+bin 30     [ ]   Makro Step 9*
+bin 31     [ ]   Makro Step 9*
+
+计时器:
+----
+t 1        Folge 1*, 41*, 61*, 71*
+t 2        Folge 1*, 41*, 61*, 71*
+t 3        UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 712*, 713*, 716*, 717*
+t 4        UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 712*, 713*, 716*, 717*
+t 7        Makro Step*, Step 9*
+t 8        Makro Step*, Step 9*
+t 9        Makro Step*, Step 9*
+t 10       Makro 342*, 343*, 420*, 421*, 422*, 428*, 429*
+t 11       Makro Step*, Step 9*
+t 13       Makro Step 1*
+t 14       Makro Step 2*
+t 15       Makro Step 3*
+
+旗标:
+---
+F 1        [Anwahl Spanngruppe 1]                                       Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 112*, 113*, 114*, 201*, 202*, 206*, 712*, 713*, 716*, 717*, Makro 340*, 342*, 343*
+F 2        [Anwahl Spanngruppe 2]                                       Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 112*, 113*, 114*, 201*, 202*, 206*, 712*, 713*, 716*, 717*, Makro 340*, 342*, 343*
+F 3        [Anwahl Spanngruppe 3]                                       Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 81*, 82*, 83*, 84*, 85*, 86*, 103*, 104*, 112*, 113*, 114*, 201*, 202*, 206*, 712*, 713*, 716*, 717*, Makro 340*, 342*, 343*
+F 4        [Anwahl Spanngruppe 4]                                       Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 82*, 83*, 85*, 86*, 103*, 104*, 712*, 713*, 716*, 717*, Makro 340*, 342*, 343*
+F 5        [Anwahl Spanngruppe 5]                                       Makro 340*, 342*, 343*
+F 6        [Anwahl Spanngruppe 6]                                       Makro 340*, 342*, 343*
+F 7        [Anwahl Spanngruppe 7]                                       Makro 340*, 342*, 343*
+F 8        [Anwahl Spanngruppe 8]                                       Makro 340*, 342*, 343*
+F 9        [Anwahl Spanngruppe 9]                                       Makro 340*, 342*, 343*
+F 10       [Anwahl Spanngruppe 10]                                      Makro 340*, 342*, 343*
+F 11       [Anwahl Spanngruppe 11]                                      Makro 340*, 342*, 343*
+F 12       [Anwahl Spanngruppe 12]                                      Makro 340*, 342*, 343*
+F 13       [Anwahl Spanngruppe 13]                                      Makro 340*, 342*, 343*
+F 14       [Anwahl Spanngruppe 14]                                      Makro 340*, 342*, 343*
+F 15       [Anwahl Spanngruppe 15]                                      Makro 340*, 342*, 343*
+F 16       [Anwahl Spanngruppe 16]                                      Makro 340*, 342*, 343*
+F 17       [Anwahl Saugkreis 1]                                         Folge 1*, 41*, 61*, 71*, UP 1*, 2*, 3*, 4*, 12*, 13*, 14*, 15*, 16*, 17*, 18*, 19*, 20*, 21*, 22*, 23*, 24*, 25*, 26*, 71*, 103*, 104*, 112*, 113*, 114*, 201*, 202*, 206*, 712*, 713*, 716*, 717*, Makro 340*, 342*, 343*
+F 18       [Anwahl Saugkreis 2]                                         Makro 340*, 342*, 343*
+F 19       [Anwahl Saugkreis 3]                                         Makro 340*, 342*, 343*
+F 20       [Anwahl Saugkreis 4]                                         Makro 340*, 342*, 343*
+F 21       [Anwahl Saugkreis 5]                                         Makro 340*, 342*, 343*
+F 22       [Anwahl Saugkreis 6]                                         Makro 340*, 342*, 343*
+F 23       [Anwahl Greifer/Sauger/DB/KL Eimer AUF]                      Makro 340*, 342*, 343*, 344*, 345*, 346*, 347*, 348*, 349*, 350*, 351*, 352*, 353*, 354*, 355*, 356*, 357*, 358*, 359*, 360*, 361*, 362*, 363*, 364*, 365*, 432*, 433*, 434*, 435*, 436*, 437*, 438*, 439*, 440*, 441*
+F 24       [Durchlaufmerker Makro 344]                                  Makro 342*, 343*, 344*
+F 25       [Durchlaufmerker Makro 345]                                  Makro 342*, 343*, 345*
+F 26       [Durchlaufmerker Makro 346]                                  Makro 342*, 343*, 346*
+F 27       [Durchlaufmerker Makro 347]                                  Makro 342*, 343*, 347*
+F 28       [Durchlaufmerker Makro 348]                                  Makro 342*, 343*, 348*
+F 29       [Durchlaufmerker Makro 349]                                  Makro 342*, 343*, 349*
+F 30       [Durchlaufmerker Makro 350]                                  Makro 342*, 343*, 350*
+F 31       [Durchlaufmerker Makro 351]                                  Makro 342*, 343*, 351*
+F 32       [Durchlaufmerker Makro 352]                                  Makro 342*, 343*, 352*
+F 33       [Durchlaufmerker Makro 353]                                  Makro 342*, 343*, 353*
+F 34       [Durchlaufmerker Makro 354]                                  Makro 342*, 343*, 354*
+F 35       [Durchlaufmerker Makro 355]                                  Makro 342*, 343*, 355*
+F 36       [Durchlaufmerker Makro 356]                                  Makro 342*, 343*, 356*
+F 37       [Durchlaufmerker Makro 357]                                  Makro 342*, 343*, 357*
+F 38       [Durchlaufmerker Makro 358]                                  Makro 342*, 343*, 358*
+F 39       [Durchlaufmerker Makro 359]                                  Makro 342*, 343*, 359*
+F 40       [Durchlaufmerker Makro 360]                                  Makro 342*, 343*, 360*
+F 41       [Durchlaufmerker Makro 361]                                  Makro 342*, 343*, 361*
+F 42       [Durchlaufmerker Makro 362]                                  Makro 342*, 343*, 362*
+F 43       [Durchlaufmerker Makro 363]                                  Makro 342*, 343*, 363*
+F 44       [Durchlaufmerker Makro 364]                                  Makro 342*, 343*, 364*
+F 45       [Durchlaufmerker Makro 365]                                  Makro 342*, 343*, 365*
+F 53       [Sprung wenn keine Anwahl kurzes Abblasen]                   Makro 342*
+F 54       [Anwahl kurzes Abblasen bei Saugkreisen]                     Makro 342, 360, 361, 362, 363, 364, 365
+F 55       [Anwahl 3. Ventilinsel auf dem Robotergreifer]               Makro 342, 343
+F 56       [Anwahl 2. Ventilinsel auf dem Robotergreifer]               Makro 342, 343
+F 57       [Anwahl 1. Ventilinsel auf dem Robotergreifer]               Makro 342, 343
+F 58       [Saugkreis 1 bis 6]                                          Makro 340*, 342*, 343*
+F 59       [Luftpolster aufbauen]                                       Makro 342, 343*
+F 60       [Greifer Spanngruppe 9 bis 16]                               Makro 340*, 342*, 343*
+F 61       [Greifer Spanngruppe 1 bis 8]                                Makro 340*, 342*, 343*
+F 62       [Ueberbrückung Medien]                                       Makro 421
+F 63       [Greiferstatus an BMS spiegeln]                              Makro 342
+F 64       [ ]                                                          Makro Step
+F 65       [ ]                                                          Makro Step
+F 66       [ ]                                                          Makro Step
+F 67       [ ]                                                          Makro Step
+F 78       [ ]                                                          Makro Step*, Step 9*
+F 79       [ ]                                                          Makro Step*, Step 9*
+F 90       [ ]                                                          Makro Step
+F 91       [ ]                                                          Makro Step*
+F 92       [ ]                                                          Makro Step, Step 9*
+F 93       [ ]                                                          Makro Step*, Step 9*
+F 94       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 95       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 96       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 97       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 98       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 99       [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 100      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 101      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 102      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 103      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 104      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 105      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 106      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 107      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 108      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 109      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 110      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 111      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 112      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 113      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 114      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 115      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 116      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 117      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 122      [ ]                                                          Makro Step*, Step 9*
+F 130      [ ]                                                          Makro Step, Step 9
+F 138      [ ]                                                          Makro Step*, Step 9*
+F 139      [ ]                                                          Makro Step*, Step 9*
+F 148      [ ]                                                          Makro Step, Step 9*
+F 149      [ ]                                                          Makro Step*, Step 9*
+F 150      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 151      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 152      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 153      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 154      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 155      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 160      [ ]                                                          Makro Step*, Step 9*
+F 164      [ ]                                                          Makro Step, Step 9
+F 168      [ ]                                                          Makro Step*
+F 174      [ ]                                                          Makro Step*, Step 9*
+F 175      [ ]                                                          Makro Step*, Step 9*
+F 184      [ ]                                                          Makro Step, Step 9
+F 185      [ ]                                                          Makro Step*, Step 9*
+F 186      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 187      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 188      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 189      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 190      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 191      [ ]                                                          Makro Trigger*, Step*, Step 9*
+F 196      [ ]                                                          Makro Step*, Step 9*
+F 200      [ ]                                                          Makro Step, Step 9
+F 209      [ ]                                                          Makro Step
+F 210      [ ]                                                          Makro Step*
+F 245      [Hilfsflag Sauger 1 bei POT]                                 Makro 51, 52, 53, 360*, 428*, 429*
+F 246      [Hilfsflag Sauger 2 bei POT]                                 Makro 361*, 428*, 429*
+F 247      [Hilfsflag Sauger 3 bei POT]                                 Makro 362*, 428*, 429*
+F 248      [Hilfsflag Sauger 4 bei POT]                                 Makro 363*, 428*, 429*
+F 249      [Hilfsflag Sauger 5 bei POT]                                 Makro 364*, 428*, 429*
+F 250      [Hilfsflag Sauger 6 bei POT]                                 Makro 365*, 428*, 429*
+F 273      [Reserviert fuer Projekt]                                    Makro Step, Step 9
+F 274      [Reserviert fuer Projekt]                                    Makro Step, Step 9
+F 275      [Reserviert fuer Projekt]                                    Makro Step, Step 9
+F 276      [Reserviert fuer Projekt]                                    Makro Step 9*
+F 283      [ ]                                                          Makro 420*, 421*
+F 285      [ ]                                                          Makro Step
+F 287      [ ]                                                          Makro Trigger, Step*, Step 9*
+F 289      [ ]                                                          Makro Step, Step 9
+F 290      [ ]                                                          Makro Step 9*
+F 291      [ ]                                                          Makro Step 9*
+F 298      [ ]                                                          Makro Step
+F 307      [ ]                                                          Makro Step*, Step 9*
+F 308      [ ]                                                          Makro Step*, Step 9*
+F 312      [ ]                                                          Makro Trigger, Step*, Step 9*
+F 313      [ ]                                                          Makro Step*, Step 9*
+F 321      [ ]                                                          Makro Step*
+F 322      [ ]                                                          Makro Step*, Step 9*
+F 323      [ ]                                                          Makro Step*, Step 9*
+F 324      [ ]                                                          Makro Step*, Step 9*
+F 325      [ ]                                                          Makro Step*, Step 9*
+F 326      [ ]                                                          Makro Step*, Step 9*
+F 327      [ ]                                                          Makro Step*, Step 9*
+F 328      [ ]                                                          Makro Step*, Step 9*
+F 329      [ ]                                                          Makro Step*, Step 9*
+F 330      [ ]                                                          Makro Step, Step 9
+F 331      [ ]                                                          Makro Step, Step 9
+F 332      [ ]                                                          Makro Step, Step 9
+F 333      [ ]                                                          Makro Step*, Step 9*
+F 334      [ ]                                                          Makro Step*, Step 9*
+F 335      [ ]                                                          Makro Step, Step 9
+F 345      [ ]                                                          Makro Step 1*
+F 346      [ ]                                                          Makro Step 1*
+F 347      [ ]                                                          Makro Step 1*
+F 348      [ ]                                                          Makro Step 1*
+F 352      [ ]                                                          Makro Step 1*
+F 353      [ ]                                                          Makro Step 1*
+F 354      [ ]                                                          Makro Step 1
+F 355      [ ]                                                          Makro Step 1*
+F 365      [ ]                                                          Makro Step 2*
+F 366      [ ]                                                          Makro Step 2*
+F 367      [ ]                                                          Makro Step 2*
+F 368      [ ]                                                          Makro Step 2*
+F 372      [ ]                                                          Makro Step 2*
+F 373      [ ]                                                          Makro Step 2*
+F 374      [ ]                                                          Makro Step 2
+F 375      [ ]                                                          Makro Step 2*
+F 385      [ ]                                                          Makro Step 3*
+F 386      [ ]                                                          Makro Step 3*
+F 387      [ ]                                                          Makro Step 3*
+F 388      [ ]                                                          Makro Step 3*
+F 392      [ ]                                                          Makro Step 3*
+F 393      [ ]                                                          Makro Step 3*
+F 394      [ ]                                                          Makro Step 3
+F 395      [ ]                                                          Makro Step 3*
+F 397      [ ]                                                          Makro Step 1*, Step 2*, Step 3*
+F 512      [DS Alternative 1 nicht zuschalten]                          Makro 50*, 59
+F 523      [KYPxE mit Rueckm. Steuerluft vorh.]                         Makro Step, Step 1, Step 2, Step 3
+F 524      [KYPxE mit Rueckm. Steuerluft nicht vorh.]                   Makro Step, Step 1, Step 2, Step 3
+F 528      [ ]                                                          Makro Step
+F 529      [ ]                                                          Makro Step
+F 530      [ ]                                                          Makro Step 9
+F 537      [ ]                                                          Makro Step
+F 564      [ ]                                                          Makro Step, Step 9
+F 565      [ ]                                                          Makro Step
+F 566      [ ]                                                          Makro Step
+F 574      [ ]                                                          Makro Step
+F 575      [ ]                                                          Makro Step
+F 576      [ ]                                                          Makro Step
+F 583      [ ]                                                          Makro Step
+F 584      [ ]                                                          Makro Step
+F 585      [ ]                                                          Makro Step
+F 603      [ ]                                                          Makro Step*
+F 604      [ ]                                                          Makro Step*
+F 605      [ ]                                                          Makro Step*
+F 607      [ ]                                                          Makro Step*
+F 608      [ ]                                                          Makro Step*
+F 609      [ ]                                                          Makro Step*
+F 714      [ ]                                                          Makro Step
+F 731      [ ]                                                          Makro Step, Step 9
+F 736      [ ]                                                          Makro Step*
+F 737      [ ]                                                          Makro Step*, Step 9*
+F 738      [ ]                                                          Makro Step*, Step 9*
+F 739      [ ]                                                          Makro Step*
+F 745      [ ]                                                          Makro Step
+F 746      [ ]                                                          Makro Step
+F 747      [ ]                                                          Makro Step
+F 748      [ ]                                                          Makro Step*, Step 9*
+F 749      [ ]                                                          Makro Step*, Step 9*
+F 830      [ ]                                                          Makro Step, Step 9
+F 831      [ ]                                                          Makro Step, Step 9
+F 832      [ ]                                                          Makro Step, Step 9
+F 836      [ ]                                                          Makro Step 9*
+F 837      [Ohne "Freigabedruck nicht vorhanden" bei pneu. Schwenker]   Makro Step 1, Step 2, Step 3
+F 840      [Hilfsflag DK Vertikales Docking/0-Mass *]                   Makro 57*, 420
+F 841      [Anwahl Docking Bahnhof 1]                                   Makro 430*, 432*, 433*
+F 842      [Anwahl Docking Bahnhof 2]                                   Makro 430*, 432*, 433*
+F 843      [Anwahl Docking Bahnhof 3]                                   Makro 430*, 432*, 433*
+F 844      [Anwahl Docking Bahnhof 4]                                   Makro 430*, 432*, 433*
+F 845      [Anwahl Docking Bahnhof 5]                                   Makro 430*, 432*, 433*
+F 846      [Anwahl Docking Bahnhof 6]                                   Makro 430*, 432*, 433*
+F 847      [Anwahl Docking Bahnhof 7]                                   Makro 430*, 432*, 433*
+F 848      [Anwahl Docking Bahnhof 8]                                   Makro 430*, 432*, 433*
+F 886      [ ]                                                          UP 71
+F 930      [Vorhanden BH1 Oben]                                         Folge 1*, 41*, 61*, 71*
+F 931      [Vorhanden BH1 Unten]                                        Folge 1*, 41*, 61*, 71*
+F 932      [Vorhanden BH2 Oben]                                         Folge 1*, 41*, 61*, 71*
+F 933      [Vorhanden BH2 Unten]                                        Folge 1*, 41*, 61*, 71*
+F 934      [Anwender (ohne Trockenlauf)]                                Folge 1*, 61*, 71*
+F 935      [Anwender (ohne Trockenlauf)]                                Folge 1*, 61*, 71*
+F 944      [Wartugsstellung G1]                                         Folge 124*
+F 945      [Werkzeugwechsel G1]                                         Folge 124*
+F 946      [TCP-Pruefen G1]                                             Folge 124*
+F 947      [Wartugsstellung G2]                                         Folge 124*
+F 948      [Werkzeugwechsel G2]                                         Folge 124*
+F 949      [TCP-Pruefen G2]                                             Folge 124*
+F 950      [Anwender (ohne Trockenlauf)]                                Folge 124*
+F 951      [Anwender (ohne Trockenlauf)]                                Folge 124*
+F 952      [Anwender (ohne Trockenlauf)]                                Folge 124*
+F 959      [Anwender (ohne Trockenlauf)]                                Makro Step 9
+
+计时器旗标:
+------
+T 7        [Ueberwachungszeit RSK (KF)]   Makro Step, Step 9
+T 8        [Ueberwachungszeit RSK (KS)]   Makro Step, Step 9
+T 9        [Ueberwachungszeit RSK (SZ)]   Makro Step, Step 9
+T 10       [Ueberwachungszeit Makros]     Makro 342, 343, 420, 421, 422, 428, 429
+T 11       [Verweilzeit Versetzeinheit]   Makro Step, Step 9
+T 13       [Reserviert]                   Makro Step 1
+T 14       [Reserviert]                   Makro Step 2
+T 15       [Reserviert]                   Makro Step 3
+
+传感器旗标:
+------
+s 1        Folge 1, 71
+
+过程参数:
+-----
+p 111      [ ]   Makro Step 9
+p 112      [ ]   Makro Step 9
+p 113      [ ]   Makro Step 9
+
+宏:
+--
+Makro 20   [ROBOTER VERRIEGELUNGEN]      Folge 1, 41, 61, 71
+Makro 45   [Verriegelungen Roboter]      Folge 1, 41, 61, 71, 123, 124, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 203, 206, 712, 713, 716, 717
+Makro 46   [Werkzeugverriegelungen]      Folge 1, 41, 61, 71, 123, 124, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 203, 206, 712, 713, 716, 717
+Makro 50   [Initialisierung Merker]      Folge 1, 41, 61, 71, 123, 124, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 112, 113, 114, 201, 202, 203, 206, 712, 713, 716, 717
+Makro 51   [Initialisierung Merker]      Folge 1, UP 1, 2, 3, 4, 71, 81, 82, 83, 85, 103, 104, 112, 202
+Makro 52   [Initialisierung Merker]      Folge 41, UP 12, 13, 14, 15, 16, 17, 18, 19, 26, 81, 82, 84, 86, 113, 201, 712, 713, 716, 717
+Makro 53   [Initialisierung Merker]      Folge 61, 71, UP 20, 21, 22, 23, 24, 25, 83, 84, 85, 86, 114
+Makro 57   [Tech-Konfigurationen]        Makro 50
+Makro 59   [Pnet-Alternativen]           Makro 50
+Makro 340  [GREIFER INIT]                Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717
+Makro 342  [GREIFER AUF/SAUGKREIS AUS]   Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 103, 104, 112, 113, 114, 201, 202, 206, 712, 713, 716, 717
+Makro 343  [GREIFER ZU/SAUGKREIS EIN]    Folge 1, 41, 61, 71, UP 1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 71, 81, 82, 83, 84, 85, 86, 103, 104, 712, 713, 716, 717
+Makro 344  [SPANNGRUPPE 1 ZU/AUF]        Makro 342, 343
+Makro 345  [SPANNGRUPPE 2 ZU/AUF]        Makro 342, 343
+Makro 346  [SPANNGRUPPE 3 ZU/AUF]        Makro 342, 343
+Makro 347  [SPANNGRUPPE 4 ZU/AUF]        Makro 342, 343
+Makro 348  [SPANNGRUPPE 5 ZU/AUF]        Makro 342, 343
+Makro 349  [SPANNGRUPPE 6 ZU/AUF]        Makro 342, 343
+Makro 350  [SPANNGRUPPE 7 ZU/AUF]        Makro 342, 343
+Makro 351  [SPANNGRUPPE 8 ZU/AUF]        Makro 342, 343
+Makro 352  [SPANNGRUPPE 9 ZU/AUF]        Makro 342, 343
+Makro 353  [SPANNGRUPPE 10 ZU/AUF]       Makro 342, 343
+Makro 354  [SPANNGRUPPE 11 ZU/AUF]       Makro 342, 343
+Makro 355  [SPANNGRUPPE 12 ZU/AUF]       Makro 342, 343
+Makro 356  [SPANNGRUPPE 13 ZU/AUF]       Makro 342, 343
+Makro 357  [SPANNGRUPPE 14 ZU/AUF]       Makro 342, 343
+Makro 358  [SPANNGRUPPE 15 ZU/AUF]       Makro 342, 343
+Makro 359  [SPANNGRUPPE 16 ZU/AUF]       Makro 342, 343
+Makro 360  [SAUGKREIS 1 EIN/AUS]         Makro 342, 343
+Makro 361  [SAUGKREIS 2 EIN/AUS]         Makro 342, 343
+Makro 362  [SAUGKREIS 3 EIN/AUS]         Makro 342, 343
+Makro 363  [SAUGKREIS 4 EIN/AUS]         Makro 342, 343
+Makro 364  [SAUGKREIS 5 EIN/AUS]         Makro 342, 343
+Makro 365  [SAUGKREIS 6 EIN/AUS]         Makro 342, 343
+Makro 420  [DS_ABDOCKEN]                 UP 81, 82, 83, 84, 85, 86
+Makro 421  [DS_ANDOCKEN]                 UP 81, 82, 83, 84, 85, 86
+Makro 422  [DS Fehler Reset]             UP 81, 82, 83, 84, 85, 86
+Makro 430  [DB INIT]                     UP 81, 82, 83, 84, 85, 86
+Makro 434  [DB 1 ZU/AUF]                 Makro 432, 433
+Makro 435  [DB 2 ZU/AUF]                 Makro 432, 433
+Makro 436  [DB 3 ZU/AUF]                 Makro 432, 433
+Makro 437  [DB 4 ZU/AUF]                 Makro 432, 433
+Makro 438  [DB 5 ZU/AUF]                 Makro 432, 433
+Makro 439  [DB 6 ZU/AUF]                 Makro 432, 433
+Makro 440  [DB 7 ZU/AUF]                 Makro 432, 433
+Makro 441  [DB 8 ZU/AUF]                 Makro 432, 433
+
+子程序:
+----
+UP 1       [ENTNAHME ST5085 BH1 HI]                        Folge 1
+UP 2       [ENTNAHME ST5085 BH1 LOW]                       Folge 1
+UP 3       [ENTNAHME ST5085 BH2 HI]                        Folge 1
+UP 4       [ENTNAHME ST5085 BH2 LOW]                       Folge 1
+UP 20      [AU316_2ENTNAHME ST5085 BH1 HI  You Hua Hou]    Folge 61, 71
+UP 21      [AU316_2ENTNAHME ST5085 BH1 LOW You Hua H ou]   Folge 61, 71
+UP 22      [AU316_2 ENTNAHME ST5085 BH2 HI  FAW RACK]      Folge 61, 71
+UP 23      [AU316_2 ENTNAHME ST5085 BH2 LOW FAW RACK]      Folge 61, 71
+UP 81      [Werkzeug 2 ablegen und Werkzeug 1 holen]       Folge 1, 41, 124
+UP 82      [Werkzeug 1 ablegen und Werkzeug 2 holen]       Folge 1, 41, 124
+UP 83      [Werkzeug 1 ablegen und Werkzeug 3 holen]       Folge 1, 61, 71, 124
+UP 84      [Werkzeug 2 ablegen und Werkzeug 3 holen]       Folge 41, 61, 71, 124
+UP 85      [Werkzeug 3 ablegen und Werkzeug 1 holen]       Folge 1, 61, 71, 124
+UP 86      [Werkzeug 3 ablegen und Werkzeug 2 holen]       Folge 41, 61, 71, 124
+UP 112     [WARTUNGSSTELLUNG G1]                           Folge 124
+UP 113     [WARTUNGSSTELLUNG G2]                           Folge 124
+UP 114     [WARTUNGSSTELLUNG G3]                           Folge 124
+UP 201     [WERKZEUGWECHSEL G1]                            Folge 124
+UP 202     [WERKZEUGWECHSEL G1]                            Folge 124
+UP 203     [WERKZEUGWECHSEL G3]                            Folge 124
+UP 712     [VW316_7 ENTNAHME ST5085 BH2 HI  FAW RACK]      Folge 41
+UP 713     [VW316_7 ENTNAHME ST5085 BH2 LOW FAW RACK]      Folge 41
+UP 716     [ENTNAHME ST5085 BH1 HI  You Hua Hou]           Folge 41
+UP 717     [ENTNAHME ST5085 BH1 LOW You Hua H ou]          Folge 41
+
+VW_User Eingang
+---------------
+E 0     	[PAR5]                    	vw_usr_r
+E 8     	[N]                       	vw_bm_usr_r, vw_sz_usr_r
+E 9     	[I_R_SRB]                 	vw_usr_s
+E 12    	[I_R_AUTO]                	vw_ms_usr_s
+E 13    	[13]                      	vw_usr_r
+        	[I_R_SK_gesch]            	vw_lr_usr_r
+E 14    	[I_R_Masch_S]             	vw_usr_s
+E 15    	[15]                      	vw_kl_usr_r, vw_usr_r
+        	[I_FT_o_BT]               	vw_bu_usr_s, vw_kl_usr_s, vw_lr_usr_r, vw_ms_usr_s, vw_nz_usr_r, vw_oe_usr_r, vw_pgr_usr_r, vw_sk_usr_s, vw_stp_usr_r, vw_sz_usr_s
+        	[ProdOhneTeil]            	vw_zai_usr_r
+E 23    	[I_R_k_ZutrA]             	vw_usr_s
+E 25    	[I_MEDIENEI]              	vw_rip_usr_s
+        	[I_R_KW_EIN]              	vw_feh_usr_s, vw_stp_usr_s, vw_sz_usr_s
+E 26    	[26]                      	vw_stp_usr_r, vw_sz_usr_r
+        	[I_R_Quit_St]             	vw_bm_usr_s, vw_bu_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_nz_usr_r, vw_nz_usr_s, vw_oe_usr_r, vw_rw_usr_s, vw_sk_usr_s, vw_sz_usr_s
+E 27    	[I_R_Quit_Wei]            	vw_bm_usr_s, vw_bu_usr_s, vw_cz_usr_s, vw_lr_usr_r, vw_lr_usr_s, vw_ms_usr_s, vw_nz_usr_s, vw_oe_usr_r, vw_rw_usr_s, vw_sk_usr_s, vw_sz_usr_r, vw_sz_usr_s
+E 28    	[I_R_Quit_Aus]            	vw_lr_usr_r
+E 31    	[I_DS_Anf_SPS]            	vw_usr_s
+E 201   	[I_SPM_ohne_P]            	vw_g_usr_s
+E 204   	[204]                     	vw_ms_usr_r
+E 212   	[212]                     	vw_ms_usr_r
+E 519   	[MS_Licht_1]              	vw_ms_usr_r
+E 520   	[MS_Licht_2]              	vw_ms_usr_r
+E 537   	[537]                     	vw_ds_usr_r, vw_usr_r
+        	[I_DS_angedockt]          	vw_ds_usr_r, vw_ds_usr_s
+E 538   	[538]                     	vw_ds_usr_r, vw_usr_r
+E 539   	[539]                     	vw_ds_usr_r, vw_usr_r
+        	[I_DS_entriegelt]         	vw_ds_usr_s
+E 540   	[I_DS_iO]                 	vw_ds_usr_s
+E 705   	[705]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 713   	[713]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 714   	[714]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 715   	[715]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 717   	[717]                     	vw_stp_usr_r
+E 718   	[718]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 719   	[719]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 773   	[773]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 779   	[779]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 834   	[834]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 836   	[836]                     	vw_sz_usr_r, vw_usr_r
+E 837   	[837]                     	vw_sz_usr_r, vw_usr_r
+E 838   	[838]                     	vw_sz_usr_r, vw_usr_r
+E 839   	[839]                     	vw_sz_usr_r, vw_usr_r
+E 840   	[I_VW_KFMOT1]             	vw_feh_usr_s
+E 858   	[858]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+E 864   	[I_VW_KWMOT1]             	vw_feh_usr_s
+E 865   	[865]                     	vw_sz_usr_r, vw_usr_r
+E 873   	[873]                     	vw_sz_usr_r, vw_usr_r
+E 874   	[874]                     	vw_sz_usr_r, vw_usr_r
+E 875   	[875]                     	vw_sz_usr_r, vw_usr_r
+E 878   	[878]                     	vw_sz_usr_r, vw_usr_r
+E 879   	[879]                     	vw_sz_usr_r, vw_usr_r
+E 933   	[933]                     	vw_sz_usr_r, vw_usr_r
+E 939   	[939]                     	vw_sz_usr_r, vw_usr_r
+E 994   	[994]                     	vw_sz_usr_r, vw_usr_r
+E 996   	[996]                     	vw_sz_usr_r, vw_usr_r
+E 997   	[997]                     	vw_sz_usr_r, vw_usr_r
+E 998   	[998]                     	vw_sz_usr_r, vw_usr_r
+E 999   	[999]                     	vw_sz_usr_r, vw_usr_r
+E 1000  	[I_VW_KFMOT2]             	vw_feh_usr_s
+E 1024  	[I_VW_KWMOT2]             	vw_feh_usr_s
+        	[N_PRC_Ghost]             	vw_prc_usr_r
+E 1025  	[1025]                    	vw_sz_usr_r, vw_usr_r
+E 1033  	[1033]                    	vw_sz_usr_r, vw_usr_r
+E 1034  	[1034]                    	vw_sz_usr_r, vw_usr_r
+E 1035  	[1035]                    	vw_sz_usr_r, vw_usr_r
+E 1038  	[1038]                    	vw_sz_usr_r, vw_usr_r
+E 1039  	[1039]                    	vw_sz_usr_r, vw_usr_r
+E 1093  	[1093]                    	vw_sz_usr_r, vw_usr_r
+E 1099  	[1099]                    	vw_sz_usr_r, vw_usr_r
+E 1154  	[1154]                    	vw_sz_usr_r, vw_usr_r
+E 1156  	[1156]                    	vw_sz_usr_r, vw_usr_r
+E 1157  	[1157]                    	vw_sz_usr_r, vw_usr_r
+E 1158  	[1158]                    	vw_sz_usr_r, vw_usr_r
+E 1159  	[1159]                    	vw_sz_usr_r, vw_usr_r
+E 1160  	[I_VW_KFMOT3]             	vw_feh_usr_s
+E 1184  	[I_VW_KWMOT3]             	vw_feh_usr_s
+E 1185  	[1185]                    	vw_nz_usr_r, vw_rw_usr_r, vw_usr_r
+E 1188  	[1188]                    	vw_nz_usr_r, vw_usr_r
+E 1189  	[1189]                    	vw_nz_usr_r
+E 1190  	[1190]                    	vw_nz_usr_r, vw_usr_r
+E 1193  	[1193]                    	vw_nz_usr_r, vw_usr_r
+E 1194  	[1194]                    	vw_nz_usr_r, vw_rw_usr_r, vw_usr_r
+E 1195  	[1195]                    	vw_nz_usr_r, vw_usr_r
+E 1197  	[1197]                    	vw_nz_usr_r, vw_usr_r
+E 1198  	[1198]                    	vw_nz_usr_r, vw_usr_r
+E 1199  	[1199]                    	vw_rw_usr_r, vw_usr_r
+E 1202  	[1202]                    	vw_nz_usr_r, vw_usr_r
+E 1253  	[1253]                    	vw_nz_usr_r, vw_usr_r
+E 1259  	[1259]                    	vw_nz_usr_r, vw_usr_r
+E 1265  	[1265]                    	vw_nz_usr_r, vw_rw_usr_r, vw_usr_r
+E 1268  	[1268]                    	vw_nz_usr_r, vw_usr_r
+E 1269  	[1269]                    	vw_nz_usr_r
+E 1270  	[1270]                    	vw_nz_usr_r, vw_usr_r
+E 1273  	[1273]                    	vw_nz_usr_r, vw_usr_r
+E 1274  	[1274]                    	vw_nz_usr_r, vw_rw_usr_r, vw_usr_r
+E 1275  	[1275]                    	vw_nz_usr_r, vw_usr_r
+E 1277  	[1277]                    	vw_nz_usr_r, vw_usr_r
+E 1278  	[1278]                    	vw_nz_usr_r, vw_usr_r
+E 1279  	[1279]                    	vw_rw_usr_r, vw_usr_r
+E 1282  	[1282]                    	vw_nz_usr_r, vw_usr_r
+E 1333  	[1333]                    	vw_nz_usr_r, vw_usr_r
+E 1339  	[1339]                    	vw_nz_usr_r, vw_usr_r
+E 1345  	[1345]                    	vw_cz_usr_r, vw_usr_r
+E 1348  	[1348]                    	vw_cz_usr_r, vw_usr_r
+E 1349  	[1349]                    	vw_cz_usr_r
+E 1350  	[1350]                    	vw_cz_usr_r, vw_usr_r
+E 1353  	[1353]                    	vw_cz_usr_r, vw_usr_r
+E 1354  	[1354]                    	vw_cz_usr_r, vw_usr_r
+E 1355  	[1355]                    	vw_cz_usr_r, vw_usr_r
+E 1413  	[1413]                    	vw_cz_usr_r, vw_usr_r
+E 1419  	[1419]                    	vw_cz_usr_r, vw_usr_r
+E 1425  	[1425]                    	vw_cz_usr_r, vw_usr_r
+E 1428  	[1428]                    	vw_cz_usr_r, vw_usr_r
+E 1429  	[1429]                    	vw_cz_usr_r
+E 1430  	[1430]                    	vw_cz_usr_r, vw_usr_r
+E 1433  	[1433]                    	vw_cz_usr_r, vw_usr_r
+E 1434  	[1434]                    	vw_cz_usr_r, vw_usr_r
+E 1435  	[1435]                    	vw_cz_usr_r, vw_usr_r
+E 1493  	[1493]                    	vw_cz_usr_r, vw_usr_r
+E 1499  	[1499]                    	vw_cz_usr_r, vw_usr_r
+E 1529  	[1529]                    	vw_kl_usr_r, vw_usr_r
+E 1530  	[1530]                    	vw_usr_r
+E 1593  	[1593]                    	vw_kl_usr_r, vw_usr_r
+E 1594  	[1594]                    	vw_usr_r
+E 1657  	[1657]                    	vw_kl_usr_r, vw_usr_r
+E 1658  	[1658]                    	vw_usr_r
+E 2163  	[I_MS1_KS_RUH]            	vw_ms_usr_s
+E 2164  	[I_MS1_KS_Arb]            	vw_ms_usr_s
+E 2167  	[I_MS1_VS_Ruh]            	vw_ms_usr_s
+E 2369  	[2369]                    	vw_fd_usr_r, vw_usr_r
+E 2370  	[2370]                    	vw_fd_usr_r, vw_usr_r
+E 2374  	[2374]                    	vw_fd_usr_r, vw_usr_r
+E 2376  	[2376]                    	vw_fd_usr_r, vw_usr_r
+E 2433  	[2433]                    	vw_fd_usr_r, vw_usr_r
+E 2434  	[2434]                    	vw_fd_usr_r, vw_usr_r
+E 2438  	[2438]                    	vw_fd_usr_r, vw_usr_r
+E 2440  	[2440]                    	vw_fd_usr_r, vw_usr_r
+E 2786  	[2786]                    	vw_usr_r
+E 2787  	[2787]                    	vw_usr_r
+E 2788  	[2788]                    	vw_usr_r
+E 2789  	[2789]                    	vw_usr_r
+E 2791  	[2791]                    	vw_usr_r
+E 2792  	[2792]                    	vw_usr_r
+E 2797  	[2797]                    	vw_usr_r
+E 2945  	[I_SPM_F_Mot1]            	vw_g_usr_s
+E 2946  	[I_SPM_F_Mot2]            	vw_g_usr_s
+E 2947  	[I_ACF_LBit]              	vw_bu_usr_s
+        	[I_SPM_F_Mot3]            	vw_g_usr_s
+E 2948  	[I_SPM_F_Mot4]            	vw_g_usr_s
+E 2951  	[I_SPM_S_Ein]             	vw_g_usr_s
+E 2952  	[I_BU_Proz_aktiv]         	vw_bu_usr_s
+        	[I_SPM_MS_io]             	vw_g_usr_s
+E 2953  	[I_ACF_Kontakt]           	vw_bu_usr_r
+E 2960  	[I_ACF_Sammel]            	vw_bu_usr_s
+        	[I_BU_Sammel]             	vw_bu_usr_s
+E 2976  	[ACF_istneg]              	vw_bu_usr_s
+E 3777  	[3777]                    	vw_usr_s
+E 3778  	[3778]                    	vw_usr_s
+E 3779  	[3779]                    	vw_usr_s
+E 3780  	[3780]                    	vw_usr_s
+E 3781  	[3781]                    	vw_usr_s
+E 3782  	[3782]                    	vw_usr_s
+E 3783  	[3783]                    	vw_usr_s
+E 3784  	[3784]                    	vw_usr_s
+E 3785  	[3785]                    	vw_usr_s
+E 3786  	[3786]                    	vw_usr_s
+E 3787  	[3787]                    	vw_usr_s
+E 3788  	[3788]                    	vw_usr_s
+E 3789  	[3789]                    	vw_usr_s
+E 3790  	[3790]                    	vw_usr_s
+E 3791  	[3791]                    	vw_usr_s
+E 3792  	[3792]                    	vw_usr_s
+E 3846  	[I_R_Mast_io]             	vw_usr_s
+E 4081  	[I_VW_KSMOT1]             	vw_feh_usr_s
+        	[I_VW_KSMOT2]             	vw_feh_usr_s
+        	[I_VW_KSMOT3]             	vw_feh_usr_s
+
+VW_User Ausgang
+---------------
+A 0     	[PAR5]                    	vw_usr_r*
+A 7     	[TR]                      	vw_vmt_usr_r
+A 9     	[O_R_Bereit]              	vw_ms_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s
+A 10    	[O_R_RK100]               	vw_eki_usr_s, vw_fd_usr_s, vw_feh_usr_s, vw_kl_usr_s, vw_rip_usr_s
+A 11    	[11]                      	vw_usr_r
+        	[O_R_Hand]                	vw_bm_usr_s, vw_bu_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_ds_usr_r, vw_ds_usr_s, vw_fd_usr_s, vw_g_usr_s, vw_kl_usr_s, vw_ms_usr_s, vw_nz_usr_s, vw_rw_usr_s, vw_rz_usr_s, vw_sm_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s, vw_va_usr_s
+A 12    	[12]                      	vw_rip_usr_s
+        	[O_R_Auto]                	vw_bm_usr_s, vw_bu_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_ds_usr_s, vw_eki_usr_s, vw_fd_usr_s, vw_feh_usr_s, vw_g_usr_s, vw_ino_usr_s, vw_kl_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_nk_usr_s, vw_nz_usr_s, vw_pr_usr_s, vw_re_usr_s, vw_rw_usr_s, vw_rz_usr_s, vw_sk_usr_s, vw_sm_usr_s, vw_sr_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s
+A 13    	[O_R_Notaus]              	vw_usr_s*
+A 15    	[O_R_PF0]                 	vw_eki_usr_s, vw_g_usr_s, vw_kl_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_pgr_usr_s, vw_rip_usr_s, vw_sk_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_r*, vw_usr_s, vw_usr_s*, vw_va_usr_r
+A 16    	[O_R_SAK]                 	vw_ms_usr_s, vw_rip_usr_s
+A 17    	[O_R_Wart]                	vw_stp_usr_s, vw_sz_usr_s, vw_usr_s
+A 18    	[O_R_WartB]               	vw_rip_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s
+A 19    	[O_R_w_FB]                	vw_usr_s, vw_usr_s*
+A 20    	[O_R_w_SPS]               	vw_usr_s*
+A 21    	[O_R_w_RV]                	vw_usr_s*
+A 22    	[O_R_Loop_akt]            	vw_pgr_usr_s, vw_usr_s
+A 23    	[O_R_SG_gesp]             	vw_ms_usr_s, vw_rip_usr_s, vw_usr_s*
+A 24    	[O_R_i_Bew]               	vw_kl_usr_s, vw_usr_s*
+A 25    	[O_R_KW_EIN]              	vw_feh_usr_s, vw_rip_usr_s*, vw_stp_usr_s*, vw_sz_usr_s*
+A 28    	[O_R_n_OV]                	vw_usr_s*
+A 29    	[O_R_Analyse_aktiv]       	vw_usr_r*
+A 30    	[O_R_Abs_erl]             	vw_usr_s*
+A 31    	[O_DS_FM_SPS]             	vw_usr_s, vw_usr_s*
+A 32    	[O_R_WAR_BAT]             	vw_usr_s, vw_usr_s*
+A 81    	[O_R_Anf_V1]              	vw_usr_s
+A 82    	[O_R_Anf_V2]              	vw_usr_s
+A 83    	[O_R_Anf_V3]              	vw_usr_s
+A 84    	[O_R_Anf_V4]              	vw_usr_s
+A 85    	[O_R_Anf_V5]              	vw_usr_s
+A 86    	[O_R_Anf_V6]              	vw_usr_s
+A 87    	[O_R_Anf_V7]              	vw_usr_s
+A 88    	[O_R_Anf_V8]              	vw_usr_s
+A 89    	[O_R_Anf_V9]              	vw_usr_s
+A 90    	[O_R_Anf_V10]             	vw_usr_s
+A 91    	[O_R_Anf_V11]             	vw_usr_s
+A 92    	[O_R_Anf_V12]             	vw_usr_s
+A 93    	[O_R_Anf_V13]             	vw_usr_s
+A 94    	[O_R_Anf_V14]             	vw_usr_s
+A 95    	[O_R_Anf_V15]             	vw_usr_s
+A 96    	[O_R_Anf_V16]             	vw_usr_s
+A 113   	[O_R_P1_akt]              	vw_usr_s
+A 116   	[O_KSKF_P_akt]            	vw_sz_usr_s*
+        	[O_R_P2_akt]              	vw_usr_s
+A 117   	[O_RSK_F_KS]              	vw_rz_usr_s*, vw_sz_usr_s*
+A 118   	[O_RSK_F_KF]              	vw_rz_usr_s*, vw_sz_usr_s*
+A 119   	[O_RSK_F_Kurz]            	vw_rz_usr_s*, vw_sz_usr_s*
+A 120   	[O_RSK_F_Sammel]          	vw_rz_usr_s*, vw_sz_usr_s*, vw_usr_s
+A 121   	[O_R_P3_akt]              	vw_usr_s
+        	[O_VST_aktiv]             	vw_ds_usr_s, vw_g_usr_s
+A 123   	[O_BT_FEHL]               	vw_mod_usr_r*
+A 129   	[O_R_P4_akt]              	vw_usr_s
+A 145   	[O_R_P5_akt]              	vw_usr_s
+A 161   	[O_R_P6_akt]              	vw_usr_s
+A 177   	[O_R_P7_akt]              	vw_usr_s
+A 184   	[184]                     	vw_sz_usr_r, vw_usr_r
+A 193   	[O_R_P8_akt]              	vw_usr_s
+        	[O_SR1_aktiv]             	vw_sr_usr_r*
+A 201   	[O_R_P9_akt]              	vw_usr_s
+        	[O_SPM_Proz_akt]          	vw_g_usr_s*
+        	[O_SR2_aktiv]             	vw_sr_usr_r*
+A 204   	[O_SPM_F_Alfa]            	vw_g_usr_s
+A 205   	[O_SPM_F_Moto]            	vw_g_usr_s*
+A 206   	[O_SPM_F_Ma_h]            	vw_g_usr_s*
+A 207   	[O_SPM_F_Ma_S]            	vw_g_usr_s*
+A 208   	[O_SPM_F_Samm]            	vw_g_usr_s*
+A 209   	[O_R_P10_akt]             	vw_usr_s
+        	[O_SR3_aktiv]             	vw_sr_usr_r*
+A 211   	[O_MS_SPS_Feh]            	vw_ms_usr_r*
+A 217   	[O_R_P11_akt]             	vw_usr_s
+        	[O_SR4_aktiv]             	vw_sr_usr_r*
+A 218   	[O_EKI_z_gr]              	vw_eki_usr_s*
+A 219   	[O_EKI_k_Ve]              	vw_eki_usr_s*
+A 220   	[O_EKI_f_OP]              	vw_eki_usr_s*
+        	[O_INO_Me_nio]            	vw_ino_usr_s*
+A 221   	[O_EKI_f_Ty]              	vw_eki_usr_s*
+A 222   	[O_EKI_k_BT]              	vw_eki_usr_s*
+A 223   	[O_EKI_T_Ou]              	vw_eki_usr_s*
+        	[O_INO_Betr_f]            	vw_ino_usr_s*
+A 224   	[O_EKI_Samm]              	vw_eki_usr_s*
+        	[O_INO_Sammel]            	vw_ino_usr_s*
+A 251   	[O_Safe_Anf]              	vw_sfr_usr_s*
+A 252   	[O_Safe_VW_Br]            	vw_sfr_usr_s*
+A 253   	[O_Safe_B_nio]            	vw_sfr_usr_s*
+A 254   	[O_Safe_R_nio]            	vw_sfr_usr_s*
+A 256   	[O_Safe_Samm]             	vw_sfr_usr_s*
+A 514   	[O_RIP_SK_Sens]           	vw_sk_usr_s, vw_sz_usr_r*
+A 518   	[O_RIP_RZYL_E]            	vw_rip_usr_s*
+A 519   	[O_RIP_RZYL_A]            	vw_rip_usr_s*
+A 539   	[O_DS_entriegeln]         	vw_ds_usr_s
+A 540   	[O_DS_Reset]              	vw_ds_usr_s
+A 545   	[545]                     	vw_usr_s*
+        	[O_DB_VST1_2]             	vw_ds_usr_s*
+A 546   	[546]                     	vw_usr_s*
+A 547   	[547]                     	vw_usr_s*
+        	[O_DS_BHF1_AUF]           	vw_ds_usr_s
+A 548   	[548]                     	vw_usr_s*
+        	[O_DS_BHF1_ZU]            	vw_ds_usr_s
+A 549   	[549]                     	vw_usr_s*
+        	[O_DS_BHF2_AUF]           	vw_ds_usr_s
+A 550   	[550]                     	vw_usr_s*
+        	[O_DS_BHF2_ZU]            	vw_ds_usr_s
+A 551   	[551]                     	vw_usr_s*
+A 552   	[552]                     	vw_usr_s*
+A 553   	[553]                     	vw_usr_s*
+        	[O_DB_VST3_4]             	vw_ds_usr_s*
+A 554   	[554]                     	vw_usr_s*
+A 555   	[555]                     	vw_usr_s*
+        	[O_DS_BHF3_AUF]           	vw_ds_usr_s
+A 556   	[556]                     	vw_usr_s*
+        	[O_DS_BHF3_ZU]            	vw_ds_usr_s
+A 557   	[557]                     	vw_usr_s*
+        	[O_DS_BHF4_AUF]           	vw_ds_usr_s
+A 558   	[558]                     	vw_usr_s*
+        	[O_DS_BHF4_ZU]            	vw_ds_usr_s
+A 559   	[559]                     	vw_usr_s*
+A 560   	[560]                     	vw_usr_s
+A 561   	[O_DB_VST5_6]             	vw_ds_usr_s*
+A 563   	[O_DS_BHF5_AUF]           	vw_ds_usr_s
+A 564   	[O_DS_BHF5_ZU]            	vw_ds_usr_s
+A 565   	[O_DS_BHF6_AUF]           	vw_ds_usr_s
+A 566   	[O_DS_BHF6_ZU]            	vw_ds_usr_s
+A 569   	[O_DB_VST7_8]             	vw_ds_usr_s*
+A 571   	[O_DS_BHF7_AUF]           	vw_ds_usr_s
+A 572   	[O_DS_BHF7_ZU]            	vw_ds_usr_s
+A 573   	[O_DS_BHF8_AUF]           	vw_ds_usr_s
+A 574   	[O_DS_BHF8_ZU]            	vw_ds_usr_s
+A 577   	[O_G_VST1]                	vw_g_usr_s*
+A 701   	[O_G_VST3]                	vw_g_usr_s*
+A 703   	[O_G_VST2]                	vw_g_usr_s*
+A 707   	[707]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 715   	[715]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 716   	[716]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 718   	[718]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 766   	[766]                     	vw_sz_usr_r, vw_usr_r
+A 834   	[834]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 858   	[858]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+A 867   	[867]                     	vw_sz_usr_r, vw_usr_r
+A 875   	[875]                     	vw_sz_usr_r, vw_usr_r
+A 876   	[876]                     	vw_sz_usr_r, vw_usr_r
+A 878   	[878]                     	vw_sz_usr_r, vw_usr_r
+A 926   	[926]                     	vw_sz_usr_r, vw_usr_r
+A 994   	[994]                     	vw_sz_usr_r, vw_usr_r
+A 1022  	[N_PRC_RobMv]             	vw_prc_usr_r
+A 1023  	[N_PRC_RobNoMv]           	vw_prc_usr_r
+A 1027  	[1027]                    	vw_sz_usr_r, vw_usr_r
+A 1035  	[1035]                    	vw_sz_usr_r, vw_usr_r
+A 1036  	[1036]                    	vw_sz_usr_r, vw_usr_r
+A 1038  	[1038]                    	vw_sz_usr_r, vw_usr_r
+A 1086  	[1086]                    	vw_sz_usr_r, vw_usr_r
+A 1154  	[1154]                    	vw_sz_usr_r, vw_usr_r
+A 1187  	[1187]                    	vw_usr_r
+A 1194  	[1194]                    	vw_nz_usr_r, vw_usr_r
+A 1195  	[1195]                    	vw_nz_usr_r, vw_usr_r
+A 1196  	[1196]                    	vw_nz_usr_r, vw_usr_r
+A 1267  	[1267]                    	vw_usr_r
+A 1274  	[1274]                    	vw_nz_usr_r, vw_usr_r
+A 1275  	[1275]                    	vw_nz_usr_r, vw_usr_r
+A 1276  	[1276]                    	vw_nz_usr_r, vw_usr_r
+A 1347  	[1347]                    	vw_usr_r
+A 1355  	[1355]                    	vw_cz_usr_r, vw_usr_r
+A 1356  	[1356]                    	vw_cz_usr_r, vw_usr_r
+A 1427  	[1427]                    	vw_usr_r
+A 1435  	[1435]                    	vw_cz_usr_r, vw_usr_r
+A 1436  	[1436]                    	vw_cz_usr_r, vw_usr_r
+A 1808  	[O_MS1_Draht_vor]         	vw_ms_usr_r
+A 1840  	[O_MS2_Draht_vor]         	vw_ms_usr_r
+A 2137  	[O_G_VST_res1]            	vw_g_usr_s*
+A 2145  	[O_G_VST_res2]            	vw_g_usr_s*
+A 2153  	[O_G_VST_res3]            	vw_g_usr_s*
+A 2161  	[O_MS1_VST]               	vw_ms_usr_s*
+A 2165  	[O_MS1_FRG_Halt]          	vw_ms_usr_s*
+A 2166  	[O_MS1_FRG_Bew]           	vw_ms_usr_s*
+A 2177  	[O_G_VST_res4]            	vw_g_usr_s*
+A 2185  	[O_G_VST_res5]            	vw_g_usr_s*
+A 2945  	[O_ACF_Reset]             	vw_bu_usr_s*
+A 2946  	[O_ACF_oh_Kra]            	vw_bu_usr_s*
+A 2947  	[O_ACF_LBit]              	vw_bu_usr_s*
+A 2949  	[O_ACF_R_Hand]            	vw_bu_usr_s*
+A 2950  	[O_ACF_R_Auto]            	vw_bu_usr_s*
+A 2951  	[O_ACF_Teach]             	vw_bu_usr_s*
+A 2952  	[O_BU_ANT_EIN]            	vw_bu_usr_s*
+        	[O_SPM_M_Ein]             	vw_g_usr_s
+A 3411  	[RZ_4]                    	vw_rz_usr_s*
+A 3443  	[RZ_5]                    	vw_rz_usr_s*
+A 3475  	[RZ_6]                    	vw_rz_usr_s*
+A 3859  	[RZ_1]                    	vw_rz_usr_s*
+A 3891  	[RZ_2]                    	vw_rz_usr_s*
+A 3905  	[3905]                    	vw_usr_s*
+A 3923  	[RZ_3]                    	vw_rz_usr_s*
+A 3937  	[3937]                    	vw_usr_s*
+A 4001  	[O_SZ_D_Teach]            	vw_sz_usr_s, vw_sz_usr_s*
+A 4002  	[O_SZ_D_Auf]              	vw_sz_usr_s, vw_sz_usr_s*
+A 4003  	[O_SZ_D_Zu]               	vw_sz_usr_s, vw_sz_usr_s*
+A 4012  	[O_RW_D_Teach]            	vw_rw_usr_s*
+A 4013  	[O_RW_D_Ref]              	vw_rw_usr_s, vw_rw_usr_s*
+A 4033  	[O_R_N_intern]            	vw_usr_s
+A 4037  	[O_R_steht]               	vw_ms_usr_s, vw_rip_usr_s, vw_usr_s
+A 4038  	[O_R_bewegt]              	vw_bu_usr_s, vw_cz_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_nz_usr_s, vw_rw_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s, vw_va_usr_s
+A 4039  	[O_R_Proz_akt]            	vw_bm_usr_s, vw_bu_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_ds_usr_s, vw_fd_usr_s, vw_g_usr_s, vw_kl_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_nz_usr_s, vw_rw_usr_s, vw_rz_usr_s, vw_sm_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s
+A 4057  	[O_R_WPROZ]               	vw_usr_s
+A 4058  	[O_R_WSLAV]               	vw_ms_usr_s, vw_usr_s
+A 4060  	[O_R_PERI_RDY]            	vw_bu_usr_s, vw_lr_usr_s, vw_rw_usr_s, vw_rz_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s*
+
+VW_User Flag
+------------
+F 5     	[i]                       	vw_mod_usr_r, vw_vmt_usr_s*
+F 27    	[I]                       	vw_usr_s*
+F 47    	[F_KL_FRG_SP_EIN]         	vw_kl_usr_s
+F 50    	[F_F_Schwenker]           	vw_kl_usr_s, vw_rz_usr_s, vw_sz_usr_s
+F 54    	[F_o_Abblasen]            	vw_g_usr_s*
+F 62    	[F_KW_DS_Prog_AUS]        	vw_feh_usr_s, vw_rip_usr_s, vw_stp_usr_s, vw_sz_usr_s
+F 63    	[F_erweitertes_Abblasen]  	vw_g_usr_s
+F 64    	[F_SZ2_ANW_Z1]            	vw_sz_usr_r*
+        	[F_SZ3_ANW_Z1]            	vw_sz_usr_r*
+F 72    	[72]                      	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+        	[F_SZ1_an_KF2]            	vw_feh_usr_s
+F 73    	[73]                      	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+        	[F_SZ1_an_KF3]            	vw_feh_usr_s
+F 90    	[90]                      	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+F 92    	[92]                      	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+F 118   	[F_STP_Sammel]            	vw_stp_usr_s
+F 122   	[F_SZ1_Kapp1]             	vw_sz_usr_s
+F 123   	[F_SZ1_Kapp2]             	vw_sz_usr_s
+F 124   	[F_SZ1_Kapp3]             	vw_sz_usr_s
+F 125   	[F_SZ1_Kapp4]             	vw_sz_usr_s
+F 133   	[F_SZ2_MAX_EK]            	vw_sz_usr_s*
+F 148   	[148]                     	vw_sz_usr_r, vw_usr_r
+F 169   	[F_SZ3_MAX_EK]            	vw_sz_usr_s*
+F 184   	[184]                     	vw_sz_usr_r, vw_usr_r
+F 261   	[F_SK_WdhFraesen]         	vw_sk_usr_s
+F 273   	[F_m_RZ1]                 	vw_pgr_usr_r*, vw_rz_usr_s*
+F 274   	[F_m_RZ2]                 	vw_pgr_usr_r*, vw_rz_usr_s*
+F 275   	[F_m_RZ3]                 	vw_pgr_usr_r*, vw_rz_usr_s*
+F 281   	[F_KW_Wart_AUS]           	vw_feh_usr_s, vw_rip_usr_s, vw_stp_usr_r*, vw_stp_usr_s*, vw_sz_usr_r*, vw_sz_usr_s*
+F 283   	[F_KW_DS_Makro_AUS]       	vw_feh_usr_s, vw_rip_usr_s, vw_stp_usr_s, vw_sz_usr_s
+F 285   	[F_2SZ_an_SK1]            	vw_sz_usr_s
+F 289   	[F_Mit_STP]               	vw_pgr_usr_r*
+F 290   	[F_Frg_Servo]             	vw_cz_usr_r*, vw_cz_usr_s*, vw_nz_usr_r*, vw_nz_usr_s*, vw_rw_usr_r*, vw_rw_usr_s*, vw_stp_usr_r*, vw_stp_usr_s*, vw_sz_usr_r*, vw_sz_usr_s*, vw_usr_r*, vw_usr_s*
+F 292   	[F_KF_KS_ZS_S]            	vw_rz_usr_s, vw_sz_usr_s
+F 293   	[F_SZ_Kr_Skal]            	vw_sz_usr_s*
+F 294   	[F_SZ_St_Skal]            	vw_sz_usr_s*
+F 298   	[F_SZ_o_Wiedh]            	vw_stp_usr_r, vw_sz_usr_r
+F 303   	[F_SZ_Fe_Res]             	vw_sz_usr_s
+F 304   	[F_SZ_AutoRef]            	vw_va_usr_r
+F 312   	[312]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+F 321   	[321]                     	vw_sz_usr_r, vw_usr_r
+        	[F_RSK_Gst]               	vw_cz_usr_s, vw_ds_usr_s, vw_g_usr_s, vw_kl_usr_s, vw_ms_usr_s, vw_usr_s
+F 322   	[F_RSK_KF]                	vw_rz_usr_s, vw_sz_usr_s
+F 323   	[F_RSK_KS_R]              	vw_rz_usr_s, vw_sz_usr_s
+F 324   	[F_RSK_KS_A]              	vw_rz_usr_s, vw_sz_usr_s
+F 325   	[F_RSK_Kraft]             	vw_rz_usr_s, vw_sz_usr_s
+F 326   	[F_RSK_Mess]              	vw_rz_usr_s, vw_sz_usr_s
+F 327   	[F_RSK_Kurz]              	vw_rz_usr_s, vw_sz_usr_s
+F 328   	[F_RSK_Vers]              	vw_rz_usr_s, vw_sz_usr_s
+F 329   	[F_RSK_Sammel]            	vw_rz_usr_s, vw_sz_usr_s
+F 398   	[F_KL_MoS_nio]            	vw_kl_usr_s, vw_rz_usr_s, vw_sz_usr_s
+F 471   	[471]                     	vw_va_usr_r*
+F 489   	[F_CZP_Reset]             	vw_cz_usr_s
+        	[F_CZS_Reset]             	vw_cz_usr_s
+        	[F_NZH_Reset]             	vw_nz_usr_s
+        	[F_NZS_Reset]             	vw_nz_usr_s
+F 495   	[F_INO_RFOK]              	vw_ino_usr_r*
+        	[F_PRC_NoErr]             	vw_prc_usr_r*
+        	[F_VMT_IO]                	vw_vmt_usr_r, vw_vmt_usr_s*
+        	[IS_FLAG_RESULT_OK]       	vw_isr_usr_r*
+F 496   	[F_INO_RFNOK]             	vw_ino_usr_r*, vw_ino_usr_s
+        	[F_PRC_Err]               	vw_prc_usr_r*
+        	[F_VMT_NIO]               	vw_vmt_usr_r, vw_vmt_usr_s*
+        	[IS_FLAG_RESULT_NOK]      	vw_isr_usr_r, vw_isr_usr_r*
+F 497   	[F_INO_ER]                	vw_ino_usr_r*, vw_ino_usr_s
+        	[F_VMT_ERROR]             	vw_vmt_usr_s*
+        	[IS_FLAG_ERROR]           	vw_isr_usr_r, vw_isr_usr_r*
+F 498   	[F_INO_ER_IO]             	vw_ino_usr_r*
+        	[F_PRC_TmOut]             	vw_prc_usr_r*
+        	[IS_FLAG_ERR_SPS]         	vw_isr_usr_r, vw_isr_usr_r*
+F 499   	[F_INO_ERMMOV]            	vw_ino_usr_r*
+        	[IS_FLAG_ERR_ROBOT]       	vw_isr_usr_r*
+F 500   	[F_INO_ERMSTP]            	vw_ino_usr_r*
+        	[IS_FLAG_ERR_PREPARE]     	vw_isr_usr_r, vw_isr_usr_r*
+F 501   	[F_INO_ERFEAT]            	vw_ino_usr_r*
+        	[IS_FLAG_ERR_ACQ]         	vw_isr_usr_r, vw_isr_usr_r*
+F 502   	[F_INO_ERF_GR]            	vw_ino_usr_r*
+        	[IS_FLAG_ERR_FEATURE]     	vw_isr_usr_r, vw_isr_usr_r*
+F 503   	[F_INO_ERMEAS]            	vw_ino_usr_r*
+        	[IS_FLAG_ERR_EVAL]        	vw_isr_usr_r, vw_isr_usr_r*
+F 504   	[F_INO_ER_LIF]            	vw_ino_usr_s, vw_ino_usr_s*
+        	[F_PRC_VFMax]             	vw_prc_usr_r*
+        	[IS_FLAG_ERR_TOL]         	vw_isr_usr_r, vw_isr_usr_r*
+F 505   	[F_INO_ALCMOK]            	vw_ino_usr_r*
+        	[F_PRC_VFErr]             	vw_prc_usr_r*
+        	[IS_FLAG_WARN_TOL]        	vw_isr_usr_r, vw_isr_usr_r*
+F 506   	[F_INO_ALLSOK]            	vw_ino_usr_r*
+        	[IS_FLAG_KAL1_HLP]        	vw_isr_usr_r
+F 507   	[F_INO_SYSCAL]            	vw_ino_usr_r*
+        	[IS_FLAG_KAL2_HLP]        	vw_isr_usr_r
+F 508   	[N_INO_Flag]              	vw_ino_usr_r*
+F 521   	[F_Merker_Init]           	vw_usr_r*
+F 522   	[F_m_e_Mode]              	vw_usr_s
+F 523   	[F_V_TYP_SMC]             	vw_g_usr_s*
+F 524   	[F_V_TYP_Festo]           	vw_g_usr_s*
+F 525   	[F_o_Proz_SStep]          	vw_bu_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_fd_usr_s, vw_kl_usr_s, vw_ms_usr_s, vw_nz_usr_s, vw_pgr_usr_r, vw_rw_usr_s, vw_sk_usr_s, vw_sm_usr_s, vw_stp_usr_s, vw_sz_usr_s, vw_usr_s*
+F 526   	[F_o_Proz_BMS]            	vw_bm_usr_r*, vw_bu_usr_r*, vw_bu_usr_s, vw_bz_usr_r*, vw_cz_usr_r*, vw_fd_usr_r*, vw_kl_usr_r*, vw_ms_usr_r*, vw_nk_usr_r*, vw_nz_usr_r*, vw_re_usr_r*, vw_rw_usr_r*, vw_sm_usr_r*, vw_sr_usr_r*, vw_stp_usr_r*, vw_sz_usr_r*
+F 530   	[F_EZ_SP1_ROB]            	vw_feh_usr_s
+        	[F_m_RZKOPF]              	vw_pgr_usr_r*, vw_rz_usr_s*
+F 533   	[Fehler_Suchlauf]         	vw_usr_r
+F 540   	[F_PR_Sammel]             	vw_pr_usr_s
+F 558   	[F_Suchlauf_STOP]         	vw_g_usr_s*
+F 577   	[F_MS_A_Wied]             	vw_ms_usr_s
+F 588   	[F_MS_SS_Proz]            	vw_ms_usr_s*
+F 589   	[F_FRG_LB_Ein]            	vw_ms_usr_r*
+F 590   	[F_MS_Aufz_St]            	vw_ms_usr_s, vw_ms_usr_s*
+F 591   	[F_MS_Fe_merk]            	vw_ms_usr_s, vw_ms_usr_s*
+F 592   	[F_MS_Ein_Ver]            	vw_ms_usr_s, vw_ms_usr_s*
+F 593   	[F_MS_TOUT_Na]            	vw_ms_usr_r*, vw_ms_usr_s, vw_ms_usr_s*
+F 594   	[F_MS_FB_Wied]            	vw_ms_usr_s*
+F 595   	[F_MS_FB_Ein]             	vw_ms_usr_s*
+F 596   	[F_MSx_LB_Ein]            	vw_ms_usr_r*, vw_ms_usr_s
+F 597   	[F_LB_Ein_Feh]            	vw_ms_usr_s, vw_ms_usr_s*
+F 598   	[F_MS_N_nio]              	vw_ms_usr_r, vw_ms_usr_s*
+F 620   	[F_BU_EIN]                	vw_bu_usr_s
+F 621   	[F_BU_IBN]                	vw_bu_usr_r
+F 670   	[670]                     	vw_usr_r
+        	[F_DS_Cod_iO]             	vw_ds_usr_r, vw_ds_usr_s*
+F 694   	[F_LR_Ueb_Ein]            	vw_lr_usr_s
+F 713   	[Mit_Anf_Pos]             	vw_sz_usr_s*
+F 731   	[F_MIT_WDHFRS]            	vw_pgr_usr_r*
+F 736   	[F_KF_Bla_rob]            	vw_sz_usr_s, vw_sz_usr_s*
+F 741   	[F_SZ_Anf_Pos]            	vw_sz_usr_s, vw_sz_usr_s*
+F 749   	[F_WPS_WDHFRS]            	vw_feh_usr_s
+F 750   	[F_KL_BT_io]              	vw_kl_usr_s*
+F 751   	[F_KL_BT_Na]              	vw_kl_usr_s*
+F 752   	[F_KL_BT_nio]             	vw_kl_usr_s*
+F 785   	[F_X_Lauf_nio]            	vw_mod_usr_r*
+F 786   	[F_Y_Lauf_nio]            	vw_mod_usr_r*
+F 787   	[F_Z_Lauf_nio]            	vw_mod_usr_r*
+F 788   	[788]                     	vw_usr_r
+        	[F_XYZ_OutOfRange]        	vw_mod_usr_r*
+F 805   	[F_Braeuer]               	vw_rz_usr_s*, vw_stp_usr_s*, vw_sz_usr_s*
+F 806   	[F_Lutz]                  	vw_rz_usr_s*, vw_stp_usr_s*, vw_sz_usr_s*
+F 807   	[F_AEG]                   	vw_rz_usr_s*, vw_stp_usr_s*, vw_sz_usr_s*
+F 808   	[F_Sintherleghe]          	vw_rz_usr_s*, vw_stp_usr_s*, vw_sz_usr_s*
+F 810   	[F_KW_MoS_nio]            	vw_rz_usr_s, vw_sz_usr_s
+F 811   	[F_RE_Sammel]             	vw_re_usr_s
+F 818   	[F_WA_EIN_VSP]            	vw_rip_usr_s, vw_stp_usr_r*, vw_sz_usr_r*
+F 820   	[F_O_WASSER]              	vw_feh_usr_s, vw_rip_usr_s
+F 829   	[F_FRG_VMove]             	vw_stp_usr_r*, vw_sz_usr_r*
+F 830   	[830]                     	vw_stp_usr_r, vw_sz_usr_r, vw_usr_r
+F 831   	[831]                     	vw_sz_usr_r, vw_usr_r
+F 832   	[832]                     	vw_sz_usr_r, vw_usr_r
+F 836   	[F_KE_aktiv]              	vw_usr_s*
+F 837   	[F_KL_MS_o_FRG]           	vw_pgr_usr_r*
+F 838   	[F_SZ_POT_Fra]            	vw_sz_usr_s
+F 851   	[F_SR1_aktiv]             	vw_sr_usr_r
+F 852   	[F_SR2_aktiv]             	vw_sr_usr_r
+F 853   	[F_SR3_aktiv]             	vw_sr_usr_r
+F 854   	[F_SR4_aktiv]             	vw_sr_usr_r
+F 863   	[F_KF_MoS_nio]            	vw_rz_usr_s, vw_sz_usr_s
+F 886   	[F_EKI_MES_IO]            	vw_xml_usr, vw_xml_usr*
+        	[F_EKI_noErr]             	vw_cgx_user*
+F 887   	[F_EKI_Err]               	vw_cgx_user*
+        	[F_EKI_MES_NE]            	vw_xml_usr, vw_xml_usr*
+F 888   	[F_EKI_RANGE]             	vw_cgx_user*, vw_xml_usr*
+F 889   	[F_EKI_REALI]             	vw_cgx_user*, vw_xml_usr*
+F 890   	[F_EKI_NOWAIT]            	vw_cgx_user
+F 891   	[F_EKI_EMPTY]             	vw_xml_usr*
+        	[F_EKI_PING_S]            	vw_cgx_user*
+F 892   	[F_EKI_Mes1OK]            	vw_cgx_user*
+        	[F_EKI_WARN_F]            	vw_xml_usr*
+F 893   	[F_EKI_NREPOS]            	vw_cgx_user
+F 950   	[950]                     	vw_isr_usr_r
+F 960   	[F_FB_PSPS]               	vw_bu_usr_s, vw_kl_usr_s, vw_lr_usr_s, vw_ms_usr_s, vw_usr_s
+F 980   	[F_OV_100]                	vw_ms_usr_s, vw_usr_s*
+F 982   	[F_Verr_BMS]              	vw_usr_s*
+F 985   	[F_R_SStep]               	vw_usr_s*
+F 999   	[F_Halt_PSPS]             	vw_usr_s*
+
+VW_User Merker
+--------------
+M 1     	[XYZ_C_Mess]              	vw_mod_usr_r
+M 81    	[81]                      	vw_ds_usr_r*, vw_usr_r*
+M 95    	[95]                      	vw_stp_usr_r*, vw_sz_usr_r*, vw_usr_r*
+M 96    	[96]                      	vw_sz_usr_r*, vw_usr_r*
+M 97    	[97]                      	vw_stp_usr_r*, vw_sz_usr_r*, vw_usr_r*
+M 98    	[98]                      	vw_sz_usr_r*, vw_usr_r*
+M 99    	[99]                      	vw_sz_usr_r*, vw_usr_r*
+M 100   	[100]                     	vw_stp_usr_r*, vw_sz_usr_r*, vw_usr_r*
+M 102   	[102]                     	vw_sz_usr_r*, vw_usr_r*
+M 103   	[103]                     	vw_sz_usr_r*, vw_usr_r*
+M 104   	[104]                     	vw_sz_usr_r*, vw_usr_r*
+M 109   	[109]                     	vw_sz_usr_r*, vw_usr_r*
+M 110   	[110]                     	vw_sz_usr_r*, vw_usr_r*
+M 111   	[111]                     	vw_sz_usr_r*, vw_usr_r*
+M 116   	[116]                     	vw_cz_usr_r*, vw_usr_r*
+M 117   	[117]                     	vw_cz_usr_r*, vw_usr_r*
+M 119   	[119]                     	vw_cz_usr_r*, vw_usr_r*
+M 120   	[120]                     	vw_cz_usr_r*, vw_usr_r*
+M 122   	[122]                     	vw_nz_usr_r*, vw_usr_r*
+M 123   	[123]                     	vw_nz_usr_r*, vw_usr_r*
+M 125   	[125]                     	vw_nz_usr_r*, vw_usr_r*
+M 126   	[126]                     	vw_nz_usr_r*, vw_usr_r*
+M 131   	[131]                     	vw_rw_usr_r*, vw_usr_r*
+M 134   	[134]                     	vw_rw_usr_r*, vw_usr_r*
+M 140   	[140]                     	vw_fd_usr_r*, vw_usr_r*
+M 142   	[142]                     	vw_fd_usr_r*, vw_usr_r*
+M 146   	[146]                     	vw_kl_usr_r*, vw_usr_r*
+M 148   	[148]                     	vw_kl_usr_r*, vw_usr_r*
+M 150   	[150]                     	vw_kl_usr_r*, vw_usr_r*
+M 152   	[152]                     	vw_usr_r*
+M 155   	[155]                     	vw_g_usr_s
+
+VW_User Timer
+-------------
+t 0     	[TNR]                     	vw_isr_usr_s
+t 1     	[1]                       	vw_usr_r*
+t 2     	[2]                       	vw_usr_r*
+t 3     	[3]                       	vw_usr_r*
+t 4     	[4]                       	vw_usr_r*
+t 10    	[N_INO_TMRNR]             	vw_ino_usr_r*
+t 12    	[12]                      	vw_usr_r*
+        	[TimerNr_POT]             	vw_usr_s*
+t 44    	[TimerNr_Ein]             	vw_usr_s*
+t 45    	[TimerNr_E_Mo]            	vw_usr_s*
+t 51    	[51]                      	vw_xml_usr*
+t 52    	[52]                      	vw_xml_usr*
+t 54    	[N_INO_TN]                	vw_ino_usr_s*
+        	[T_STELLGLIE]             	vw_rip_usr_s*
+t 55    	[T_WASSER_EIN]            	vw_rip_usr_s*
+t 58    	[TimerNr_FB]              	vw_usr_s*
+
+VW_User Timer Flag
+------------------
+T 11    	[IS_iWaitTimerID]         	vw_isr_usr_r
+T 16    	[IS_TIMERID]              	vw_isr_usr_s
+T 17    	[17]                      	vw_ms_usr_r
+T 44    	[TimerNr_Ein]             	vw_bm_usr_s, vw_bz_usr_s, vw_cz_usr_s, vw_fd_usr_s, vw_g_usr_s, vw_kl_usr_s, vw_ms_usr_s, vw_nk_usr_s, vw_nz_usr_s, vw_rw_usr_s, vw_sm_usr_s, vw_stp_usr_s, vw_sz_usr_s
+T 45    	[TimerNr_E_Mo]            	vw_sz_usr_s
+T 51    	[51]                      	vw_xml_usr*
+T 54    	[N_INO_TN]                	vw_ino_usr_s
+T 58    	[TimerNr_FB]              	vw_usr_s
+
+VW_User Zähler
+--------------
+I 1     	[1]                       	vw_ino_usr_r*
+I 2     	[2]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 3     	[3]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 4     	[4]                       	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 5     	[5]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 6     	[6]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 7     	[7]                       	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 8     	[8]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 9     	[9]                       	vw_sz_usr_s, vw_sz_usr_s*
+I 10    	[10]                      	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 11    	[11]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 12    	[12]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 13    	[13]                      	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 14    	[14]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 15    	[15]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 16    	[16]                      	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 17    	[17]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 18    	[18]                      	vw_sz_usr_s, vw_sz_usr_s*
+I 19    	[19]                      	vw_sz_usr_r, vw_sz_usr_r*, vw_sz_usr_s, vw_sz_usr_s*
+I 29    	[I_ERR_Nr]                	vw_feh_usr_s
+I 31    	[i_T_SpeicherNr]          	vw_kl_usr_r, vw_usr_r*
+I 32    	[I_Arbpkt_Nr]             	vw_bm_usr_r, vw_bm_usr_r*, vw_bz_usr_r, vw_bz_usr_r*, vw_cz_usr_r, vw_cz_usr_r*, vw_fd_usr_r, vw_fd_usr_r*, vw_ms_usr_r*, vw_nz_usr_r, vw_nz_usr_r*, vw_sm_usr_r, vw_sm_usr_r*, vw_sr_usr_r, vw_sr_usr_r*, vw_usr_r, vw_usr_r*, vw_usr_s*
+I 36    	[36]                      	vw_sz_usr_r, vw_sz_usr_r*
+I 60    	[60]                      	vw_sz_usr_s
+
+VW_User Binärer Ausgang
+-----------------------
+bin 17  	[17]                      	vw_lr_usr_r, vw_lr_usr_s
+bin 20  	[BO_T_SpeicherNr]         	vw_usr_r*
+
+VW_User Binärer Eingang
+-----------------------
+binin 20	[BI_T_SpeicherNr]         	vw_kl_usr_r, vw_usr_r
+
+VW_User Analoger Ausgang
+------------------------
+ana 12  	[12]                      	vw_usr_r*
+
+VW_User Analoger Eingang
+------------------------
+anain 7 	[7]                       	vw_usr_r
+anain 8 	[8]                       	vw_usr_r
+
+VW_User Sensor Flag
+-------------------
+s 0     	[N_VMT_MESCNT]            	vw_vmt_usr_r*
+        	[N_VMT_REQCNT]            	vw_vmt_usr_s
+s 1     	[1]                       	vw_cz_usr_r, vw_ds_usr_r, vw_ds_usr_s, vw_ipo_usr_r, vw_ipo_usr_r*, vw_nz_usr_r, vw_pgr_usr_r*, vw_rip_usr_s*, vw_sz_usr_r, vw_sz_usr_s, vw_usr_r, vw_va_usr_s, vw_vmt_usr_s
+        	[MS_WK]                   	vw_ms_usr_r, vw_ms_usr_r*
+        	[SZNr]                    	vw_sz_usr_s, vw_sz_usr_s*
+s 2     	[2]                       	vw_cz_usr_r, vw_ipo_usr_r, vw_ipo_usr_r*, vw_nz_usr_r, vw_pgr_usr_r*, vw_rip_usr_s*, vw_sz_usr_r, vw_usr_r, vw_va_usr_s
+        	[MsgInvalid2]             	vw_vmt_usr_s
+s 3     	[3]                       	vw_ethernetkrl, vw_ethernetkrl_user, vw_ipo_usr_r*, vw_pgr_usr_r*, vw_rip_usr_s*, vw_sz_usr_r
+s 4     	[4]                       	vw_ipo_usr_r*, vw_pgr_usr_r*
+s 5     	[5]                       	vw_ipo_usr_r*
+        	[i]                       	vw_pgr_usr_r*, vw_usr_s
+s 6     	[6]                       	vw_ipo_usr_r*
+s 7     	[7]                       	vw_ipo_usr_r, vw_ipo_usr_r*
+s 20    	[20]                      	vw_isr_usr_r
+s 27    	[I]                       	vw_bu_usr_r*, vw_vmt_usr_r*
+
+VW_User Prozessparameter
+------------------------
+p 6     	[BZ1_Schweissen]          	vw_pot_usr_r*
+p 7     	[BZ2_Schweissen]          	vw_pot_usr_r*
+p 8     	[BZ1_Nachladen]           	vw_pot_usr_r*
+p 9     	[BZ2_Nachladen]           	vw_pot_usr_r*
+p 10    	[MS_Zuenden]              	vw_pot_usr_r*
+p 15    	[KL_Ende]                 	vw_pot_usr_r*
+p 16    	[KL_Spuelen]              	vw_pot_usr_r*
+p 17    	[KL_Prozesskontrolle]     	vw_pot_usr_r*
+p 18    	[KL_Start]                	vw_pot_usr_r*
+p 20    	[NZH_Fuegen]              	vw_pot_usr_r*
+p 21    	[NZH_Nachladen]           	vw_pot_usr_r*
+p 22    	[NZS_Fuegen]              	vw_pot_usr_r*
+p 23    	[NZS_Nachladen]           	vw_pot_usr_r*
+p 24    	[NZ_Befuellstation]       	vw_pot_usr_r*
+p 25    	[CZP_Fuegen]              	vw_pot_usr_r*
+p 26    	[CZS_Fuegen]              	vw_pot_usr_r*
+p 27    	[CZF_Fuegen]              	vw_pot_usr_r*
+p 30    	[SM_Fuegen]               	vw_pot_usr_r*
+p 31    	[SM_Ende]                 	vw_pot_usr_r*
+p 35    	[SR_Schrauben]            	vw_pot_usr_r*
+p 40    	[PR_mit_Zaehler]          	vw_pot_usr_r*
+p 41    	[PR_ohne_Zaehler]         	vw_pot_usr_r*
+p 42    	[PR_Arplas]               	vw_pot_usr_r*
+p 45    	[MB_Buckeln]              	vw_pot_usr_r*
+p 50    	[FD_Schrauben]            	vw_pot_usr_r*
+p 51    	[FD_Nachladen]            	vw_pot_usr_r*
+p 55    	[Sensor_Messen]           	vw_pot_usr_r*
+p 60    	[NC_Schneiden]            	vw_pot_usr_r*
+p 65    	[RE_Band_Start]           	vw_pot_usr_r*
+p 66    	[RE_Band_Ende]            	vw_pot_usr_r*
+p 70    	[RW_Schweissen]           	vw_pot_usr_r*
+p 71    	[RW_Nachladen]            	vw_pot_usr_r*
+p 80    	[80]                      	vw_sz_usr_s, vw_sz_usr_s*
+p 90    	[90]                      	vw_usr_s, vw_usr_s*
+p 101   	[101]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 102   	[102]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 103   	[103]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 104   	[104]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 105   	[105]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 106   	[106]                     	vw_sz_usr_s, vw_sz_usr_s*
+p 111   	[111]                     	vw_pgr_usr_r*
+p 112   	[112]                     	vw_pgr_usr_r*
+p 113   	[113]                     	vw_pgr_usr_r*
+p 140   	[BU_Schwellwert]          	vw_bu_usr_r
+p 220   	[BHF_Off]                 	vw_ds_usr_r*, vw_ds_usr_s
+
+VW_User SIGNAL Eingang
+----------------------
+E 1             	[I_VMT_LOCK]              	VW_VMT_USR_S
+E 1 TO 8        	[PRG_NR]                  	VW_BM_USR_R*, VW_BZ_USR_R*, VW_CGX_USER, VW_CZ_USR_R*, VW_FD_USR_R*, VW_KL_USR_R*, VW_LR_USR_R*, VW_MS_USR_R*, VW_NK_USR_R*, VW_NZ_USR_R*, VW_OE_USR_R*, VW_RW_USR_R*, VW_SM_USR_R*, VW_SR_USR_R*, VW_STP_USR_R*, VW_STP_USR_S, VW_SZ_USR_R*, VW_USR_R, VW_XML_USR
+E 33 TO 36      	[SI_PGR_FM_Nr]            	VW_PGR_USR_R
+E 541 TO 544    	[SI_DS_Code]              	VW_DS_USR_S
+E 737 TO 751    	[SI_AS1_IstPos]           	VW_VA_USR_S
+E 737 TO 751    	[SI_STP_IstPos]           	VW_STP_USR_R
+E 737 TO 751    	[SI_SZ1_IstPos]           	VW_SZ_USR_R, VW_SZ_USR_S
+E 737 TO 751    	[sig1_istpos]             	VW_IPO_USR_R
+E 793 TO 800    	[SI_SK1_Kraft]            	VW_STP_USR_S, VW_SZ_USR_S
+E 897 TO 911    	[SI_AS2_IstPos]           	VW_VA_USR_S
+E 897 TO 911    	[SI_SZ2_IstPos]           	VW_SZ_USR_R, VW_SZ_USR_S
+E 897 TO 911    	[sig2_istpos]             	VW_IPO_USR_R
+E 953 TO 960    	[SI_SK2_Kraft]            	VW_SZ_USR_S
+E 1057 TO 1071  	[SI_AS3_IstPos]           	VW_VA_USR_S
+E 1057 TO 1071  	[SI_SZ3_IstPos]           	VW_SZ_USR_R, VW_SZ_USR_S
+E 1057 TO 1071  	[sig3_istpos]             	VW_IPO_USR_R
+E 1113 TO 1120  	[SI_SK3_Kraft]            	VW_SZ_USR_S
+E 1217 TO 1231  	[SI_AS4_IstPos]           	VW_VA_USR_S
+E 1217 TO 1231  	[sig4_istpos]             	VW_IPO_USR_R
+E 1217 TO 1231  	[SO_RW2_IstPos]           	VW_RW_USR_R
+E 1297 TO 1311  	[SI_AS5_IstPos]           	VW_VA_USR_S
+E 1297 TO 1311  	[sig5_istpos]             	VW_IPO_USR_R
+E 1297 TO 1311  	[SO_RW1_IstPos]           	VW_RW_USR_R
+E 1377 TO 1391  	[SI_AS6_IstPos]           	VW_VA_USR_S
+E 1377 TO 1391  	[sig6_istpos]             	VW_IPO_USR_R
+E 1457 TO 1471  	[SI_AS7_IstPos]           	VW_VA_USR_S
+E 1457 TO 1471  	[sig7_istpos]             	VW_IPO_USR_R
+E 1505 TO 1512  	[SI_KL1_Prg_Nr]           	VW_KL_USR_R
+E 1513 TO 1520  	[SI_KL1_Para_Nr]          	VW_KL_USR_R
+E 1521 TO 1523  	[SI_KL1_Pistolen_Nr]      	VW_KL_USR_R
+E 1569 TO 1576  	[SI_KL2_Prg_Nr]           	VW_KL_USR_R
+E 1577 TO 1584  	[SI_KL2_Para_Nr]          	VW_KL_USR_R
+E 1585 TO 1587  	[SI_KL2_Pistolen_Nr]      	VW_KL_USR_R
+E 1633 TO 1640  	[SI_KL3_Prg_Nr]           	VW_KL_USR_R
+E 1641 TO 1648  	[SI_KL3_Para_Nr]          	VW_KL_USR_R
+E 1649 TO 1651  	[SI_KL3_Pistolen_Nr]      	VW_KL_USR_R
+E 1863          	[MS_Suchlauf_IN]          	VW_MS_USR_R
+E 1881 TO 1888  	[SI_MS1_Prg_Nr]           	VW_MS_USR_R
+E 1913 TO 1920  	[SI_MS2_Prg_Nr]           	VW_MS_USR_R
+E 1953 TO 1960  	[CZAI_CommandIn]          	VW_ZAI_USR_R
+E 1953 TO 1968  	[I_INO_INTYPE]            	VW_INO_USR_R
+E 1953          	[I_PRC_Zyklus]            	VW_PRC_USR_R
+E 1953 TO 1960  	[I_VMT_STATE]             	VW_VMT_USR_S
+E 1953 TO 1984  	[IS_RX32_CORR_B]          	VW_ISR_USR_R
+E 1953 TO 1984  	[IS_RX32_CORR_X]          	VW_ISR_USR_R
+E 1953 TO 1984  	[IS_RX32_CORR_Z]          	VW_ISR_USR_R
+E 1953 TO 1956  	[IS_RX4_RF_RM]            	VW_ISR_USR_R
+E 1953 TO 1960  	[IS_RX8_ERR_SYS_ID]       	VW_ISR_USR_R
+E 1954          	[I_PRC_PktAck]            	VW_PRC_USR_R
+E 1955          	[I_PRC_PosInf]            	VW_PRC_USR_R
+E 1956          	[I_PRC_Fehler]            	VW_PRC_USR_R
+E 1957          	[IS_RX1_RF_IMG_ACQ]       	VW_ISR_USR_R
+E 1958          	[I_PRC_MEACK]             	VW_PRC_USR_R
+E 1958          	[IS_RX1_RF_MEAS_RUN]      	VW_ISR_USR_R
+E 1959          	[I_PRC_PgmMod]            	VW_PRC_USR_R
+E 1959          	[IS_RX1_RF_RES_RUN]       	VW_ISR_USR_R
+E 1960          	[I_PRC_Reset]             	VW_PRC_USR_R
+E 1960          	[IS_RX1_RF_PREP_OK]       	VW_ISR_USR_R
+E 1961 TO 1968  	[CZAI_AckIn]              	VW_ZAI_USR_R
+E 1961 TO 1968  	[I_VMT_TYPE]              	VW_VMT_USR_S
+E 1961          	[IS_RX1_RF_READY]         	VW_ISR_USR_R
+E 1961 TO 1968  	[IS_RX8_ERRORS]           	VW_ISR_USR_R
+E 1962          	[I_PRC_SScAck]            	VW_PRC_USR_R
+E 1962          	[IS_RX1_RF_LIVE]          	VW_ISR_USR_S
+E 1963          	[I_PRC_EScAck]            	VW_PRC_USR_R
+E 1968          	[I_PRC_Life]              	VW_PRC_USR_S
+E 1969 TO 1984  	[CZAI_StatusIn]           	VW_ZAI_USR_R
+E 1969 TO 1984  	[I_INO_D1LW]              	VW_INO_USR_R
+E 1969 TO 1984  	[I_PRC_FehlNr]            	VW_PRC_USR_R
+E 1969 TO 1976  	[I_VMT_PATH]              	VW_VMT_USR_S
+E 1969          	[IS_RX1_RF_ERR_DEADLY]    	VW_ISR_USR_R
+E 1969 TO 1976  	[IS_RX8_RF_ERR_SUM]       	VW_ISR_USR_R
+E 1969 TO 1976  	[IS_RX8_STATE_RESULT]     	VW_ISR_USR_R
+E 1972          	[IS_RX1_RF_ERR_FEAT]      	VW_ISR_USR_R
+E 1973          	[IS_RX1_RF_ERR_PREP]      	VW_ISR_USR_R
+E 1976          	[IS_RX1_RF_ERR_TOL]       	VW_ISR_USR_R
+E 1977 TO 1984  	[I_VMT_POINT]             	VW_VMT_USR_S
+E 1977          	[IS_RX1_RF_W_MAN]         	VW_ISR_USR_R
+E 1977 TO 1984  	[IS_RX8_STATE_WARNING]    	VW_ISR_USR_R
+E 1978          	[IS_RX1_RF_W_TOL]         	VW_ISR_USR_R
+E 1979          	[IS_RX1_RF_W_EVAL]        	VW_ISR_USR_R
+E 1985          	[CZAI_LiveBit_In]         	VW_ZAI_USR_S
+E 1985 TO 2000  	[I_INO_D1HW]              	VW_INO_USR_R
+E 1985          	[I_PRC_DaSend]            	VW_PRC_USR_R
+E 1985 TO 1992  	[I_VMT_STATE2]            	VW_VMT_USR_S
+E 1985 TO 2000  	[IS_RX16_RF_RES_X]        	VW_ISR_USR_R
+E 1985 TO 2016  	[IS_RX32_CORR_A]          	VW_ISR_USR_R
+E 1985 TO 2016  	[IS_RX32_CORR_C]          	VW_ISR_USR_R
+E 1985 TO 2016  	[IS_RX32_CORR_Y]          	VW_ISR_USR_R
+E 1986          	[I_PRC_DaNew]             	VW_PRC_USR_R
+E 1987          	[I_PRC_DaAck]             	VW_PRC_USR_R
+E 1988          	[I_PRC_DaComp]            	VW_PRC_USR_R
+E 1993 TO 1996  	[I_VMT_FAC_R]             	VW_VMT_USR_S
+E 1997 TO 2000  	[I_VMT_FAC_T]             	VW_VMT_USR_S
+E 2001 TO 2016  	[CZAI_UPIn]               	VW_ZAI_USR_R
+E 2001 TO 2016  	[I_INO_D2LW]              	VW_INO_USR_R
+E 2001 TO 2008  	[I_PRC_Data1]             	VW_PRC_USR_R
+E 2001 TO 2016  	[I_VMT_X]                 	VW_VMT_USR_S
+E 2001 TO 2016  	[IS_RX16_RF_RES_Y]        	VW_ISR_USR_R
+E 2009 TO 2016  	[I_PRC_Data2]             	VW_PRC_USR_R
+E 2017 TO 2048  	[CZAI_Double1In]          	VW_ZAI_USR_R
+E 2017 TO 2032  	[I_INO_D2HW]              	VW_INO_USR_R
+E 2017 TO 2024  	[I_PRC_Data3]             	VW_PRC_USR_R
+E 2017 TO 2032  	[I_VMT_Y]                 	VW_VMT_USR_S
+E 2017 TO 2032  	[IS_RX16_RF_RES_Z]        	VW_ISR_USR_R
+E 2017 TO 2024  	[IS_RX8_DATA_ID]          	VW_ISR_USR_R
+E 2025 TO 2032  	[I_PRC_Data4]             	VW_PRC_USR_R
+E 2025 TO 2032  	[IS_RX8_PROG_ID]          	VW_ISR_USR_R
+E 2033 TO 2048  	[I_INO_PAR]               	VW_INO_USR_R
+E 2033 TO 2040  	[I_PRC_Data5]             	VW_PRC_USR_R
+E 2033 TO 2048  	[I_VMT_Z]                 	VW_VMT_USR_S
+E 2033          	[IS_RX1_INIT_SIGNALS]     	VW_ISR_USR_R
+E 2033 TO 2048  	[IS_RX16_RF_RES_RX]       	VW_ISR_USR_R
+E 2034          	[IS_RX1_SKIP]             	VW_ISR_USR_R
+E 2035          	[IS_RX1_CONTINUE]         	VW_ISR_USR_R
+E 2041 TO 2048  	[I_PRC_Data6]             	VW_PRC_USR_R
+E 2046          	[IS_RX1_ERROR_STATE]      	VW_ISR_USR_R
+E 2047          	[IS_RX1_LIVE_SIGNAL]      	VW_ISR_USR_S
+E 2048          	[IS_RX1_HANDSHAKE]        	VW_ISR_USR_R
+E 2049 TO 2080  	[CZAI_Double2In]          	VW_ZAI_USR_R
+E 2049 TO 2064  	[I_INO_CTRL]              	VW_INO_USR_R
+E 2049 TO 2064  	[I_VMT_RX]                	VW_VMT_USR_S
+E 2049 TO 2064  	[IS_RX16_RF_RES_RY]       	VW_ISR_USR_R
+E 2065 TO 2080  	[I_VMT_RY]                	VW_VMT_USR_S
+E 2065 TO 2080  	[IS_RX16_RF_RES_RZ]       	VW_ISR_USR_R
+E 2069          	[I_INO_ACAMOK]            	VW_INO_USR_R
+E 2070          	[I_INO_ALASOK]            	VW_INO_USR_R
+E 2072          	[I_INO_SYSCAL]            	VW_INO_USR_R
+E 2073          	[I_INO_LVB]               	VW_INO_USR_S
+E 2081 TO 2112  	[CZAI_Double3In]          	VW_ZAI_USR_R
+E 2081 TO 2096  	[I_VMT_RZ]                	VW_VMT_USR_S
+E 2105          	[I_VMT_STROBE]            	VW_VMT_USR_S
+E 2106          	[I_VMT_ACK]               	VW_VMT_USR_S
+E 2107          	[I_VMT_READY]             	VW_VMT_USR_S
+E 2108          	[I_VMT_ERROR]             	VW_VMT_USR_S
+E 2109          	[I_VMT_FAIL]              	VW_VMT_USR_S
+E 2112          	[I_VMT_ALIVE]             	VW_VMT_USR_S
+E 2217 TO 2222  	[SI_SR1_Prg_Nr]           	VW_SR_USR_R
+E 2233 TO 2238  	[SI_SR2_Prg_Nr]           	VW_SR_USR_R
+E 2249 TO 2254  	[SI_SR3_Prg_Nr]           	VW_SR_USR_R
+E 2265 TO 2270  	[SI_SR4_Prg_Nr]           	VW_SR_USR_R
+E 2961 TO 2975  	[SI_ACF_IstKraft]         	VW_BU_USR_S
+E 2977 TO 2992  	[SI_ACF_Istpos]           	VW_BU_USR_S
+E 3553 TO 3568  	[SI_SPM_AN1]              	VW_G_USR_S
+E 3905 TO 3936  	[SI_SharedDevice1]        	VW_USR_S
+
+VW_User SIGNAL Ausgang
+----------------------
+A 1             	[O_VMT_LOCK]              	VW_VMT_USR_S*
+A 1 TO 8        	[PRG_NR_REFL]             	VW_USR_R*
+A 33 TO 36      	[SO_PGR_FM_Nr]            	VW_PGR_USR_R*, VW_PGR_USR_S*
+A 97 TO 112     	[SO_LR_Naht_Nr]           	VW_LR_USR_R*
+A 97 TO 112     	[SO_PGR_Geraete_Nr]       	VW_PGR_USR_R*, VW_PGR_USR_S*
+A 97 TO 112     	[SO_SPS_Proz_Nr]          	VW_BM_USR_R*, VW_BZ_USR_R*, VW_CZ_USR_R*, VW_FD_USR_R*, VW_MS_USR_R*, VW_NZ_USR_R*, VW_OE_USR_R*, VW_RW_USR_R*, VW_SM_USR_R*, VW_SR_USR_R*, VW_STP_USR_R*, VW_SZ_USR_R*, VW_USR_S*
+A 211           	[O_MS_F_Such]             	VW_MS_USR_R*
+A 225 TO 232    	[VW_FEH_BIN_A]            	VW_FEH_USR_S*
+A 721 TO 728    	[SO_STP_Kraft]            	VW_STP_USR_S*
+A 721 TO 728    	[SO_SZ1_Kraft]            	VW_SZ_USR_S*
+A 737 TO 751    	[SO_STP_SollPos]          	VW_STP_USR_R*, VW_STP_USR_S*
+A 761 TO 763    	[SO_STP_ZCode]            	VW_STP_USR_S*
+A 761 TO 763    	[SO_SZ1_ZCode]            	VW_DS_USR_S*, VW_IPO_USR_R, VW_SZ_USR_R, VW_SZ_USR_S*
+A 769 TO 776    	[SO_STP_Prg_Nr]           	VW_STP_USR_R*, VW_STP_USR_S
+A 769 TO 776    	[SO_SZ1_Prg_Nr]           	VW_SZ_USR_R*
+A 777 TO 784    	[SO_STP_Fzg_Typ]          	VW_STP_USR_R*, VW_STP_USR_S*
+A 777 TO 784    	[SO_SZ1_Fzg_Typ]          	VW_SZ_USR_R*, VW_SZ_USR_S*
+A 801 TO 816    	[SO_SK1_Pkt_Nr]           	VW_SZ_USR_R*, VW_SZ_USR_S
+A 801 TO 816    	[SO_SK1_Prg_Nr]           	VW_STP_USR_R*
+A 817 TO 824    	[SO_SK1_Fzg_Typ]          	VW_STP_USR_R*, VW_STP_USR_S*, VW_SZ_USR_R*, VW_SZ_USR_S*
+A 881 TO 888    	[SO_SZ2_Kraft]            	VW_SZ_USR_S*
+A 921 TO 923    	[SO_SZ2_ZCode]            	VW_IPO_USR_R, VW_SZ_USR_S*
+A 929 TO 936    	[SO_SZ2_Prg_Nr]           	VW_SZ_USR_R*
+A 937 TO 944    	[SO_SZ2_Fzg_Typ]          	VW_SZ_USR_R*, VW_SZ_USR_S*
+A 961 TO 976    	[SO_SK2_Pkt_Nr]           	VW_SZ_USR_R*, VW_SZ_USR_S
+A 977 TO 984    	[SO_SK2_Fzg_Typ]          	VW_SZ_USR_R*, VW_SZ_USR_S*
+A 1041 TO 1048  	[SO_SZ3_Kraft]            	VW_SZ_USR_S*
+A 1081 TO 1083  	[SO_SZ3_ZCode]            	VW_IPO_USR_R, VW_SZ_USR_S*
+A 1089 TO 1096  	[SO_SZ3_Prg_Nr]           	VW_SZ_USR_R*
+A 1097 TO 1104  	[SO_SZ3_Fzg_Typ]          	VW_SZ_USR_R*, VW_SZ_USR_S*
+A 1121 TO 1136  	[SO_SK3_Pkt_Nr]           	VW_SZ_USR_R*, VW_SZ_USR_S
+A 1137 TO 1144  	[SO_SK3_Fzg_Typ]          	VW_SZ_USR_R*, VW_SZ_USR_S*
+A 1201 TO 1216  	[SO_NZS1_Prg_Nr]          	VW_NZ_USR_R*
+A 1209 TO 1211  	[SO_RW2_ZCode]            	VW_IPO_USR_R, VW_RW_USR_S*
+A 1213 TO 1215  	[SO_NZH1_ZCode]           	VW_DS_USR_S*, VW_NZ_USR_S*
+A 1217 TO 1232  	[SO_NZP1_Prg_Nr]          	VW_NZ_USR_R*
+A 1217 TO 1231  	[SO_RW2_SollPos]          	VW_RW_USR_R*
+A 1233 TO 1248  	[SO_RW2_Prg_Nr]           	VW_RW_USR_R*
+A 1241 TO 1243  	[SO_NZS1_ZCode]           	VW_DS_USR_S*, VW_IPO_USR_R, VW_NZ_USR_S*
+A 1249 TO 1264  	[SO_NZS1_Prg_Nr_Nachladen]	VW_NZ_USR_R*
+A 1281 TO 1296  	[SO_NZS2_Prg_Nr]          	VW_NZ_USR_R*
+A 1289 TO 1291  	[SO_RW1_ZCode]            	VW_DS_USR_S*, VW_IPO_USR_R, VW_RW_USR_S*
+A 1293 TO 1295  	[SO_NZH2_ZCode]           	VW_NZ_USR_S*
+A 1297 TO 1312  	[SO_NZP2_Prg_Nr]          	VW_NZ_USR_R*
+A 1297 TO 1311  	[SO_RW_SollPos]           	VW_RW_USR_S
+A 1297 TO 1311  	[SO_RW1_SollPos]          	VW_RW_USR_R*
+A 1313 TO 1328  	[SO_RW1_Prg_Nr]           	VW_RW_USR_R*
+A 1321 TO 1323  	[SO_NZS2_ZCode]           	VW_IPO_USR_R, VW_NZ_USR_S*
+A 1329 TO 1344  	[SO_NZS2_Prg_Nr_Nachladen]	VW_NZ_USR_R*
+A 1361 TO 1368  	[SO_CZP1_Prg_Nr]          	VW_CZ_USR_R*
+A 1361 TO 1376  	[SO_CZS1_Prg_Nr]          	VW_CZ_USR_R*
+A 1401 TO 1403  	[SO_CZ1_ZCode]            	VW_CZ_USR_S*
+A 1401 TO 1403  	[SO_CZS1_ZCode]           	VW_DS_USR_S*, VW_IPO_USR_R
+A 1441 TO 1448  	[SO_CZP2_Prg_Nr]          	VW_CZ_USR_R*
+A 1441 TO 1456  	[SO_CZS2_Prg_Nr]          	VW_CZ_USR_R*
+A 1481 TO 1483  	[SO_CZ2_ZCode]            	VW_CZ_USR_S*
+A 1481 TO 1483  	[SO_CZS2_ZCode]           	VW_IPO_USR_R
+A 1505 TO 1512  	[SO_KL1_Prg_Nr]           	VW_KL_USR_R*
+A 1513 TO 1520  	[SO_KL1_Para_Nr]          	VW_KL_USR_R*
+A 1521 TO 1523  	[SO_KL1_Pistolen_Nr]      	VW_KL_USR_R*
+A 1569 TO 1576  	[SO_KL2_Prg_Nr]           	VW_KL_USR_R*
+A 1577 TO 1584  	[SO_KL2_Para_Nr]          	VW_KL_USR_R*
+A 1585 TO 1587  	[SO_KL2_Pistolen_Nr]      	VW_KL_USR_R*
+A 1633 TO 1640  	[SO_KL3_Prg_Nr]           	VW_KL_USR_R*
+A 1641 TO 1648  	[SO_KL3_Para_Nr]          	VW_KL_USR_R*
+A 1649 TO 1651  	[SO_KL3_Pistolen_Nr]      	VW_KL_USR_R*
+A 1713 TO 1728  	[SO_BZ1_Prg_Nr]           	VW_BZ_USR_R*
+A 1761 TO 1776  	[SO_BZ2_Prg_Nr]           	VW_BZ_USR_R*
+A 1809 TO 1824  	[SO_SM1_Prg_Nr]           	VW_SM_USR_R*
+A 1819 TO 1823  	[SO_BM1_Prg_Nr]           	VW_BM_USR_R*
+A 1841 TO 1856  	[SO_SM2_Prg_Nr]           	VW_SM_USR_R*
+A 1851 TO 1855  	[SO_BM2_Prg_Nr]           	VW_BM_USR_R*
+A 1863          	[MS_Suchlauf_OUT]         	VW_MS_USR_R*
+A 1878 TO 1880  	[SO_MS1_Betrieb]          	VW_MS_USR_R*, VW_MS_USR_S*
+A 1881 TO 1888  	[SO_MS1_Prg_Nr]           	VW_MS_USR_R*
+A 1910 TO 1912  	[SO_MS2_Betrieb]          	VW_MS_USR_R*, VW_MS_USR_S*
+A 1913 TO 1920  	[SO_MS2_Prg_Nr]           	VW_MS_USR_R*
+A 1953 TO 1960  	[CZAI_CommandOut]         	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 1953 TO 1968  	[IS_TX16_SERVICE_ID]      	VW_ISR_USR_R*
+A 1953 TO 1984  	[IS_TX32_AXIS_1]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_AXIS_3]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_AXIS_5]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_BASE_B]          	VW_ISR_USR_R*
+A 1953 TO 1984  	[IS_TX32_BASE_X]          	VW_ISR_USR_R*
+A 1953 TO 1984  	[IS_TX32_BASE_Z]          	VW_ISR_USR_R*
+A 1953 TO 1984  	[IS_TX32_POSE_B]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_POSE_X]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_POSE_Z]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_TOOL_B]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_TOOL_X]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1984  	[IS_TX32_TOOL_Z]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1956  	[IS_TX4_RF_RM]            	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1953 TO 1960  	[IS_TX8_ERROR_ID1]        	VW_ISR_USR_R*
+A 1953 TO 1960  	[IS_TX8_MODEL_ID]         	VW_ISR_USR_R*
+A 1953 TO 1968  	[O_INO_TYPE]              	VW_INO_USR_R*
+A 1953          	[O_PRC_Pkt]               	VW_PRC_USR_R*
+A 1953 TO 1960  	[O_VMT_CMD]               	VW_VMT_USR_S*
+A 1955          	[O_PRC_ME]                	VW_PRC_USR_R*
+A 1957          	[IS_TX1_RF_START]         	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1957          	[O_PRC_CmpStr]            	VW_PRC_USR_R*
+A 1958          	[IS_TX1_RF_SRESET]        	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1959          	[IS_TX1_RF_ERESET]        	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1960          	[IS_TX1_RF_TYP_STR]       	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1960          	[O_PRC_Reset]             	VW_PRC_USR_R*
+A 1961 TO 1967  	[CZAI_SequenceOut]        	VW_ZAI_USR_S*
+A 1961 TO 1968  	[IS_TX8_ERROR_ID2]        	VW_ISR_USR_R*
+A 1961 TO 1968  	[IS_TX8_RF_TYP]           	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1961 TO 1968  	[O_VMT_TYPE]              	VW_VMT_USR_S*
+A 1962          	[O_PRC_SSc]               	VW_PRC_USR_R*
+A 1963          	[O_PRC_ESc]               	VW_PRC_USR_R*
+A 1965          	[O_PRC_RobBwg]            	VW_PRC_USR_R*
+A 1968          	[CZAI_LiveBit_Out]        	VW_ZAI_USR_S*
+A 1968          	[O_PRC_Life]              	VW_PRC_USR_S*
+A 1969 TO 2000  	[CZAI_IDOut]              	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 1969 TO 1976  	[IS_TX8_RF_SUB_TYP]       	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1969 TO 1984  	[O_INO_D1LW]              	VW_INO_USR_R*
+A 1969 TO 1984  	[O_PRC_PktNr]             	VW_PRC_USR_R*
+A 1969 TO 1976  	[O_VMT_PATH]              	VW_VMT_USR_S*
+A 1977 TO 1984  	[IS_TX8_RF_COLOR_ID]      	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1977 TO 1984  	[O_VMT_POINT]             	VW_VMT_USR_S*
+A 1985          	[IS_TX1_RF_LIVE]          	VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_AXIS_2]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_AXIS_4]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_AXIS_6]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_BASE_A]          	VW_ISR_USR_R*
+A 1985 TO 2016  	[IS_TX32_BASE_C]          	VW_ISR_USR_R*
+A 1985 TO 2016  	[IS_TX32_BASE_Y]          	VW_ISR_USR_R*
+A 1985 TO 2016  	[IS_TX32_POSE_A]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_POSE_C]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_POSE_Y]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_TOOL_A]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_TOOL_C]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2016  	[IS_TX32_TOOL_Y]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 1985 TO 2000  	[O_INO_D1HW]              	VW_INO_USR_R*
+A 1985          	[O_PRC_DaSend]            	VW_PRC_USR_R*
+A 1985 TO 1992  	[O_VMT_CAM]               	VW_VMT_USR_S*
+A 1986          	[O_PRC_DaNew]             	VW_PRC_USR_R*
+A 1987          	[O_PRC_DaAck]             	VW_PRC_USR_R*
+A 1988          	[O_PRC_DaComp]            	VW_PRC_USR_R*
+A 1993 TO 1996  	[O_VMT_FAC_R]             	VW_VMT_USR_S*
+A 1997 TO 2000  	[O_VMT_FAC_T]             	VW_VMT_USR_S*
+A 2001 TO 2016  	[CZAI_ModeOut]            	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 2001 TO 2016  	[O_INO_D2LW]              	VW_INO_USR_R*
+A 2001 TO 2008  	[O_PRC_Data1]             	VW_PRC_USR_R*
+A 2001 TO 2008  	[O_PRC_Speed1]            	VW_PRC_USR_R*
+A 2001 TO 2016  	[O_VMT_X]                 	VW_VMT_USR_S*
+A 2009 TO 2016  	[O_PRC_Data2]             	VW_PRC_USR_R*
+A 2009 TO 2016  	[O_PRC_Speed2]            	VW_PRC_USR_R*
+A 2017 TO 2048  	[CZAI_Double1Out]         	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 2017 TO 2024  	[IS_TX8_DATA_ID]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2017 TO 2032  	[O_INO_D2HW]              	VW_INO_USR_R*
+A 2017 TO 2024  	[O_PRC_Data3]             	VW_PRC_USR_R*
+A 2017 TO 2024  	[O_PRC_Speed3]            	VW_PRC_USR_R*
+A 2017 TO 2032  	[O_VMT_Y]                 	VW_VMT_USR_S*
+A 2025 TO 2032  	[IS_TX8_POSE_ID]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2025 TO 2032  	[O_PRC_Data4]             	VW_PRC_USR_R*
+A 2025 TO 2032  	[O_PRC_Speed4]            	VW_PRC_USR_R*
+A 2033          	[IS_TX1_INIT_SIGNALS]     	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2033 TO 2048  	[O_INO_PAR]               	VW_INO_USR_R*
+A 2033 TO 2040  	[O_PRC_Data5]             	VW_PRC_USR_R*
+A 2033 TO 2048  	[O_PRC_StrVrz]            	VW_PRC_USR_R*
+A 2033 TO 2048  	[O_VMT_Z]                 	VW_VMT_USR_S*
+A 2034          	[IS_TX1_SKIP]             	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2035          	[IS_TX1_APPROACH_POSE]    	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2036          	[IS_TX1_IN_POSE]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2037          	[IS_TX1_IN_ENDPOSE]       	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2038          	[IS_TX1_TIMEOUT]          	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2041          	[IS_TX1_DATA_UNCHANGED]   	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2041 TO 2048  	[O_PRC_Data6]             	VW_PRC_USR_R*
+A 2042          	[IS_TX1_DATA_REQUEST]     	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2043          	[IS_TX1_DATA_VALID]       	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2044          	[IS_TX1_DATA_ACCEPTED]    	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2045          	[IS_TX1_DATA_END_TRANS]   	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2046          	[IS_TX1_ERROR_STATE]      	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2047          	[IS_TX1_LIVE_SIGNAL]      	VW_ISR_USR_S*
+A 2048          	[IS_TX1_HANDSHAKE]        	VW_ISR_USR_R*, VW_ISR_USR_S*
+A 2049 TO 2080  	[CZAI_Double2Out]         	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 2049 TO 2064  	[O_INO_CTRL]              	VW_INO_USR_R*, VW_INO_USR_S*
+A 2049 TO 2064  	[O_PRC_EndVrz]            	VW_PRC_USR_R*
+A 2049 TO 2064  	[O_VMT_RX]                	VW_VMT_USR_S*
+A 2065 TO 2080  	[O_VMT_RY]                	VW_VMT_USR_S*
+A 2081 TO 2112  	[CZAI_Double3Out]         	VW_ZAI_USR_R*, VW_ZAI_USR_S*
+A 2081 TO 2096  	[O_VMT_RZ]                	VW_VMT_USR_S*
+A 2097 TO 2104  	[O_VMT_ID]                	VW_VMT_USR_S*
+A 2105          	[O_VMT_STROBE]            	VW_VMT_USR_S*
+A 2106          	[O_VMT_ACK]               	VW_VMT_USR_S*
+A 2108          	[O_VMT_QUITT]             	VW_VMT_USR_S*
+A 2217 TO 2222  	[SO_SR1_Prg_Nr]           	VW_SR_USR_R*
+A 2233 TO 2238  	[SO_SR2_Prg_Nr]           	VW_SR_USR_R*
+A 2249 TO 2254  	[SO_SR3_Prg_Nr]           	VW_SR_USR_R*
+A 2265 TO 2270  	[SO_SR4_Prg_Nr]           	VW_SR_USR_R*
+A 2393 TO 2400  	[SO_FD1_Fzg_Typ]          	VW_FD_USR_R*
+A 2401 TO 2416  	[SO_FD1_Prg_Nr]           	VW_FD_USR_R*
+A 2457 TO 2464  	[SO_FD2_Fzg_Typ]          	VW_FD_USR_R*
+A 2465 TO 2480  	[SO_FD2_Prg_Nr]           	VW_FD_USR_R*
+A 2593 TO 2600  	[SO_NK_Prg_Nr]            	VW_NK_USR_R*
+A 2739 TO 2740  	[SO_OE1_Prg_Nr]           	VW_OE_USR_R*
+A 2743 TO 2744  	[SO_OE2_Prg_Nr]           	VW_OE_USR_R
+A 2801 TO 2808  	[SO_LR_Prg_Nr]            	VW_LR_USR_R*
+A 2809          	[SO_LR_P_Anw]             	VW_LR_USR_R*
+A 2897 TO 2912  	[SO_LR_Leistung]          	VW_LR_USR_R*
+A 2957 TO 2959  	[ACF_ZCode]               	VW_BU_USR_S*
+A 2961 TO 2975  	[SO_ACF_Arbeitskraft]     	VW_BU_USR_R*
+A 2977 TO 2991  	[SO_ACF_Antastkraft]      	VW_BU_USR_R*
+A 2993 TO 3008  	[SO_ACF_Traglast]         	VW_BU_USR_R*
+A 3006          	[O_VMT_BKTRIG]            	VW_VMT_USR_S*
+A 3009 TO 3016  	[SO_ACF_Kraftrampe]       	VW_BU_USR_R*
+A 3025 TO 3040  	[BU_Drehzahl]             	VW_BU_USR_R*
+A 3553 TO 3568  	[SO_SPM_AN1]              	VW_G_USR_S*
+A 3905 TO 3936  	[SO_Gateway1]             	VW_USR_S*
+Cell:
+-----
+Folge 1, 41, 61, 124, 125
+

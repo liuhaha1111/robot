@@ -1,0 +1,393 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/KL_Kleben
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_KL_USR_S( )
+;
+;***************************************************
+;*Technologiepaket KL Kleben                       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 02.10.2019 CE Anforderung Spuelen angepasst     *
+;***************************************************
+;
+END
+;
+;FOLD INIT KL 
+GLOBAL DEF KL_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_KL.Name[]="KS26.01.003_20191016"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_KLS_Handle[i]=-1
+  n_KLR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD KL BASE ADRESSEN INITIALISIEREN
+KL_BASE_INIT( )
+;FOLD SP BASE ADRESSEN INITIALISIEREN
+SP_BASE_INIT( )
+;ENDFOLD
+;
+FOR i=1 TO 3
+  KL_Pistole_ZU[i]=FALSE
+  $OUT[KL_BASE_MA[i]+O_KL_Pistole]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW KL
+GLOBAL DEF KL_SAW(KLNr :IN)
+INT KLNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET KL
+GLOBAL DEF KL_RESET(KLNr :IN)
+INT KLNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL KL
+GLOBAL DEF KL_CANCEL(KLNr :IN)
+INT KLNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP KL
+GLOBAL DEF KL_LOOP(KLNr :IN)
+BOOL bRet
+INT KLNr,Msg_Offset
+Msg_Offset=0
+;
+;KL BASE ADRESSEN INITIALISIEREN
+KL_BASE_INIT( )
+;
+IF (KL_BASE_SL[KLNr]==HM_BASE_SL) THEN
+  KL_Msg(KLNr,#StateMsg)
+ELSE
+  IF (n_KLS_Handle[KLNr]>-1) THEN
+    bRet=Clear_KrlMsg(n_KLS_Handle[KLNr])
+    n_KLS_Handle[KLNr]=-1
+  ENDIF
+ENDIF
+;
+;SP BASE ADRESSEN INITIALISIEREN
+SP_BASE_INIT( )
+;
+IF ($mode_op==#EX) THEN
+  ;Override auf 100% setzen
+  IF ($OV_PRO<>100) AND $OUT[KL_BASE_MA[KLNr]+O_KL_Start] AND $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole] AND NOT $IN[KL_BASE_SL[KLNr]+I_KL_o_Proz] THEN
+    $OV_PRO=100
+    KL_Msg(10,#NotifyMsg)
+  ENDIF
+  ;FB-PSPS Merker ruecksetzen wenn Pistole angesteuert wurde.
+  IF $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole] THEN
+    KL_Pistole_ZU[KLNr]=FALSE
+  ENDIF
+  ;FB-PSPS nicht erfuellt, Pistole ZU
+  Msg_Offset=3
+  IF $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole] AND NOT $OUT[O_R_i_Bew] AND NOT $FLAG[F_FB_PSPS] THEN
+    $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole]=FALSE
+    KL_Pistole_ZU[KLNr]=TRUE
+    KL_Msg(Msg_Offset+KLNr,#NotifyMsg)
+  ENDIF
+  Msg_Offset=6
+  ;FB-PSPS wieder erfuellt, Pistole AUF
+  IF KL_Pistole_ZU[KLNr] AND NOT $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole] AND $OUT[O_R_i_Bew] AND $FLAG[F_FB_PSPS] THEN
+    $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole]=TRUE
+    KL_Pistole_ZU[KLNr]=FALSE
+    KL_Msg(Msg_Offset+KLNr,#NotifyMsg)
+  ENDIF
+ENDIF
+;
+;Betriebsfreigabe
+$OUT[KL_BASE_MA[KLNr]+O_KL_Betr_FRG]=$OUT[O_R_RK100]
+;Automatik
+$OUT[KL_BASE_MA[KLNr]+O_KL_Auto]=$OUT[O_R_Auto]
+;Heizung/Pumpe nachtriggern
+IF ($FLAG[F_KL_Trig[KLNR]] AND $COULD_START_MOTION AND NOT $IN[I_FT_o_BT] AND (MIT_KL[KLNr]==TRUE) AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_P_Temp]) OR (($IN[KL_BASE_SL[KLNr]+I_KL_Trigger] OR $OUT[KL_BASE_MA[KLNr]+O_KL_Start] OR $OUT[KL_BASE_MA[KLNr]+O_KL_S] OR $OUT[KL_BASE_MA[KLNr]+O_KL_S_1K]) AND ($COULD_START_MOTION AND NOT $IN[I_FT_o_BT] AND (MIT_KL[KLNr] AND KL_o_Nachtrig[KLNr]==FALSE) AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_P_Temp])) THEN
+  RobTimerTrig=$ROB_TIMER
+  $OUT[KL_BASE_MA[KLNr]+O_KL_P_Reset]=TRUE
+  $OUT[KL_BASE_MA[KLNr]+O_KL_H_Reset]=TRUE
+ELSE
+  $OUT[KL_BASE_MA[KLNr]+O_KL_P_Reset]=FALSE
+  $OUT[KL_BASE_MA[KLNr]+O_KL_H_Reset]=FALSE
+ENDIF
+;
+IF $OUT[O_R_Hand] AND $COULD_START_MOTION AND NOT $OUT[O_R_Proz_akt] THEN
+  ;Klebe Spueleimer
+  IF ((DEF_ZANGE[KL_ZANGE[KLNr]].Typ==1) OR (DEF_ZANGE[KL_ZANGE[KLNr]].Typ==2)) AND (DEF_ZANGE[KL_ZANGE[KLNr]].A_AUF>0) AND (DEF_ZANGE[KL_ZANGE[KLNr]].A_ZU>0) THEN
+    IF ($OUT[DEF_ZANGE[KL_ZANGE[KLNr]].A_AUF]==TRUE) THEN
+      IF $IN[SP_BASE_MA[KLNr]+I_Sp_Ruh_KL] THEN
+        $OUT[SP_BASE_MA[KLNr]+O_FRGHal_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_V_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_FRGBew_KL]=FALSE
+      ELSE  
+        $OUT[SP_BASE_MA[KLNr]+O_FRGHal_KL]=FALSE
+        $OUT[SP_BASE_MA[KLNr]+O_V_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_FRGBew_KL]=TRUE
+      ENDIF  
+    ENDIF 
+    IF ($OUT[DEF_ZANGE[KL_ZANGE[KLNr]].A_ZU]==TRUE) THEN
+      IF $IN[SP_BASE_MA[KLNr]+I_Sp_Arb_KL] THEN
+        $OUT[SP_BASE_MA[KLNr]+O_FRGHal_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_V_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_FRGBew_KL]=FALSE
+      ELSE  
+        $OUT[SP_BASE_MA[KLNr]+O_FRGHal_KL]=FALSE
+        $OUT[SP_BASE_MA[KLNr]+O_V_KL]=TRUE
+        $OUT[SP_BASE_MA[KLNr]+O_FRGBew_KL]=TRUE
+      ENDIF  
+    ENDIF		
+  ENDIF 
+ENDIF
+;
+IF $OUT[O_R_Hand] AND $FLAG[F_RSK_Gst] AND NOT $COULD_START_MOTION THEN  
+  $OUT[SP_BASE_MA[KLNr]+O_V_KL]=FALSE
+  $OUT[SP_BASE_MA[KLNr]+O_FRGBew_KL]=FALSE 
+ENDIF
+;
+$FLAG[F_KL_Rob_Dos[KLNr]]=KL_Rob_Dos[KLNr]
+$FLAG[F_KL_SP_PF0[KLNr]]=MIT_KL_SPUELEN[KLNr]
+;
+;Vorwahl ohne Prozess
+$OUT[KL_BASE_MA[KLNr]+O_KL_o_Proz]=$IN[KL_BASE_SL[KLNr]+I_KL_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;Prozess aktiv
+$OUT[KL_BASE_SL[KLNr]+O_KL_P_akt]=$OUT[KL_BASE_MA[KLNr]+O_KL_Start] OR $OUT[KL_BASE_MA[KLNr]+O_KL_S] OR $OUT[KL_BASE_MA[KLNr]+O_KL_S_1K] OR KL_SPUELEN_AKTIV[KLNr]
+;
+;Systemkomponenten EIN
+$OUT[KL_BASE_MA[KLNr]+O_KL_SYS_EIN]=TRUE
+;
+;Heizung AUS
+$OUT[KL_BASE_MA[KLNr]+O_KL_Heizung_AUS]=$IN[KL_BASE_SL[KLNr]+I_KL_Heizung_AUS]
+;
+;Vorwahl BT zeigen
+$FLAG[F_KL_AnwZeig[KLNr]]=$IN[KL_BASE_SL[KLNr]+I_KL_BT_zei]
+$OUT[KL_BASE_MA[KLNr]+O_KL_BT_zei]=$IN[KL_BASE_SL[KLNr]+I_KL_BT_zei] AND $OUT[KL_BASE_SL[KLNr]+O_KL_P_akt]
+;
+;KL FRG Spuelen // Spuelen in Grundstellung
+IF ((($OUT[O_R_PF0] OR $FLAG[F_KL_FRG_SP_EIN]) AND (NOT KL_stat[KLNr] AND KL_robotergefuehrt[KLNr]) OR (KL_stat[KLNr] AND $IN[SP_BASE_MA[KLNr]+I_Sp_Ruh_KL] AND NOT $IN[SP_BASE_MA[KLNr]+I_Sp_Arb_KL])) OR KL_ohne_KS[KLNr]) THEN
+  $OUT[KL_BASE_MA[KLNr]+O_KL_FRG_S]=TRUE
+ELSE
+  $OUT[KL_BASE_MA[KLNr]+O_KL_FRG_S]=FALSE
+ENDIF
+IF ($IN[KL_BASE_SL[KLNr]+I_KL_anw_S]==FALSE) AND ($IN[KL_BASE_SL[KLNr]+I_KL_anw_S_1K]==FALSE) THEN
+  KL_FrgSpuel_1[KLNr]=TRUE ; Flankenmerker keine Anf. von SPS
+ENDIF
+IF (($OUT[O_R_PF0] AND MIT_KL_SPUELEN[KLNr] OR $IN[KL_BASE_SL[KLNr]+I_KL_anw_S] OR $IN[KL_BASE_SL[KLNr]+I_KL_anw_S_1K]) AND NOT $OUT[KL_BASE_SL[KLNr]+O_KL_P_akt]) OR KL_SPUELEN_AKTIV[KLNr] THEN
+  IF ($EXT==TRUE) AND $COULD_START_MOTION AND $OUT[KL_BASE_MA[KLNr]+O_KL_FRG_S] THEN
+    IF $IN[KL_BASE_MA[KLNr]+I_KL_P_Temp] AND (($IN[KL_BASE_MA[KLNr]+I_KL_ANF_S] OR $IN[KL_BASE_SL[KLNr]+I_KL_anw_S]) AND KL_FrgSpuel_1[KLNr]) THEN
+      $OUT[KL_BASE_MA[KLNr]+O_KL_S]=TRUE
+      $OUT[KL_BASE_SL[KLNr]+O_KL_S_an]=TRUE
+      KL_SPUELEN_AKTIV[KLNr]=TRUE
+      KL_FrgSpuel_1[KLNr]=FALSE
+    ENDIF
+    IF $IN[KL_BASE_MA[KLNr]+I_KL_P_Temp] AND $IN[KL_BASE_SL[KLNr]+I_KL_anw_S_1K] AND KL_FrgSpuel_1[KLNr] THEN
+      $OUT[KL_BASE_MA[KLNr]+O_KL_S_1K]=TRUE
+      $OUT[KL_BASE_SL[KLNr]+O_KL_1K_S_an]=TRUE
+      KL_SPUELEN_AKTIV[KLNr]=TRUE
+      KL_FrgSpuel_1[KLNr]=FALSE
+    ENDIF
+    IF $IN[KL_BASE_MA[KLNr]+I_KL_S_FK] OR $IN[KL_BASE_SL[KLNr]+I_KL_o_Proz] THEN
+      $OUT[KL_BASE_MA[KLNr]+O_KL_S]=FALSE
+      $OUT[KL_BASE_MA[KLNr]+O_KL_S_1K]=FALSE
+      $OUT[KL_BASE_SL[KLNr]+O_KL_S_an]=FALSE
+      $OUT[KL_BASE_SL[KLNr]+O_KL_1K_S_an]=FALSE
+      KL_SPUELEN_AKTIV[KLNr]=FALSE
+      $FLAG[F_KL_anw_S[KLNr]]=FALSE
+    ENDIF
+  ENDIF
+ELSE
+  IF $OUT[O_R_PF0] AND NOT MIT_KL_SPUELEN[KLNr] AND NOT $IN[KL_BASE_SL[KLNr]+I_KL_anw_S] AND NOT $IN[KL_BASE_SL[KLNr]+I_KL_anw_S_1K] THEN
+    $OUT[KL_BASE_MA[KLNr]+O_KL_S]=FALSE
+    $OUT[KL_BASE_SL[KLNr]+O_KL_S_an]=FALSE
+  ENDIF
+ENDIF
+;
+;Bauteilbewertung
+IF $IN[KL_BASE_SL[KLNr]+I_KL_BT_io] THEN
+  $FLAG[F_KL_BT_io]=TRUE
+ELSE
+  $FLAG[F_KL_BT_io]=FALSE
+ENDIF
+IF $IN[KL_BASE_SL[KLNr]+I_KL_BT_Na] THEN
+  $FLAG[F_KL_BT_Na]=TRUE
+ELSE
+  $FLAG[F_KL_BT_Na]=FALSE
+ENDIF
+IF $IN[KL_BASE_SL[KLNr]+I_KL_BT_nio] THEN
+  $FLAG[F_KL_BT_nio]=TRUE
+ELSE
+  $FLAG[F_KL_BT_nio]=FALSE
+ENDIF
+;
+;Anwahl Spuelen
+IF ($IN[KL_BASE_SL[KLNr]+I_KL_anw_S] OR $IN[KL_BASE_SL[KLNr]+I_KL_anw_S_1K] OR $IN[KL_BASE_MA[KLNr]+I_KL_ANF_S]) AND NOT $IN[KL_BASE_SL[KLNr]+I_KL_o_Proz] THEN
+  $FLAG[F_KL_anw_S[KLNr]]=TRUE
+ENDIF
+IF $OUT[KL_BASE_MA[KLNr]+O_KL_o_Proz] THEN
+  $FLAG[F_KL_anw_S[KLNr]]=FALSE
+ENDIF
+;
+;Anwahl Override 100%
+IF ($mode_op==#EX) AND ($OV_PRO<>100) AND $OUT[KL_BASE_MA[KLNr]+O_KL_Start] AND $OUT[KL_BASE_MA[KLNr]+O_KL_Pistole] AND NOT $IN[KL_BASE_SL[KLNr]+I_KL_o_Proz] THEN
+  $OV_PRO=100
+  KL_Msg(10,#NotifyMsg)
+ENDIF
+;
+;Anwahl Mischerwechsel
+$OUT[KL_BASE_MA[KLNr]+O_KL_M_wechsel]=$IN[KL_BASE_SL[KLNr]+I_KL_Mischerwechsel]
+;
+;Ausgabe Statusmeldungen an BMS
+;Beim Zeigen
+$OUT[KL_BASE_SL[KLNr]+O_KL_BT_zeig]=$FLAG[F_KL_ZeigePos[KLNr]]
+;Vorwarnung liegt an
+$OUT[KL_BASE_SL[KLNr]+O_KL_VW_akt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_VW_akt]
+;Vorwarnung Fass
+$OUT[KL_BASE_SL[KLNr]+O_KL_VW_Fas]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_VW_Fas]
+;Prozesstemperatur nicht erreicht
+$OUT[KL_BASE_SL[KLNr]+O_KL_P_Temp]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $OUT[O_R_PF0] AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_P_Temp] AND NOT $IN[I_FT_o_BT] AND NOT KL_o_Nachtrig[KLNr]
+;Stoerung Heizung / Pumpe / Dosiereinheit
+$OUT[KL_BASE_SL[KLNr]+O_KL_St_HPD]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_St_HPD] AND NOT KL_o_Nachtrig[KLNr]
+;Fehler Kleberauftrag
+$OUT[KL_BASE_SL[KLNr]+O_KL_Feh_KL]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_Feh_KL]
+;1K im Mischer
+$OUT[KL_BASE_SL[KLNr]+O_KL_1K_Mix]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_1K_Mix]
+;2K im Mischer
+$OUT[KL_BASE_SL[KLNr]+O_KL_2K_Mix]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_2K_Mix]
+;Kontrollmessung fertig
+$OUT[KL_BASE_SL[KLNr]+O_KL_FK_Kon]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_FK_Kon]
+;Anforderung Mischerwechsel
+$OUT[KL_BASE_SL[KLNr]+O_KL_Mischerwechsel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[KL_BASE_MA[KLNr]+I_KL_M_wechsel]
+;Betriebsbereit fehlt
+$OUT[KL_BASE_SL[KLNr]+O_KL_Betr_f]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[KL_BASE_MA[KLNr]+I_KL_Betr_f] AND NOT $IN[I_FT_o_BT] AND $timer_flag[TimerNr_Ein]
+;Sammelstoerung
+$OUT[KL_BASE_SL[KLNr]+O_KL_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND (NOT $IN[KL_BASE_MA[KLNr]+I_KL_Sammel] OR $FLAG[F_KL_Sammel[KLNr]] OR KL_Pistole_ZU[KLNr]) AND $timer_flag[TimerNr_Ein]
+;Verklemmanzeige Schwenker
+$OUT[KS_BASE_SL+O_KS_F_Schwenker]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($FLAG[F_F_Schwenker] OR $FLAG[F_KL_MoS_nio])
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD KL_BASE_INIT
+DEF KL_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;KL SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_KL_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_KL_BASE_SL[1]=HM_BASE_SL
+  KL_BASE_SL[1]=HM_BASE_SL
+ELSE
+  KL_BASE_SL[1]=CF_KL_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_KL_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_KL_BASE_SL[2]=HM_BASE_SL
+  KL_BASE_SL[2]=HM_BASE_SL
+ELSE
+  KL_BASE_SL[2]=CF_KL_BASE_SL[2]
+ENDIF
+;
+BaseResult=BaseCheck(CF_KL_BASE_SL[3])
+IF (BaseResult<>0) THEN
+  CF_KL_BASE_SL[3]=HM_BASE_SL
+  KL_BASE_SL[3]=HM_BASE_SL
+ELSE
+  KL_BASE_SL[3]=CF_KL_BASE_SL[3]
+ENDIF
+;
+;KL MASTER ADRESSIERUNG
+KL_BASE_MA[1]=1505                      
+KL_BASE_MA[2]=1569
+KL_BASE_MA[3]=1633
+;
+END
+;ENDFOLD (KL_BASE_INIT)
+;***************************************************
+;FOLD SP_BASE_INIT
+DEF SP_BASE_INIT()
+;
+;SP MASTER ADRESSIERUNG
+SP_BASE_MA[1]=2113                      
+SP_BASE_MA[2]=2121
+SP_BASE_MA[3]=2129
+;
+END
+;ENDFOLD (SP_BASE_INIT)
+;***************************************************
+;FOLD KL_Meldungen
+DEF KL_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Answer
+DECL KLS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "KL_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_KLS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="KL1: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="KL2: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="KL3: Slave Startadresse ungueltig"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="KL1: FB-PSPS nicht erfuellt, Pistole wurde geschlossen"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="KL2: FB-PSPS nicht erfuellt, Pistole wurde geschlossen"
+    CASE 6
+	   USER_MSG.MSG_TXT[]="KL3: FB-PSPS nicht erfuellt, Pistole wurde geschlossen" 
+    CASE 7
+	   USER_MSG.MSG_TXT[]="KL1: FB-PSPS wieder erfuellt, Pistole wurde geoeffnet"
+    CASE 8
+	   USER_MSG.MSG_TXT[]="KL2: FB-PSPS wieder erfuellt, Pistole wurde geoeffnet"
+    CASE 9
+	   USER_MSG.MSG_TXT[]="KL3: FB-PSPS wieder erfuellt, Pistole wurde geoeffnet"          
+    CASE 10
+	   USER_MSG.MSG_TXT[]="KL: Roboter Override wurde auf 100% gesetzt"
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_KLS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_KLS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_KLS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_KLS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (KL Meldungen)

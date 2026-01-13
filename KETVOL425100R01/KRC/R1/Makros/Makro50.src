@@ -1,0 +1,124 @@
+&ACCESS RVO1
+&REL 4
+&COMMENT Initialisierung Merker
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM DISKPATH = Makros
+DEFFCT INT MAKRO50(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 18.02.2019 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 18.02.2019 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Initialisierung Merker -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Initialisierung Merker --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Maschinelle Sicherheiten -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Maschinelle Sicherheiten --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Maschinelle Sicherheiten -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Maschinelle Sicherheiten --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M30 = E14 & E24 & E516 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M30 = E14 & E24 & E516, 3: BOASG
+      $CYCFLAG[30] = $IN[14] AND $IN[24] AND $IN[516]
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Sammelmerker Verriegelung -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Sammelmerker Verriegelung --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M8 = E41 & E43 & E45 & E47 & E51 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M8 = E41 & E43 & E45 & E47 & E51, 3: BOASG
+      $CYCFLAG[8] = $IN[41] AND $IN[43] AND $IN[45] AND $IN[47] AND $IN[51]
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- DOCKING -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- DOCKING --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Kein Werkzeug angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Kein Werkzeug angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M81 = !E537 & !E541 & !E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M81 = !E537 & !E541 & !E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[81] = NOT $IN[537] AND NOT $IN[541] AND NOT $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 1 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 1 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M82 = E537 & E538 & !E539 & E541 & !E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M82 = E537 & E538 & !E539 & E541 & !E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[82] = $IN[537] AND $IN[538] AND NOT $IN[539] AND $IN[541] AND NOT $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 2 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 2 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M83 = E537 & E538 & !E539 & !E541 & E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M83 = E537 & E538 & !E539 & !E541 & E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[83] = $IN[537] AND $IN[538] AND NOT $IN[539] AND NOT $IN[541] AND $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 3 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 3 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M84 = E537 & E538 & !E539 & E541 & E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M84 = E537 & E538 & !E539 & E541 & E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[84] = $IN[537] AND $IN[538] AND NOT $IN[539] AND $IN[541] AND $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Kein Werkzeug angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Kein Werkzeug angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M172 = !E537 & !E541 & !E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M172 = !E537 & !E541 & !E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[172] = NOT $IN[537] AND NOT $IN[541] AND NOT $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 1 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 1 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M173 = E537 & E538 & !E539 & E541 & !E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M173 = E537 & E538 & !E539 & E541 & !E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[173] = $IN[537] AND $IN[538] AND NOT $IN[539] AND $IN[541] AND NOT $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 2 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 2 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M174 = E537 & E538 & !E539 & !E541 & E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M174 = E537 & E538 & !E539 & !E541 & E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[174] = $IN[537] AND $IN[538] AND NOT $IN[539] AND NOT $IN[541] AND $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- Werkzeug 3 angedockt -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeug 3 angedockt --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M175 = E537 & E538 & !E539 & E541 & E542 & !E543 & !E544 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M175 = E537 & E538 & !E539 & E541 & E542 & !E543 & !E544, 3: BOASG
+      $CYCFLAG[175] = $IN[537] AND $IN[538] AND NOT $IN[539] AND $IN[541] AND $IN[542] AND NOT $IN[543] AND NOT $IN[544]
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Schalten von IBS-/ProfiNet Alternativen -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Schalten von IBS-/ProfiNet Alternativen --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Teilnehmer DB1 nicht ankoppeln (Greifer) -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Teilnehmer DB1 nicht ankoppeln (Greifer) --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD F512 = !E537 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F512 = !E537, 3: BOASG
+      $FLAG[512] = NOT $IN[537]
+   ;ENDFOLD
+   ;FOLD -- Ansprung Makro 59 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ansprung Makro 59 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD SPSMAKRO59 = !F512 ;%{E}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO59 = !F512, 3: MAKRO
+      SEL_RES=SELECT(#MAKRO,59,NOT $FLAG[512],,,,,FALSE)
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Diverse  Anwahlen -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Diverse  Anwahlen --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD SPSMAKRO57 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO57 = EIN, 3: MAKRO
+      SEL_RES=SELECT(#MAKRO,57,TRUE,,,,,FALSE)
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN SELECT(#MAKRO,59,TRUE,,,,,TRUE) * SELECT(#MAKRO,57,TRUE,,,,,TRUE)
+   ENDIF
+ENDFCT
+; ENDFOLD

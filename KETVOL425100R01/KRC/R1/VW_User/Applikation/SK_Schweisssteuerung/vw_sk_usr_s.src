@@ -1,0 +1,284 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SK_Schweisssteuerung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEF VW_SK_USR_S( )
+;
+;***************************************************
+;*Technologiepaket SK Schweisssteuerung            *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT SK_Steuerung
+GLOBAL DEF SK_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_SK.Name[]="KS26.01.005_20191016"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_SKS_Handle[i]=-1
+  n_SKR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD SK BASE ADRESSEN INITIALISIEREN
+SK_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW SK_Steuerung
+GLOBAL DEF SK_SAW( )
+INT i
+;
+FOR i=1 TO 3
+  $OUT[SK_BASE_MA[i]+O_SK_BTEnde]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET SK_Steuerung
+GLOBAL DEF SK_RESET( )
+INT i
+;
+FOR i=1 TO 3
+  $OUT[SK_BASE_MA[i]+O_SK_BTEnde]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL SK_Steuerung
+GLOBAL DEF SK_CANCEL( )
+INT i
+;
+FOR i=1 TO 3
+  $OUT[SK_BASE_MA[i]+O_SK_BTEnde]=FALSE
+ENDFOR
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP SK_Steuerung
+GLOBAL DEF SK_LOOP(SKNr :IN)
+BOOL bRet
+INT SKNr,i
+;
+;SK BASE ADRESSEN INITIALISIEREN
+SK_BASE_INIT( )
+;
+IF (SK_BASE_SL[SKNr]==HM_BASE_SL) THEN
+  SK_Msg(SKNr,#StateMsg)
+ELSE
+  IF (n_SKS_Handle[SKNr]>-1) THEN
+    bRet=Clear_KrlMsg(n_SKS_Handle[SKNr])
+    n_SKS_Handle[SKNr]=-1
+  ENDIF
+ENDIF
+;Bauteilende(Q-Auswertung)
+IF $OUT[O_R_PF0] THEN
+  FOR i=1 TO 3
+    $OUT[SK_BASE_MA[i]+O_SK_BTEnde]=FALSE
+  ENDFOR
+ENDIF
+;Prozess aktiv
+IF NOT Mit_KE[SKNr] THEN
+  $OUT[SK_BASE_SL[SKNr]+O_SK_P_akt]=$OUT[SK_BASE_MA[SKNr]+O_SK_S_Schw]
+ELSE
+  $OUT[SK_BASE_SL[SKNr]+O_SK_P_akt]=FALSE
+  B_KE_Proz[SKNr]=$OUT[SK_BASE_MA[SKNr]+O_SK_S_Schw]
+ENDIF
+;Vorwahl mit Prozess
+$OUT[SK_BASE_MA[SKNr]+O_SK_o_Prozess]=NOT $IN[SK_BASE_SL[SKNr]+I_SK_o_Proz] AND NOT $FLAG[F_o_Proz_SStep]
+$FLAG[F_SK_o_Strom[SKNr]]=NOT $OUT[SK_BASE_MA[SKNr]+O_SK_o_Prozess]
+;Start Protokoll
+$OUT[SK_BASE_MA[SKNr]+O_SK_Protokoll]=$IN[SK_BASE_SL[SKNr]+I_SK_Protokoll]
+;Funktionstest ohne Bauteil
+$OUT[SK_BASE_MA[SKNr]+O_SK_FT_oBT]=$IN[I_FT_o_BT] 
+;Fehlerreset
+$OUT[SK_BASE_MA[SKNr]+O_SK_F_Res]=$IN[I_R_Quit_St]   
+;Fehlerreset
+$OUT[SK_BASE_MA[SKNr]+O_SK_F_Res]=NOT $IN[SK_BASE_MA[SKNr]+I_SK_Bereit] AND $IN[I_R_Quit_St] 
+;Fehlerreset Auto-Quit bei Wiederhol-Fraesung
+IF ($FLAG[F_SK_WdhFraesen] AND (MIT_SK_WdhFraesen[SKNr]==TRUE) AND NOT $IN[SK_BASE_MA[SKNr]+I_SK_Bereit]) THEN
+  PULSE($OUT[SK_BASE_MA[SKNr]+O_SK_F_Res],TRUE,SK_Reset_Pulszeit)
+ENDIF
+;Fehlerreset mit FK
+$OUT[SK_BASE_MA[SKNr]+O_SK_F_R_FK]=NOT $IN[SK_BASE_MA[SKNr]+I_SK_Bereit] AND $IN[I_R_Quit_Wei] 
+;Fraesanfrage
+$OUT[SK_BASE_SL[SKNr]+O_SK_Normfr]=$OUT[O_R_Auto] AND $IN[SK_BASE_SL[SKNr]+I_SK_Normfr]
+;
+;FK von SK1 abspeichern -- 
+$FLAG[F_SK_FK[SKNr]]=($IN[SK_BASE_MA[SKNr]+I_SK_Proz_iO] AND NOT $IN[SK_BASE_MA[SKNr]+I_SK_W_Folge] AND NOT $IN[SZ_BASE_MA[SKNr]+I_SZ_F_schw] AND $IN[SK_BASE_MA[SKNr]+I_SK_FK]) OR ($IN[SK_BASE_MA[SKNr]+I_SK_FK] AND $IN[I_FT_o_BT]) OR ($FLAG[F_SK_FK[SKNr]] AND $OUT[SK_BASE_MA[SKNr]+O_SK_S_Schw])
+;
+;Ausgabe Kappenstandzeit
+IF (SKNr==1) THEN
+  IF Mit_2SZ_an_SK1 AND ($OUT[O_RIP_SK_Sens]==FALSE) AND ($OUT[SK_BASE_MA[SKNr]+O_SK_S_Schw] OR $OUT[SK_BASE_MA[SKNr]+O_SK_Q_EKW]) THEN
+    $OUT[SK_BASE_SL[SKNr]+O_SK_V_Stdm]=($IN[SK_BASE_MA[SKNr]+I_SK_V_Stdm] OR B_SZ1_VW_EK[1] OR B_SZ1_VW_EK[2] OR B_SZ1_VW_EK[3] OR B_SZ1_VW_EK[4]) ;SZ1 Vorwarnung Kappenstandzeit
+    $OUT[SK_BASE_SL[SKNr]+O_SK_M_Stdm]=($IN[SZ_BASE_MA[SKNr]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[SKNr]+I_SK_M_Stdm] OR B_SZ1_MAX_EK[1] OR B_SZ1_MAX_EK[2] OR B_SZ1_MAX_EK[3] OR B_SZ1_MAX_EK[4]) ;SZ1 maximale Kappenstandzeit erreicht
+  ENDIF
+  IF Mit_2SZ_an_SK1 AND ($OUT[O_RIP_SK_Sens]==TRUE) AND ($OUT[SK_BASE_MA[SKNr]+O_SK_S_Schw] OR $OUT[SK_BASE_MA[SKNr]+O_SK_Q_EKW]) THEN
+    $OUT[SK_BASE_SL[2]+O_SK_V_Stdm]=($IN[SK_BASE_MA[SKNr]+I_SK_V_Stdm] OR B_SZ2_VW_EK[1]) ;SZ2 Vorwarnung Kappenstandzeit
+    $OUT[SK_BASE_SL[2]+O_SK_M_Stdm]=($IN[SZ_BASE_MA[2]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[SKNr]+I_SK_M_Stdm] OR B_SZ2_MAX_EK[1]) ;SZ2 maximale Kappenstandzeit erreicht
+  ENDIF
+  IF NOT Mit_2SZ_an_SK1 THEN
+    $OUT[SK_BASE_SL[1]+O_SK_V_Stdm]=($IN[SK_BASE_MA[SKNr]+I_SK_V_Stdm] OR B_SZ1_VW_EK[1] OR B_SZ1_VW_EK[2] OR B_SZ1_VW_EK[3] OR B_SZ1_VW_EK[4]) ;SZ1 Vorwarnung Kappenstandzeit
+    $OUT[SK_BASE_SL[1]+O_SK_M_Stdm]=($IN[SZ_BASE_MA[SKNr]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[SKNr]+I_SK_M_Stdm] OR B_SZ1_MAX_EK[1] OR B_SZ1_MAX_EK[2] OR B_SZ1_MAX_EK[3] OR B_SZ1_MAX_EK[4]) ;SZ1 maximale Kappenstandzeit erreicht
+  ENDIF
+ENDIF
+IF (SKNR==2) THEN
+  $OUT[SK_BASE_SL[SKNR]+O_SK_V_Stdm]=($IN[SK_BASE_MA[SKNr]+I_SK_V_Stdm] OR B_SZ2_VW_EK[1] OR B_SZ2_VW_EK[2] OR B_SZ2_VW_EK[3] OR B_SZ2_VW_EK[4]) ;SZ2 Vorwarnung Kappenstandzeit
+  $OUT[SK_BASE_SL[SKNR]+O_SK_M_Stdm]=($IN[SZ_BASE_MA[SKNr]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[SKNr]+I_SK_M_Stdm] OR B_SZ2_MAX_EK[1] OR B_SZ2_MAX_EK[2] OR B_SZ2_MAX_EK[3] OR B_SZ2_MAX_EK[4]) ;SZ2 maximale Kappenstandzeit erreicht
+ENDIF
+IF (SKNR==3) THEN
+  $OUT[SK_BASE_SL[SKNR]+O_SK_V_Stdm]=($IN[SK_BASE_MA[SKNr]+I_SK_V_Stdm] OR B_SZ3_VW_EK[1] OR B_SZ3_VW_EK[2] OR B_SZ3_VW_EK[3] OR B_SZ3_VW_EK[4]) ;SZ3 Vorwarnung Kappenstandzeit
+  $OUT[SK_BASE_SL[SKNR]+O_SK_M_Stdm]=($IN[SZ_BASE_MA[SKNr]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[SKNr]+I_SK_M_Stdm] OR B_SZ3_MAX_EK[1] OR B_SZ3_MAX_EK[2] OR B_SZ3_MAX_EK[3] OR B_SZ3_MAX_EK[4]) ;SZ3 maximale Kappenstandzeit erreicht
+ENDIF
+;
+;Ausgabe Statusmeldungen an BMS
+;Steuerteil nicht bereit
+$OUT[SK_BASE_SL[SKNr]+O_SK_Bereit]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[SK_BASE_MA[SKNr]+I_SK_Bereit]
+;Schweissung n.i.O
+$OUT[SK_BASE_SL[SKNr]+O_SK_WPS_nio]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_SK_S_niO[SKNr]]
+;Warngrenze verletzt in Folge
+$OUT[SK_BASE_SL[SKNr]+O_SK_W_Folge]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_W_Folge]
+;Differenzstromueberwachung ausgeloest
+$OUT[SK_BASE_SL[SKNr]+O_SK_Diff_str]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_Diff_str]
+;Phasenueberwachung
+$OUT[SK_BASE_SL[SKNr]+O_SK_Phase_nio]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_Phase_nio]
+;Ueberstrom Primaerseite
+$OUT[SK_BASE_SL[SKNr]+O_SK_Primaer]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_Primaer]
+;Fehler Stromsensor
+$OUT[SK_BASE_SL[SKNr]+O_SK_F_Strom]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_F_Strom]
+;Fehler Spannungssensor
+$OUT[SK_BASE_SL[SKNr]+O_SK_F_Spann]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_F_Spann]
+;Überstrom 24 V DC
+$OUT[SK_BASE_SL[SKNr]+O_SK_24V]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_24V]
+;Uebertemperatur Inverter
+$OUT[SK_BASE_SL[SKNr]+O_SK_Inverter]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_Inverter]
+;Punktanwahlfehler
+$OUT[SK_BASE_SL[SKNr]+O_SK_F_Anw]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[SK_BASE_MA[SKNr]+I_SK_F_Anw]
+;Sammelstoerung
+$OUT[SK_BASE_SL[SKNr]+O_SK_Sammel]=($OUT[O_R_Auto] AND $COULD_START_MOTION AND (NOT $IN[SK_BASE_MA[SKNr]+I_SK_Bereit] OR $IN[SK_BASE_MA[SKNr]+I_SK_WPS_nio] OR $IN[SK_BASE_MA[SKNr]+I_SK_W_Folge] OR $IN[SK_BASE_MA[SKNr]+I_SK_Diff_str] OR $IN[SK_BASE_MA[SKNr]+I_SK_Phase_nio] OR $IN[SK_BASE_MA[SKNr]+I_SK_Primaer] OR $IN[SK_BASE_MA[SKNr]+I_SK_F_Strom] OR $IN[SK_BASE_MA[SKNr]+I_SK_F_Spann] OR $IN[SK_BASE_MA[SKNr]+I_SK_24V] OR $IN[SK_BASE_MA[SKNr]+I_SK_Inverter] OR $IN[SK_BASE_MA[SKNr]+I_SK_F_Anw] OR $FLAG[F_SK_Sammel[SKNr]])) OR B_KE_Sammel[SKNr]
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SK_BASE_INIT
+DEF SK_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;SK SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_SK_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_SK_BASE_SL[1]=HM_BASE_SL
+  SK_BASE_SL[1]=HM_BASE_SL
+ELSE
+  SK_BASE_SL[1]=CF_SK_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_SK_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_SK_BASE_SL[2]=HM_BASE_SL
+  SK_BASE_SL[2]=HM_BASE_SL
+ELSE
+  SK_BASE_SL[2]=CF_SK_BASE_SL[2]
+ENDIF
+;
+BaseResult=BaseCheck(CF_SK_BASE_SL[3])
+IF (BaseResult<>0) THEN
+  CF_SK_BASE_SL[3]=HM_BASE_SL
+  SK_BASE_SL[3]=HM_BASE_SL
+ELSE
+  SK_BASE_SL[3]=CF_SK_BASE_SL[3]
+ENDIF
+;
+;SK MASTER ADRESSIERUNG
+SK_BASE_MA[1]=785                             
+SK_BASE_MA[2]=945
+SK_BASE_MA[3]=1105
+;
+END
+;ENDFOLD (SK_BASE_INIT)
+;
+;***************************************************
+;FOLD SK_Meldungen
+DEF SK_Msg(msg_nr :IN, MsgTyp :IN, SKNr :IN)
+INT msg_nr, SKNr
+DECL SKS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "SK_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("SKNr")==#initialized then
+  SWITCH SKNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_SKS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr=msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="SK1: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="SK2: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="SK3: Slave Startadresse ungueltig"
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_SKS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_SKS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_SKS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_SKS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (SK_Meldungen)

@@ -1,0 +1,38 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/PGR_Prozessgeraete
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_PGR_USR_R PUBLIC
+; 
+;***************************************************
+;*Technologiepaket PGR Prozessgeraete              *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2016.03.02 CE                                   *
+;*                                                 *
+;* Aenderungsjournal                               *
+;*                                                 *
+;***************************************************
+;
+;FOLD PGR
+;
+;PGR Fertigmeldung
+SIGNAL SO_PGR_FM_Nr $OUT[33] TO $OUT[36]
+SIGNAL SI_PGR_FM_Nr $IN[33] TO $IN[36]
+;PGR Prozessgeraetenummer
+SIGNAL SO_PGR_Geraete_Nr $OUT[97] TO $OUT[112]
+SIGNAL SI_PGR_Geraete_Nr $IN[97] TO $IN[112]
+;
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM PGRR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

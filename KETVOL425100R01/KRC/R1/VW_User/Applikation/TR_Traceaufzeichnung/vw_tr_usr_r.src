@@ -1,0 +1,100 @@
+&ACCESS RVO
+&REL 223
+&PARAM DISKPATH = VW_User/Applikation/TR_Traceaufzeichnung
+&PARAM TPVW_VERSION = 8.3.0
+DEF VW_TR_USR_R( )
+;
+;***************************************************
+;* Technologiepaket TR Traceaufzeichnung           *
+;*                                                 *
+;* Konzernstandard                                 *
+;***************************************************
+;
+END
+;
+;FOLD TR Interface
+GLOBAL DEF TR_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+INT ret, i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+	 SWITCH par1
+	   CASE 1  ;Trace Start
+	   $TRACE.MODE=#T_STOP
+	   WAIT FOR ($TRACE.STATE==#T_END)
+	   WAIT SEC 0.1
+      ;Trace-Aufzeichnung starten
+      TraceTime.YEAR=$DATE.YEAR
+      TraceTime.MONTH=$DATE.MONTH
+      TraceTime.DAY=$DATE.DAY
+      TraceTime.HOUR=$DATE.HOUR
+      TraceTime.MIN=$DATE.MIN
+      TraceTime.SEC=$DATE.SEC
+      IF ($TRACE.MODE==#T_STOP) THEN
+        OFFSET=0
+        IF (zaehlertrace<PAR2) THEN
+          zaehlertrace=zaehlertrace+1
+        ELSE 
+          zaehlertrace=1
+        ENDIF
+        SWRITE($TRACE.NAME[],ST_AUSG,OFFSET,"Trace_Aufzeichnung%d", zaehlertrace)
+        $TRACE.MODE=#T_START
+        REPEAT
+        ;UNTIL ($TRACE.STATE==#T_WAIT)
+        UNTIL ($TRACE.STATE<>#T_END)
+      ENDIF
+	   CASE 2  ;Trace Stop
+        IF ($TRACE.MODE<>#T_STOP) THEN
+          $TRACE.MODE=#T_STOP
+          REPEAT
+          UNTIL ($TRACE.STATE ==#T_END)
+        ENDIF
+	   DEFAULT
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+	;
+	;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+ENDSWITCH
+END
+;
+;ENDFOLD (TR Interface)
+;

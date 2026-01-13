@@ -1,0 +1,331 @@
+&ACCESS RVO
+&REL 119
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM DISKPATH = KRC:\R1\System
+DEF ROB_DATA( )
+
+;/////Vision 1.0 By FoShan Rob Team //////
+;/////2021.03.04 //////
+
+
+;FOLD BATTERY DIAGNOSE///
+;Battery Not OK///
+IF ($ACCU_STATE==#charge_ok_low) OR ($ACCU_STATE==#charge_test_nok) OR ($ACCU_STATE==#charge_nok) OR ($ACCU_STATE==#charge_off) AND NOT Ba_OK THEN
+  TCP_DC_SEND("ROB_BATTERY_BAD",1)
+  Ba_OK = TRUE
+ENDIF
+
+;Send Battery Ok///
+
+IF ($ACCU_STATE==#charge_ok) AND Ba_OK THEN
+  Ba_OK = FALSE
+  TCP_DC_SEND("ROB_BATTERY_BAD",0)
+ENDIF
+;ENDFOLD
+
+;FOLD SZ ERROR DIAGNOSE///
+
+;SZ Froction of Force Warning///
+IF $IN[769] AND NOT SZ_F_W_OK AND $OUT[12] THEN
+  TCP_DC_SEND("SZ",1)
+  SZ_F_W_OK = TRUE
+ENDIF
+
+;SZ Froction of Force Warning Was Remove///
+
+IF NOT $IN[769] AND SZ_F_W_OK THEN
+  SZ_F_W_OK = FALSE
+  TCP_DC_SEND("SZ",101)
+ENDIF
+
+;SZ Destination Invalid///
+IF $IN[773] AND NOT SZ_Des_Inv_OK AND $OUT[12] THEN
+  TCP_DC_SEND("SZ",2)
+  SZ_Des_Inv_OK = TRUE
+ENDIF
+
+;SZ Destination Invalid Was Remove///
+
+IF NOT $IN[773] AND  SZ_Des_Inv_OK THEN
+  SZ_Des_Inv_OK = FALSE
+  TCP_DC_SEND("SZ",102)
+ENDIF
+
+;SZ Fault of Schlepp///
+
+IF $IN[779] AND  NOT SZ_F_Schl_OK AND $OUT[12] THEN
+  TCP_DC_SEND("SZ",3)
+  SZ_F_Schl_OK = TRUE
+ENDIF
+
+;SZ Fault of Schlepp Was Remove///
+
+IF NOT $IN[779] AND SZ_F_Schl_OK THEN
+  SZ_F_Schl_OK = FALSE
+  TCP_DC_SEND("SZ",103)
+ENDIF
+
+;SZ Fault of Control System///
+
+IF $IN[781] AND NOT SZ_F_ConS_OK AND $OUT[12] THEN
+  TCP_DC_SEND("SZ",4)
+  SZ_F_ConS_OK = TRUE
+ENDIF
+
+;SZ Fault of Control System Was Remove///
+
+IF NOT $IN[781] AND SZ_F_ConS_OK THEN
+  SZ_F_ConS_OK = FALSE
+  TCP_DC_SEND("SZ",104)
+ENDIF
+
+;ENDFOLD
+
+;FOLD WATER FLOW DIAGNOSE///
+
+IF (VW_FEH_NR == 106) AND NOT (WA_Max_OK) THEN
+ TCP_DC_SEND("WA_Max",5)
+ WA_Max_OK = TRUE
+ENDIF
+
+;Water Flow more than Maximum Was Recover///
+
+IF (VW_FEH_NR <> 106) AND WA_Max_OK THEN
+    WA_Max_OK = FALSE
+    TCP_DC_SEND("WA_Max",105)
+ENDIF
+
+;ENDFOLD
+
+;FOLD DK AUTO RESET NUMBER TRANSFER///
+
+;IF DK_Res_Num<>AutoReset_Counter_SUM THEN
+;  DK_Res_Num=AutoReset_Counter_SUM
+;  TCP_DC_SEND("DK",DK_Res_Num)
+;ENDIF
+
+;ENDFOLD
+
+;FOLD ROB AXIS TORQUE MONITOR ///
+
+;EACH WORKPIECE MAX TORQUE///
+IF ($FLAG[996]) AND (WorkPiece<6) AND ($OUT[12]) THEN
+    FOR AXIS_Nr = 1 to 8 
+           IF MIN_TORQ[AXIS_Nr] == 0 THEN
+               MIN_TORQ[AXIS_Nr]=$TORQUE_AXIS_ACT[AXIS_Nr]
+           ENDIF
+           IF ($TORQUE_AXIS_ACT[AXIS_Nr])>(MAX_TORQ[AXIS_Nr]) THEN
+               MAX_TORQ[AXIS_Nr]=$TORQUE_AXIS_ACT[AXIS_Nr]
+           ENDIF
+           IF ($TORQUE_AXIS_ACT[AXIS_Nr])<(MIN_TORQ[AXIS_Nr]) THEN
+               MIN_TORQ[AXIS_Nr]=$TORQUE_AXIS_ACT[AXIS_Nr]
+           ENDIF
+    ENDFOR
+	F_WorkPiece=True
+ELSE
+	IF (NOT $FLAG[996]) AND F_WorkPiece THEN
+                     WorkPiece=WorkPiece+1
+                     F_WorkPiece=False
+	ENDIF	
+ENDIF
+;RESET WorkPiece AND SEND DATA///
+IF WorkPiece>=6 THEN
+    WorkPiece=0
+    zoffset=0
+    SWRITE(VarIN_1[],state,zoffset,"%f",$B_OUT[63])
+                                                                 
+    FOR AXIS_Nr = 1 to 8
+              DIFF_TORQ[AXIS_Nr]=ABS((MAX_TORQ[AXIS_Nr])-(MIN_TORQ[AXIS_Nr]))
+              zoffset=0
+              SWRITE(VarIN_2[],state,zoffset,"%f",AXIS_Nr)
+              AXIS_Name[2]=VarIN_2[1]
+              AXIS_Name[15]=VarIN_1[1]
+              AXIS_Name[16]=VarIN_1[2]
+                     TCP_DC_SEND (AXIS_Name[],DIFF_TORQ[AXIS_Nr])
+                     MAX_TORQ[AXIS_Nr]=0
+                     MIN_TORQ[AXIS_Nr]=0
+                     DIFF_TORQ[AXIS_Nr]=0
+     ENDFOR
+ENDIF
+
+;ENDFOLD
+
+;FOLD MOTOR TEMPERATURE MONITOR///
+
+IF ($DATE.DAY==3) AND NOT MOT_TEM_SEND THEN
+FOR AXIS_Nr = 1 to 8
+SWITCH AXIS_Nr
+	CASE 1
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+		TCP_DC_SEND ("A1 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 2
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A2 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 3
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A3 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 4
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A4 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 5
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A5 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 6
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A6 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 7
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A7 MOT_TEM",TEMP_MON[AXIS_Nr])
+	CASE 8
+		TEMP_MON[AXIS_Nr]=$MOT_TEMP[AXIS_Nr]
+                TCP_DC_SEND ("A8 MOT_TEM",TEMP_MON[AXIS_Nr])
+	DEFAULT
+ENDSWITCH
+ENDFOR
+MOT_TEM_SEND=TRUE
+TEXT_DATA[]="          "
+ENDIF
+
+;RESET MOT_TEM_SEND///
+IF ($DATE.DAY==4)AND MOT_TEM_SEND THEN
+MOT_TEM_SEND=FALSE
+ENDIF
+;ENDFOLD
+
+;FOLD ROBOTER RUN TIME AND CAB FAN SPEED///
+IF (($DATE.DAY==3) OR ($DATE.DAY==15)) AND NOT (ROB_RUNTIME_SEND) THEN
+ROB_RUN_T=$ROBRUNTIME
+CAB_FAN_SPEED=$CAB_FANSPEED
+TCP_DC_SEND ("ROB RUN TIME",ROB_RUN_T)
+TCP_DC_SEND ("CAB FAN SPEED",CAB_FAN_SPEED)
+ROB_RUNTIME_SEND=TRUE
+ENDIF
+;RESET ROB_RUNTIME_SEND///
+IF (($DATE.DAY==4) OR ($DATE.DAY==16)) AND ROB_RUNTIME_SEND THEN
+ROB_RUNTIME_SEND=FALSE
+ENDIF
+;ENDFOLD
+
+;FOLD KL FILLING TIMER///
+
+
+IF $OUT[12] AND $IN[12] THEN
+  ;KL1_FILLTIME
+   IF $IN[1521] THEN
+        IF $OUT[1531] AND NOT $IN[1532] AND (NOT T30_START) THEN
+           $TIMER[30] = 0
+           KL1_FILL_TIME = 0
+           $TIMER_STOP[30] = FALSE
+	   KL1_FILLTIME_S = FALSE
+	   T30_START = TRUE
+        ENDIF
+
+        IF $IN[1532] AND (NOT $OUT[1531]) AND (NOT KL1_FILLTIME_S) THEN
+	   $TIMER_STOP[30] = TRUE 
+	   KL1_FILLTIME_S=TRUE
+	   T30_START = FALSE
+           KL1_FILL_TIME =$TIMER[30]
+	   KL1_WORK=KL1_WORK+1
+      	   IF (KL1_FILL_TIME>KL1_BIG) THEN
+		KL1_BIG=KL1_FILL_TIME
+		PRG_NR_S=PRG_NR
+	   ENDIF
+        ENDIF 
+
+
+        IF (KL1_WORK>=PROCPAR[201]) THEN
+	   KL_PRG_R=STRCLEAR(KL_SEND_DATA[])
+	   KL_SEND_DATA[]="KL1_FILLING_TIME_PRGNUM_"
+           KL_PRG_R=STRCLEAR(KL_PRG[])
+   	   PRG_NUM=PRG_NR_S
+	   SWRITE(KL_PRG[],STATET,ZOFFSET1,"%d",PRG_NUM)
+	   KL_SEND_DATA_NR=STRADD(KL_SEND_DATA[],KL_PRG[])
+	   TCP_DC_SEND  (KL_SEND_DATA[],KL1_BIG)
+           ZOFFSET1=0
+	   KL1_WORK=0
+	   KL1_BIG=0
+        ENDIF
+   ENDIF
+
+   ;KL2_FILLTIME
+   IF $IN[1585] THEN
+      IF $OUT[1595] AND (NOT $IN[1596]) AND (NOT T31_START) THEN     
+           $TIMER[31] = 0
+           KL2_FILL_TIME = 0
+           $TIMER_STOP[31] = FALSE
+	   KL2_FILLTIME_S=FALSE
+	   T31_START = TRUE
+	   
+      ENDIF
+      IF $IN[1596] AND (NOT $OUT[1595]) AND (NOT KL2_FILLTIME_S) THEN
+           $TIMER_STOP[31] = TRUE
+	   KL2_FILLTIME_S=TRUE
+	   T31_START = FALSE 
+           KL2_FILL_TIME =$TIMER[31]
+	   KL2_WORK=KL2_WORK+1
+           IF (KL2_FILL_TIME>KL2_BIG) THEN
+		KL2_BIG=KL2_FILL_TIME
+		PRG_NR_S=PRG_NR
+	   ENDIF
+      ENDIF
+
+      IF (KL2_WORK>PROCPAR[202]) THEN
+	  KL_PRG_R2=STRCLEAR(KL_SEND_DATA2[])
+	  KL_SEND_DATA2[]="KL2_FILLING_TIME_PRGNUM_"
+          KL_PRG_R2=STRCLEAR(KL_PRG2[])
+   	  PRG_NUM2=PRG_NR_S
+	  SWRITE(KL_PRG2[],STATET2,ZOFFSET2,"%d",PRG_NUM2)
+	  KL_SEND_DATA_NR2=STRADD(KL_SEND_DATA2[],KL_PRG2[])
+	  TCP_DC_SEND  (KL_SEND_DATA2[],KL2_BIG)
+          ZOFFSET2=0
+	  KL2_WORK=0
+	  KL2_BIG=0
+      ENDIF
+   ENDIF
+
+ENDIF
+
+;ENDFOLD
+
+
+END
+
+
+GLOBAL DEF TCP_DC_SEND(CRAF:IN,VALUE:IN)
+;FOLD SEND DATA
+ DECL EKI_STATUS RET
+ DECL CHAR CRAF[]
+ DECL REAL VALUE
+ 
+
+;EKI INIT AND OPEN
+RET=EKI_Init("TCP_DC")
+RET=EKI_Open("TCP_DC")
+RET = EKI_Close("TCP_DC")
+RET = EKI_Clear("TCP_DC")
+RET = EKI_Init("TCP_DC") 
+RET = EKI_Open("TCP_DC") 
+ 
+  ; Write int to <ID>
+  RET=EKI_SetINT ("TCP_DC","Robot/ID", Rob_ID)
+ 
+  ; Write string to <CRAF>
+  RET=EKI_SetString("TCP_DC","Robot/CRAF",CRAF[])
+  
+  ; Write real to <VLAUE>
+  RET=EKI_SetReal("TCP_DC","Robot/VALUE",VALUE)
+
+;Send the data to datacentre.
+RET = EKI_Lock("TCP_DC") ;Lock Channel
+RET = EKI_Send("TCP_DC","Robot")
+RET = EKI_Unlock("TCP_DC") ;UnLock Channel
+RET = EKI_ClearBuffer("TCP_DC","ROBOT") ;Clear Channel
+
+
+RET=EKI_Close("TCP_DC")
+RET=EKI_Clear("TCP_DC")
+END
+;ENDFOLD
+
+
+

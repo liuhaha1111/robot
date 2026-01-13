@@ -1,0 +1,31 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/NK_Nahtkontrolle
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_NK_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket NK Nahtkontrolle                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD NK
+;SmartRay Programmnummer fuer NK1 und NK2
+SIGNAL SO_NK_Prg_Nr $OUT[2593]  TO $OUT[2600]
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM NKR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

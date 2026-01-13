@@ -1,0 +1,162 @@
+&ACCESS RV5
+&COMMENT KS26
+&REL 10
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Isra
+&PARAM EDITMASK = vw_isr_usr_s
+&PARAM TPUSER_VERSION = 8.3.0
+DEF vw_isr_usr_s( )
+;
+;***************************************************
+;* ISRA                                            *
+;* Version 1.30  / VKRC 4                          *
+;* Bearbeitet am:                                  *
+;* 27.11.2014 JHo                                  *
+;***************************************************
+;
+;***************************************************
+;-- Timer TNR mit TimeOut Time(SEC) starten
+;***************************************************
+END
+
+GLOBAL DEF ISR_INIT()
+;
+;FOLD Version Techpaket
+Tech_ISR.Name[]="KS26.01.000_20160115"
+;ENDFOLD
+	;
+IF B_MIT_ISR THEN
+	$ISRA_BASE_OFFSET = $NULLFRAME
+	$ISRA_TOOL_OFFSET = $NULLFRAME
+	$IS_COMMUNICATE = TRUE
+	;
+	IS_ResetSignals()
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+		IS_bOldLiveSignal = IS_RX1_LIVE_SIGNAL	
+	ENDIF
+	;
+	IS_StartTimer(IS_TIMERID, IS_rWaitTimeout)
+	;
+	IS_iServiceMode = IS_iSERVICE_NONE
+	IS_iMeasStateRF = IS_iMS_PREP_NOK
+ENDIF
+;
+END
+
+GLOBAL DEF ISR_USR_RESET()
+	IS_ResetSignals()
+	;
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+		IS_bOldLiveSignal = IS_RX1_LIVE_SIGNAL
+	ENDIF
+	;
+	IS_StartTimer(IS_TIMERID, IS_rWaitTimeout)
+	IS_iWdh_Counter = 1
+	IS_iServiceMode = IS_iSERVICE_NONE
+	$IS_COMMUNICATE = TRUE
+END
+
+GLOBAL DEF ISR_USR_CANCEL()
+	IS_ResetSignals()
+	IS_iWdh_Counter = 1
+	IS_iServiceMode = IS_iSERVICE_NONE
+	$IS_COMMUNICATE = TRUE
+END
+
+GLOBAL DEF ISR_LIVE()
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+		IS_TX1_LIVE_SIGNAL = IS_RX1_LIVE_SIGNAL
+		;
+		IF (IS_bOldLiveSignal <> IS_RX1_LIVE_SIGNAL) THEN
+			IS_bOldLiveSignal = IS_RX1_LIVE_SIGNAL
+			$IS_LIVE_SIGNAL = TRUE
+			IS_StartTimer(IS_TIMERID, IS_rWaitTimeout)
+		ELSE
+			IF $TIMER_FLAG[IS_TIMERID] THEN
+				$IS_LIVE_SIGNAL = FALSE
+			ENDIF
+		ENDIF
+	ENDIF
+	;
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+		IS_TX1_RF_LIVE = IS_RX1_RF_LIVE
+		;
+		IF (IS_bOldLiveSignal <> IS_RX1_RF_LIVE) THEN
+			IS_bOldLiveSignal = IS_RX1_RF_LIVE
+			$IS_LIVE_SIGNAL = TRUE
+			IS_StartTimer(IS_TIMERID, IS_rWaitTimeout)
+		ELSE
+			IF $TIMER_FLAG[IS_TIMERID] THEN
+				$IS_LIVE_SIGNAL = FALSE
+			ENDIF
+		ENDIF
+		;
+	ENDIF
+END
+
+GLOBAL DEF IS_StartTimer(TNR:IN, TIME:IN)
+	;
+	DECL INT 	TNR 
+	DECL REAL TIME
+	;		
+	$TIMER_STOP[TNR]	= TRUE
+	$TIMER[TNR]				= -1000*TIME
+	$TIMER_STOP[TNR]	= FALSE
+	;	
+END
+;
+;FOLD ;Reset Signals by incoming Init_Signals
+;---------------------------------------------------------------------------------------------
+GLOBAL DEF IS_ResetSignals()
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+	IS_TX1_INIT_SIGNALS		= FALSE
+	IS_TX1_SKIP						= FALSE
+	IS_TX1_APPROACH_POSE	= FALSE
+	IS_TX1_IN_POSE				= FALSE
+	IS_TX1_IN_ENDPOSE			= FALSE
+	IS_TX1_TIMEOUT				= FALSE
+	IS_TX1_DATA_UNCHANGED	= FALSE
+	IS_TX1_DATA_REQUEST		= FALSE
+	IS_TX1_DATA_VALID			= FALSE
+	IS_TX1_DATA_ACCEPTED	= FALSE
+	IS_TX1_DATA_END_TRANS	= FALSE
+	IS_TX1_ERROR_STATE		= FALSE
+	IS_TX1_HANDSHAKE			= FALSE
+	;
+	IS_TX32_AXIS_1				= 0
+	IS_TX32_AXIS_2				= 0
+	IS_TX32_AXIS_3				= 0
+	IS_TX32_AXIS_4				= 0
+	IS_TX32_AXIS_5				= 0	
+	IS_TX32_AXIS_6				= 0
+	IS_TX32_POSE_X				= 0
+	IS_TX32_POSE_Y				= 0
+	IS_TX32_POSE_Z				= 0
+	IS_TX32_POSE_A				= 0
+	IS_TX32_POSE_B				= 0	
+	IS_TX32_POSE_C				= 0
+	IS_TX32_TOOL_X				= 0
+	IS_TX32_TOOL_Y				= 0
+	IS_TX32_TOOL_Z				= 0
+	IS_TX32_TOOL_A				= 0
+	IS_TX32_TOOL_B				= 0	
+	IS_TX32_TOOL_C				= 0
+	IS_TX8_DATA_ID				= 0
+	IS_TX8_POSE_ID				= 0
+ENDIF
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+	IS_TX4_RF_RM				= 0
+	IS_TX1_RF_TYP_STR		= FALSE
+	IS_TX1_RF_START			= FALSE
+	IS_TX1_RF_SRESET		= FALSE
+	IS_TX1_RF_ERESET		= FALSE
+	IS_TX8_RF_TYP				= 0
+	IS_TX8_RF_SUB_TYP		= 0
+	IS_TX8_RF_COLOR_ID	= 0
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;-----------------------------------------------------------

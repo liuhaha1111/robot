@@ -1,0 +1,153 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/Projekt_Modul
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 1
+DEFDAT  vw_mod_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket Projekt_Modul                   *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;*                                                 *
+;***************************************************
+; 
+;FOLD MOD1
+;Version Techpaket
+STRUC _Tech_MOD1 CHAR Name[20],INT Datum
+DECL _Tech_MOD1 Tech_MOD1
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD1S_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_MOD1S_Handle[100]
+GLOBAL INT n_MOD1R_Handle[100]
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD1)
+; 
+;***************************************************
+;FOLD MOD2
+;Version Techpaket
+STRUC _Tech_MOD2 CHAR Name[20],INT Datum
+DECL _Tech_MOD2 Tech_MOD2
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD2S_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_MOD2S_Handle[100]
+GLOBAL INT n_MOD2R_Handle[100]
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD2)
+; 
+;***************************************************
+;FOLD MOD3
+;Version Techpaket
+STRUC _Tech_MOD3 CHAR Name[20],INT Datum
+DECL _Tech_MOD3 Tech_MOD3
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD3S_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_MOD3S_Handle[100]
+GLOBAL INT n_MOD3R_Handle[100]
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD3)
+; 
+;***************************************************
+;FOLD DZ
+; 
+;VARIABLEN BOOL
+GLOBAL BOOL DZ_busy=FALSE
+GLOBAL BOOL DZ_fm=FALSE ;Position holen fertig
+; 
+;VARIABLEN INTEGER
+GLOBAL INT dzSpnGrYr[22] ;0=n.a.,1=Ansteuerung V,2=Ansteuerung R
+dzSpnGrYr[1]=0
+dzSpnGrYr[2]=0
+dzSpnGrYr[3]=0
+dzSpnGrYr[4]=0
+dzSpnGrYr[5]=0
+dzSpnGrYr[6]=0
+dzSpnGrYr[7]=0
+dzSpnGrYr[8]=0
+dzSpnGrYr[9]=0
+dzSpnGrYr[10]=0
+dzSpnGrYr[11]=0
+dzSpnGrYr[12]=0
+dzSpnGrYr[13]=0
+dzSpnGrYr[14]=0
+dzSpnGrYr[15]=0
+dzSpnGrYr[16]=0
+dzSpnGrYr[17]=0
+dzSpnGrYr[18]=0
+dzSpnGrYr[19]=0
+dzSpnGrYr[20]=0
+dzSpnGrYr[21]=0
+dzSpnGrYr[22]=0
+GLOBAL INT dzSpnGrKe[22] ;0=n.a.,1=geschlossen V,2=offen R
+dzSpnGrKe[1]=0
+dzSpnGrKe[2]=0
+dzSpnGrKe[3]=0
+dzSpnGrKe[4]=0
+dzSpnGrKe[5]=0
+dzSpnGrKe[6]=0
+dzSpnGrKe[7]=0
+dzSpnGrKe[8]=0
+dzSpnGrKe[9]=0
+dzSpnGrKe[10]=0
+dzSpnGrKe[11]=0
+dzSpnGrKe[12]=0
+dzSpnGrKe[13]=0
+dzSpnGrKe[14]=0
+dzSpnGrKe[15]=0
+dzSpnGrKe[16]=0
+dzSpnGrKe[17]=0
+dzSpnGrKe[18]=0
+dzSpnGrKe[19]=0
+dzSpnGrKe[20]=0
+dzSpnGrKe[21]=0
+dzSpnGrKe[22]=0
+GLOBAL INT AnzSpnGr=22
+; 
+;VARIABLEN Sonstige
+GLOBAL FRAME CellFrame={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0} ;Zellenursprung
+GLOBAL FRAME safeScanOrigin[30]
+safeScanOrigin[1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[7]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[8]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[9]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[10]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[11]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[12]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[13]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[14]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[15]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[16]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[17]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[18]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[19]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[20]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[21]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[22]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[23]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[24]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[25]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[26]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[27]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[28]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[29]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+safeScanOrigin[30]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+; 
+;ENDFOLD (DZ)
+ENDDAT

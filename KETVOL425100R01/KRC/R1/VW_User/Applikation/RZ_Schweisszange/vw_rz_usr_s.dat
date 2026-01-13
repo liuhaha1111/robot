@@ -1,0 +1,70 @@
+&ACCESS R
+&REL 211
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/RZ_Schweisszange
+&PARAM TPVW_VERSION = 8.3.0
+DEFDAT  VW_RZ_USR_S PUBLIC
+; 
+;*-----------------------------------------------------*
+;*Technologiepaket R_Zange                             *
+;*                                                     *
+;*Konzernstandard                                      *
+;*                                                     *
+;*-----------------------------------------------------*
+; 
+;FOLD USER_Version
+STRUC _Tech_RZ CHAR Name[20],INT Datum
+DECL _Tech_RZ Tech_RZ
+;ENDFOLD
+; 
+;FOLD RZ
+; 
+GLOBAL INT SG_RZ_Open[3]
+SG_RZ_Open[1]=3862
+SG_RZ_Open[2]=3894
+SG_RZ_Open[3]=3926
+GLOBAL INT F_m_RZ=733
+GLOBAL INT F_m_RZ1=273
+GLOBAL INT F_m_RZ2=274
+GLOBAL INT F_m_RZ3=275
+GLOBAL INT F_m_RZKOPF=530
+; 
+GLOBAL BOOL MIT_RZ=FALSE
+; 
+INT RZ_1=3859
+INT RZ_2=3891
+INT RZ_3=3923
+INT RZ_4=3411
+INT RZ_5=3443
+INT RZ_6=3475
+; 
+;ENDFOLD
+; 
+;FOLD Konfiguration Ein-Ausgaenge Kappenwechsler
+;Slave Ausgaenge
+GLOBAL INT O_KW_Feh_KF=5		;214 ;222
+GLOBAL INT O_KW_Motorschutz=6	;215 ;223
+; 
+;
+;Master Eingaenge
+GLOBAL INT I_KW_Motorschutz=7	;864 ;1024 ;1184
+GLOBAL INT I_KW_Motor_dreht=1	;858 ;1018 ;1178
+; 
+;ENDFOLD
+; 
+;FOLD Meldungsausgabe
+ENUM RZS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_RZS_Handle[100]
+GLOBAL INT n_RZR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+
+;Fold Hilfsvariablen
+INT i=0
+INT a=0
+INT b=0
+INT c=0
+;ENDFOLD
+
+ENDDAT

@@ -1,0 +1,9 @@
+&ACCESS RV7
+&COMMENT KS26
+&PARAM EDITMASK = vw_user
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vw_userv
+&PARAM TPVW_VERSION = 8.3.0
+&PARAM SUPPRESS = LoosOfPrecision UnswitchedEnum UnusedFunctionParameter
+&PARAM DISKPATH = VW_User
+DEFDAT  vw_user
+ENDDAT

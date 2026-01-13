@@ -1,0 +1,43 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/FD_Flowdrill
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_FD_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket FD Flowdrill                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Flowdrill
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;FD Programmnummer
+SIGNAL SO_FD1_Prg_Nr $OUT[2401]  TO $OUT[2416]
+SIGNAL SO_FD2_Prg_Nr $OUT[2465]  TO $OUT[2480]
+;FD Fahrzeugtyp
+SIGNAL SO_FD1_Fzg_Typ $OUT[2393]  TO $OUT[2400]
+SIGNAL SO_FD2_Fzg_Typ $OUT[2457]  TO $OUT[2464]
+;
+;TCP-Korrektur
+INT Weg=0
+INT Offset=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM FDR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

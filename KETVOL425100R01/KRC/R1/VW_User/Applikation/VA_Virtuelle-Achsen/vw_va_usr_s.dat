@@ -1,0 +1,129 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/VA_Virtuelle-Achsen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT VW_VA_USR_S PUBLIC
+;
+;***************************************************
+;*Technologiepaket VA Virtuelle Achsen             *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;Version Techpaket
+STRUC _Tech_VA CHAR Name[20],INT Datum
+DECL _Tech_VA Tech_VA
+;
+GLOBAL BOOL MIT_VA=FALSE
+GLOBAL REAL MyZiel=3786.00
+GLOBAL REAL max_sf=15.0000     ;maximalerSchleppfehler
+GLOBAL BOOL SF_Vorwarnung=FALSE;Schleppfehler >1 und <15
+;
+;Uebergabe Istposition
+SIGNAL SI_AS1_IstPos $IN[737] TO $IN[751]
+SIGNAL SI_AS2_IstPos $IN[897] TO $IN[911]
+SIGNAL SI_AS3_IstPos $IN[1057] TO $IN[1071]
+SIGNAL SI_AS4_IstPos $IN[1217] TO $IN[1231]
+SIGNAL SI_AS5_IstPos $IN[1297] TO $IN[1311]
+SIGNAL SI_AS6_IstPos $IN[1377] TO $IN[1391]
+SIGNAL SI_AS7_IstPos $IN[1457] TO $IN[1471]
+;
+;Behandlung Programmoverride
+GLOBAL INT OV_PRO_Old=100
+GLOBAL BOOL OV_RUECK=FALSE
+;
+;Ausgabe von ProConOs Diagnose-Meldungen
+BOOL proconos_msg=TRUE
+BOOL async_active=FALSE
+GLOBAL BOOL pos_outofsoftend=FALSE
+GLOBAL BOOL schleppfehler=FALSE
+GLOBAL BOOL SF_Last=FALSE
+GLOBAL BOOL SF_bei_AntriebeAus=FALSE
+GLOBAL BOOL Handbetrieb=FALSE
+GLOBAL BOOL ANTEIN_MERKER=FALSE
+;
+INT pcoBootTime=0
+INT plcdummy
+INT ErrPlcIntNr=-1
+GLOBAL INT MaxSZNr=1
+;
+GLOBAL ENUM _sf_prog_status prg_motion,driveoff_motion,man_motion,dest_invalid,user_act,SZ_io
+DECL GLOBAL _sf_prog_status sf_prog_status
+ENUM _SZCfgCmd StdInit,DockInit,DockCycle
+;
+;Maschinendaten
+GLOBAL BOOL EZ1_Dock=FALSE
+GLOBAL BOOL EZ2_Dock=FALSE
+GLOBAL BOOL EZ3_Dock=FALSE
+GLOBAL BOOL NZ1_Dock=FALSE
+GLOBAL BOOL NZ2_Dock=FALSE
+GLOBAL BOOL NZ_hyd_Dock=FALSE
+GLOBAL BOOL CZ1_Dock=FALSE
+GLOBAL BOOL CZ2_Dock=FALSE
+GLOBAL BOOL RW1_Dock=FALSE
+GLOBAL BOOL RW2_Dock=FALSE
+;
+GLOBAL INT ExAx_Docking=0
+GLOBAL INT HM_ExtPlcStart_EA=0
+GLOBAL INT HM_ExtPlcExAx=0
+GLOBAL INT HM_MaDa_Speed=0
+GLOBAL INT HM_Drehzahl=0
+GLOBAL INT HM_ExtPlcDock=0
+;
+GLOBAL INT EZ_PlcInt[3]
+EZ_PlcInt[1]=0
+EZ_PlcInt[2]=0
+EZ_PlcInt[3]=0
+GLOBAL INT NZ_PlcInt[2]
+NZ_PlcInt[1]=0
+NZ_PlcInt[2]=0
+GLOBAL INT CZ_PlcInt[2]
+CZ_PlcInt[1]=0
+CZ_PlcInt[2]=0
+GLOBAL INT RW_PlcInt[2]
+RW_PlcInt[1]=0
+RW_PlcInt[2]=0
+;
+GLOBAL INT EZ1_ExAx=0
+GLOBAL INT EZ2_ExAx=0
+GLOBAL INT EZ3_ExAx=0
+GLOBAL INT NZ1_ExAx=0
+GLOBAL INT NZ2_ExAx=0
+GLOBAL INT CZ1_ExAx=0
+GLOBAL INT CZ2_ExAx=0
+GLOBAL INT RW1_ExAx=0
+GLOBAL INT RW2_ExAx=0
+GLOBAL INT Visu_EZ1_ExAx=0
+GLOBAL INT Visu_EZ2_ExAx=0
+GLOBAL INT Visu_EZ3_ExAx=0
+GLOBAL INT Visu_NZ1_ExAx=0
+GLOBAL INT Visu_NZ2_ExAx=0
+GLOBAL INT Visu_CZ1_ExAx=0
+GLOBAL INT Visu_CZ2_ExAx=0
+GLOBAL INT Visu_RW1_ExAx=0
+GLOBAL INT Visu_RW2_ExAx=0
+GLOBAL INT Visu_Speed_EZ1=0
+GLOBAL INT Visu_Speed_EZ2=0
+GLOBAL INT Visu_Speed_EZ3=0
+GLOBAL INT Visu_Speed_NZ1=0
+GLOBAL INT Visu_Speed_NZ2=0
+GLOBAL INT Visu_Speed_CZ1=0
+GLOBAL INT Visu_Speed_CZ2=0
+GLOBAL INT Visu_Speed_RW1=0
+GLOBAL INT Visu_Speed_RW2=0
+;
+;Meldungsausgabe
+ENUM VAS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_VAS_Handle[100]
+GLOBAL INT n_VAR_Handle[100]
+INT nMsgNum=-1
+;ENDFOLD
+;
+ENDDAT

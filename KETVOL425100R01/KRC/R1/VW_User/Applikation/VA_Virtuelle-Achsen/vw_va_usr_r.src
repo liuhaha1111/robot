@@ -1,0 +1,1494 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/VA_Virtuelle-Achsen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEF VW_VA_USR_R( )
+;
+;***************************************************
+;*Technologiepaket VA Virtuelle Achsen             *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD VA_Interface
+GLOBAL DEF VA_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i,PlcIntNr,Index
+BOOL FrgSZ
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;Warten wenn SZ nicht bereit
+    IF (($MODE_OP==#T1) OR ($MODE_OP==#T2)) THEN
+      WAIT SEC 0.5
+    ENDIF
+    FOR PlcIntNr=1 TO 7
+      IF ($softplcint[PlcIntNr]>0) THEN
+        FrgSZ=FctFrgSZ(PlcIntNr)
+        IF NOT FrgSZ THEN
+          SWITCH PlcIntNr
+            CASE 1
+	           ;SZ1 nicht in Automatik
+	           IF NOT $IN[SZ_BASE_MA[1]+I_SZ_Auto] THEN
+  	             VA_Msg(51,#StateMsg)
+              ENDIF
+	           ;SZ1 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+	           IF NOT $IN[SZ_BASE_MA[1]+I_SZ_ref] THEN
+	             $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+	             $OUT[SZ_BASE_MA[1]+O_SZ_ref]=TRUE
+	             WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+	             $OUT[SZ_BASE_MA[1]+O_SZ_ref]=FALSE
+	             $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_bereit] AND $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+            CASE 2 
+	           ;SZ2 nicht in Automatik
+  	           IF NOT $IN[SZ_BASE_MA[2]+I_SZ_Auto] THEN
+  	             VA_Msg(52,#StateMsg)
+              ENDIF
+	           ;SZ2 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[SZ_BASE_MA[2]+I_SZ_ref] THEN
+	             $OUT[SZ_BASE_MA[2]+O_SZ_FRG]=TRUE
+	             $OUT[SZ_BASE_MA[2]+O_SZ_ref]=TRUE
+	             WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+	             $OUT[SZ_BASE_MA[2]+O_SZ_ref]=FALSE
+	             $OUT[SZ_BASE_MA[2]+O_SZ_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_bereit] AND $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+            CASE 3 
+              ;SZ3 nicht in Automatik
+  	           IF NOT $IN[SZ_BASE_MA[3]+I_SZ_Auto] THEN
+  	             VA_Msg(53,#StateMsg)
+              ENDIF
+	           ;SZ3 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[SZ_BASE_MA[3]+I_SZ_ref] THEN
+	             $OUT[SZ_BASE_MA[3]+O_SZ_FRG]=TRUE
+	             $OUT[SZ_BASE_MA[3]+O_SZ_ref]=TRUE
+	             WAIT FOR $IN[SZ_BASE_MA[3]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[3]+I_SZ_IPos_g]
+	             $OUT[SZ_BASE_MA[3]+O_SZ_ref]=FALSE
+	             $OUT[SZ_BASE_MA[3]+O_SZ_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[SZ_BASE_MA[3]+I_SZ_bereit] AND $IN[SZ_BASE_MA[3]+I_SZ_IPos_g]
+            CASE 4 
+              ;NZ1 nicht in Automatik
+	           IF NOT $IN[NZS_BASE_MA[1]+I_NZS_Auto] THEN
+  	             VA_Msg(54,#StateMsg)
+              ENDIF
+	           ;NZ1 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[NZS_BASE_MA[1]+I_NZS_ref] THEN
+	             $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+	             $OUT[NZS_BASE_MA[1]+O_NZS_ref]=TRUE
+	             WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+	             $OUT[NZS_BASE_MA[1]+O_NZS_ref]=FALSE
+	             $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_bereit] AND $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+	         CASE 5 
+              ;NZ2 nicht in Automatik
+	           IF NOT $IN[NZS_BASE_MA[2]+I_NZS_Auto] THEN
+  	             VA_Msg(55,#StateMsg)
+              ENDIF
+	           ;NZ2 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[NZS_BASE_MA[2]+I_NZS_ref] THEN
+	             $OUT[NZS_BASE_MA[2]+O_NZS_FRG]=TRUE
+	             $OUT[NZS_BASE_MA[2]+O_NZS_ref]=TRUE
+	             WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+	             $OUT[NZS_BASE_MA[2]+O_NZS_ref]=FALSE
+	             $OUT[NZS_BASE_MA[2]+O_NZS_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_bereit] AND $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+            CASE 6
+              ;CZ1 nicht in Automatik
+  	           IF NOT $IN[CZS_BASE_MA[1]+I_CZS_Auto] THEN
+  	             VA_Msg(56,#StateMsg)
+              ENDIF
+	           ;CZ1 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[CZS_BASE_MA[1]+I_CZS_ref] THEN
+	             $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+	             $OUT[CZS_BASE_MA[1]+O_CZS_ref]=TRUE
+	             WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+	             $OUT[CZS_BASE_MA[1]+O_CZS_ref]=FALSE
+	             $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_bereit] AND $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+            CASE 7
+              ;CZ2 nicht in Automatik
+  	           IF NOT $IN[CZS_BASE_MA[2]+I_CZS_Auto] THEN
+  	             VA_Msg(57,#StateMsg)
+              ENDIF
+	           ;CZ2 Referenzieren falls erforderlich
+              IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+                WAIT SEC 3
+              ENDIF
+   	        IF NOT $IN[CZS_BASE_MA[2]+I_CZS_ref] THEN
+	             $OUT[CZS_BASE_MA[2]+O_CZS_FRG]=TRUE
+	             $OUT[CZS_BASE_MA[2]+O_CZS_ref]=TRUE
+	             WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+	             $OUT[CZS_BASE_MA[2]+O_CZS_ref]=FALSE
+	             $OUT[CZS_BASE_MA[2]+O_CZS_FRG]=FALSE
+              ENDIF
+              WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_bereit] AND $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+          ENDSWITCH
+        ENDIF
+      ENDIF
+    ENDFOR
+    ;
+    IF schleppfehler OR $softplcbool[5] THEN
+      SZInitR(1)
+    ENDIF
+    ;
+    IF NOT $softplcbool[1] THEN
+      SZInitR(2)
+    ENDIF
+    ;
+    SF_Vorwarnung=FALSE
+    ;
+    GLOBAL INTERRUPT DECL 6 WHEN SF_Vorwarnung DO VA_SF_Interrupt(9)
+    GLOBAL INTERRUPT DECL 7 WHEN $softplcint[30]>0 DO VA_SF_Interrupt(1)
+    GLOBAL INTERRUPT DECL 8 WHEN $softplcbool[5] DO VA_SF_Interrupt(7)
+    GLOBAL INTERRUPT DECL 21 WHEN NOT $softplcbool[1] DO VA_SF_Interrupt(8)
+    GLOBAL INTERRUPT DECL 23 WHEN B_Antriebe_AUS DO VA_SF_Interrupt(10)
+    ;
+    INTERRUPT ON 6
+    INTERRUPT ON 7
+    INTERRUPT ON 8
+    INTERRUPT ON 21
+    INTERRUPT ON 23
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (TRIG)
+            
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    ;
+    IF (ExtServoDev==TRUE) AND (PAR3>0) AND (PAR4>0) AND (PAR5>0) THEN
+      SWITCH PAR1
+        CASE 1 ;EZ1/SP1/KE1
+          $FLAG[471]=TRUE
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==705) THEN
+              EZ_PlcInt[1]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[EZ_PlcInt[1]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            EZ1_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            EZ1_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            EZ1_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            EZ1_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            EZ1_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            EZ1_ExAx=12
+          ENDIF
+          IF (EZ1_ExAx<>0) THEN
+            Visu_EZ1_ExAx=(EZ1_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[EZ_PlcInt[1]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            EZ1_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            EZ1_Dock=TRUE
+            ExAx_Docking=EZ1_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_EZ1=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(EZ1_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[EZ1_ExAx].n))/$VEL_AXIS_MA[EZ1_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[EZ1_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[EZ1_ExAx]=-20
+          ELSE
+            $SOFTN_END[EZ1_ExAx]=PAR7
+          ENDIF
+          IF (EZ1_Dock==FALSE) THEN
+            Index=EZ1_ExAx-6
+            SysBusDelay[Index]=Delay_EZ1[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 2 ;EZ2/SP2/KE2
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==865) THEN
+              EZ_PlcInt[2]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[EZ_PlcInt[2]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            EZ2_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            EZ2_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            EZ2_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            EZ2_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            EZ2_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            EZ2_ExAx=12
+          ENDIF
+          IF (EZ2_ExAx<>0) THEN
+            Visu_EZ2_ExAx=(EZ2_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[EZ_PlcInt[2]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            EZ2_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            EZ2_Dock=TRUE
+            ExAx_Docking=EZ2_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_EZ2=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(EZ2_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[EZ2_ExAx].n))/$VEL_AXIS_MA[EZ2_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[EZ2_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[EZ2_ExAx]=-20
+          ELSE
+            $SOFTN_END[EZ2_ExAx]=PAR7
+          ENDIF
+          IF (EZ2_Dock==FALSE) THEN
+            Index=EZ2_ExAx-6
+            SysBusDelay[Index]=Delay_EZ2[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 3 ;EZ3/SP3/KE3
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1025) THEN
+              EZ_PlcInt[3]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[EZ_PlcInt[3]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            EZ3_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            EZ3_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            EZ3_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            EZ3_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            EZ3_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            EZ3_ExAx=12
+          ENDIF
+          IF (EZ3_ExAx<>0) THEN
+            Visu_EZ3_ExAx=(EZ3_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[EZ_PlcInt[3]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            EZ3_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            EZ3_Dock=TRUE
+            ExAx_Docking=EZ3_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_EZ3=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(EZ3_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[EZ3_ExAx].n))/$VEL_AXIS_MA[EZ3_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[EZ3_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[EZ3_ExAx]=-20
+          ELSE
+            $SOFTN_END[EZ3_ExAx]=PAR7
+          ENDIF
+          IF (EZ3_Dock==FALSE) THEN
+            Index=EZ3_ExAx-6
+            SysBusDelay[Index]=Delay_EZ3[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 4 ;NZ1
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1185) THEN
+              NZ_PlcInt[1]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[NZ_PlcInt[1]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            NZ1_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            NZ1_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            NZ1_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            NZ1_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            NZ1_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            NZ1_ExAx=12
+          ENDIF
+          IF (NZ1_ExAx<>0) THEN
+            Visu_NZ1_ExAx=(NZ1_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[NZ_PlcInt[1]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            NZ1_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            NZ1_Dock=TRUE
+            ExAx_Docking=NZ1_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_NZ1=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(NZ1_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[NZ1_ExAx].n))/$VEL_AXIS_MA[NZ1_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[NZ1_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[NZ1_ExAx]=5
+          ELSE
+            $SOFTN_END[NZ1_ExAx]=PAR7
+          ENDIF
+          IF (NZ1_Dock==FALSE) THEN
+            Index=NZ1_ExAx-6
+            SysBusDelay[Index]=Delay_NZ1[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 5 ;NZ2
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1265) THEN
+              NZ_PlcInt[2]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[NZ_PlcInt[2]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            NZ2_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            NZ2_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            NZ2_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            NZ2_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            NZ2_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            NZ2_ExAx=12
+          ENDIF
+          IF (NZ2_ExAx<>0) THEN
+            Visu_NZ2_ExAx=(NZ2_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[NZ_PlcInt[2]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            NZ2_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            NZ2_Dock=TRUE
+            ExAx_Docking=NZ2_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_NZ2=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(NZ2_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[NZ2_ExAx].n))/$VEL_AXIS_MA[NZ2_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[NZ2_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[NZ2_ExAx]=5
+          ELSE
+            $SOFTN_END[NZ2_ExAx]=PAR7
+          ENDIF
+          IF (NZ2_Dock==FALSE) THEN
+            Index=NZ2_ExAx-6
+            SysBusDelay[Index]=Delay_NZ2[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 6 ;CZ1
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1345) THEN
+              CZ_PlcInt[1]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[CZ_PlcInt[1]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            CZ1_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            CZ1_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            CZ1_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            CZ1_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            CZ1_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            CZ1_ExAx=12
+          ENDIF
+          IF (CZ1_ExAx<>0) THEN
+            Visu_CZ1_ExAx=(CZ1_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[CZ_PlcInt[1]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            CZ1_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            CZ1_Dock=TRUE
+            ExAx_Docking=CZ1_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_CZ1=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(CZ1_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[CZ1_ExAx].n))/$VEL_AXIS_MA[CZ1_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[CZ1_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[CZ1_ExAx]=5
+          ELSE
+            $SOFTN_END[CZ1_ExAx]=PAR7
+          ENDIF
+          IF (CZ1_Dock==FALSE) THEN
+            Index=CZ1_ExAx-6
+            SysBusDelay[Index]=Delay_CZ1[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 7 ;CZ2
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1425) THEN
+              CZ_PlcInt[2]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[CZ_PlcInt[2]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            CZ2_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            CZ2_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            CZ2_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            CZ2_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            CZ2_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            CZ2_ExAx=12
+          ENDIF
+          IF (CZ2_ExAx<>0) THEN
+            Visu_CZ2_ExAx=(CZ2_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[CZ_PlcInt[2]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            CZ2_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            CZ2_Dock=TRUE
+            ExAx_Docking=CZ2_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_CZ2=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(CZ2_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[CZ2_ExAx].n))/$VEL_AXIS_MA[CZ2_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[CZ2_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[CZ2_ExAx]=5
+          ELSE
+            $SOFTN_END[CZ2_ExAx]=PAR7
+          ENDIF
+          IF (CZ2_Dock==FALSE) THEN
+            Index=CZ2_ExAx-6
+            SysBusDelay[Index]=Delay_CZ2[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 8 ;RW1
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1265) THEN
+              RW_PlcInt[1]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[RW_PlcInt[1]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            RW1_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            RW1_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            RW1_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            RW1_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            RW1_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            RW1_ExAx=12
+          ENDIF
+          IF (RW1_ExAx<>0) THEN 
+            Visu_RW1_ExAx=(RW1_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[RW_PlcInt[1]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            RW1_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            RW1_Dock=TRUE
+            ExAx_Docking=RW1_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_RW1=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(RW1_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[RW1_ExAx].n))/$VEL_AXIS_MA[RW1_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[RW1_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[RW1_ExAx]=5
+          ELSE
+            $SOFTN_END[RW1_ExAx]=PAR7
+          ENDIF
+          IF (RW1_Dock==FALSE) THEN
+            Index=RW1_ExAx-6
+            SysBusDelay[Index]=Delay_RW1[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+        CASE 9 ;RW2
+          ;SoftPlcInt-Nr
+          FOR PlcIntNr=1 TO 7
+            HM_ExtPlcStart_EA=Modulo(ExtServoPLC[PlcIntNr],10000)
+            IF (HM_ExtPlcStart_EA==1185) THEN
+              RW_PlcInt[2]=PlcIntNr
+            ENDIF
+          ENDFOR
+          ;Externe-Achse
+          HM_ExtPlcExAx=Modulo((ExtServoPLC[RW_PlcInt[2]]/10000),100)
+          IF (HM_ExtPlcExAx==7) THEN
+            RW2_ExAx=7
+          ENDIF
+          IF (HM_ExtPlcExAx==8) THEN
+            RW2_ExAx=8
+          ENDIF
+          IF (HM_ExtPlcExAx==9) THEN
+            RW2_ExAx=9
+          ENDIF
+          IF (HM_ExtPlcExAx==10) THEN
+            RW2_ExAx=10
+          ENDIF
+          IF (HM_ExtPlcExAx==11) THEN
+            RW2_ExAx=11
+          ENDIF
+          IF (HM_ExtPlcExAx==12) THEN
+            RW2_ExAx=12
+          ENDIF
+          IF (RW2_ExAx<>0) THEN
+            Visu_RW2_ExAx=(RW2_ExAx-6)
+          ENDIF
+          ;Docking
+          HM_ExtPlcDock=(ExtServoPLC[RW_PlcInt[2]]/1000000)
+          IF (HM_ExtPlcDock==1) THEN
+            RW2_Dock=FALSE
+          ENDIF
+          IF (HM_ExtPlcDock==2) THEN
+            RW2_Dock=TRUE
+            ExAx_Docking=RW2_ExAx
+          ENDIF
+          ;Maschinendaten berechnen
+          Visu_Speed_RW2=((((PAR3/PAR5)+0.5)/60)*1000)  ;Visu Speed  mm/s
+          RedVelExAx[(RW2_ExAx-6)]=(((((PAR3/PAR5)+0.5)*($RAT_MOT_AX[RW2_ExAx].n))/$VEL_AXIS_MA[RW2_ExAx])*100)  ;Berechnung Drehzahlvorgabe in %
+          ;Software-Endschalter 
+          $SOFTP_END[RW2_ExAx]=PAR6
+          IF (PAR7==0) THEN
+            $SOFTN_END[RW2_ExAx]=5
+          ELSE
+            $SOFTN_END[RW2_ExAx]=PAR7
+          ENDIF
+          IF (RW2_Dock==FALSE) THEN
+            Index=RW1_ExAx-6
+            SysBusDelay[Index]=Delay_RW1[1]
+            SZConfig()
+            WAIT SEC 0.1
+          ENDIF
+      ENDSWITCH
+    ELSE
+      IF (ExtServoDev==FALSE) THEN
+        VA_Msg(88,#QuitMsg)
+      ENDIF
+      IF (PAR3<=0) THEN
+        VA_Msg(89,#QuitMsg)
+      ENDIF
+      IF (PAR4<=0) THEN
+        VA_Msg(90,#QuitMsg)
+      ENDIF
+      IF (PAR5<=0) THEN
+        VA_Msg(91,#QuitMsg)
+      ENDIF
+    ENDIF
+    ;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (VA Interface)
+;
+;***************************************************
+;FOLD Schleppfehler bei Programmstart
+DEF SZInitR(SZCmd:IN)
+INT SZCmd,HM_softplcint
+BOOL MSG_DEL,bRet
+;
+IF SZCmd==1 THEN
+  VA_Msg((30+$softplcint[21]),#StateMsg)
+  HM_softplcint=$softplcint[21]
+  WAIT FOR (NOT schleppfehler AND NOT $softplcbool[5])
+  bRet=Clear_KrlMsg(n_VAR_Handle[30])
+  n_VAR_Handle[30+HM_softplcint]=-1 
+ENDIF
+;
+IF SZCmd==2 THEN
+  WAIT FOR $softplcbool[1]
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SZ-Schleppfehler im Programmbetrieb
+DEF VA_SF_Interrupt(SZCmd :IN)
+INT SZCmd, I
+BOOL MSG_DEL,bRet
+;
+SWITCH SZCmd
+  CASE 1
+    INTERRUPT OFF 7
+    SWITCH $softplcint[30]
+      CASE 1
+        ;SZ1
+        IF (EZ_PlcInt[1]<>0) THEN
+          IF NOT $OUT[SZ_BASE_MA[1]+O_SZ_FRG] AND NOT $IN[SZ_BASE_MA[1]+I_SZ_IPos_g] AND ($softplcint[EZ_PlcInt[1]]>0) THEN
+            BRAKE
+            ;SZ1 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[SZ_BASE_MA[1]+I_SZ_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(41,#StateMsg)
+              $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+              $OUT[SZ_BASE_MA[1]+O_SZ_ref]=TRUE
+              WAIT FOR ($IN[SZ_BASE_MA[1]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[1]+I_SZ_IPos_g])
+              $OUT[SZ_BASE_MA[1]+O_SZ_ref]=FALSE
+              $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(81,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+            $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=FALSE
+          ENDIF
+        ENDIF
+;
+      CASE 2
+        ;SZ2
+        IF (EZ_PlcInt[2]<>0) THEN
+          IF NOT $OUT[SZ_BASE_MA[2]+O_SZ_FRG] AND NOT $IN[SZ_BASE_MA[2]+I_SZ_IPos_g] AND ($softplcint[EZ_PlcInt[2]]>0) THEN
+            BRAKE
+            ;SZ2 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[SZ_BASE_MA[2]+I_SZ_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN	
+              VA_Msg(42,#StateMsg)
+              $OUT[SZ_BASE_MA[2]+O_SZ_FRG]=TRUE
+              $OUT[SZ_BASE_MA[2]+O_SZ_ref]=TRUE
+              WAIT FOR ($IN[SZ_BASE_MA[2]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[2]+I_SZ_IPos_g])
+              $OUT[SZ_BASE_MA[2]+O_SZ_ref]=FALSE
+              $OUT[SZ_BASE_MA[2]+O_SZ_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(82,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+            $OUT[SZ_BASE_SL[2]+O_SZ_F_Schl]=FALSE
+          ENDIF
+        ENDIF
+;
+      CASE 3
+        ;SZ3
+        IF (EZ_PlcInt[3]<>0) THEN
+          IF NOT $OUT[SZ_BASE_MA[3]+O_SZ_FRG] AND NOT $IN[SZ_BASE_MA[3]+I_SZ_IPos_g] AND ($softplcint[EZ_PlcInt[3]]>0) THEN
+            BRAKE
+            ;SZ3 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[SZ_BASE_MA[3]+I_SZ_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(43,#StateMsg)
+              $OUT[SZ_BASE_MA[3]+O_SZ_FRG]=TRUE
+              $OUT[SZ_BASE_MA[3]+O_SZ_ref]=TRUE
+              WAIT FOR ($IN[SZ_BASE_MA[3]+I_SZ_ref] AND ($softplcbool[6]==FALSE) AND $IN[SZ_BASE_MA[3]+I_SZ_IPos_g])
+              $OUT[SZ_BASE_MA[3]+O_SZ_ref]=FALSE
+              $OUT[SZ_BASE_MA[3]+O_SZ_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(83,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[SZ_BASE_MA[3]+I_SZ_IPos_g]
+            $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=FALSE
+          ENDIF
+        ENDIF
+;
+      CASE 4
+        ;NZ1
+        IF (NZ_PlcInt[1]<>0) THEN
+          IF NOT $OUT[NZS_BASE_MA[1]+O_NZS_FRG] AND NOT $IN[NZS_BASE_MA[1]+I_NZS_IPos_g] AND ($softplcint[NZ_PlcInt[1]]>0) THEN
+            BRAKE
+            ;NZ1 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[NZS_BASE_MA[1]+I_NZS_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(44,#StateMsg)
+              $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+              $OUT[NZS_BASE_MA[1]+O_NZS_ref]=TRUE
+              WAIT FOR ($IN[NZS_BASE_MA[1]+I_NZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[NZS_BASE_MA[1]+I_NZS_IPos_g])
+              $OUT[NZS_BASE_MA[1]+O_NZS_ref]=FALSE
+              $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(84,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+          ENDIF
+        ENDIF
+;
+      CASE 5
+        ;NZ2
+        IF (NZ_PlcInt[2]<>0) THEN
+          IF NOT $OUT[NZS_BASE_MA[2]+O_NZS_FRG] AND NOT $IN[NZS_BASE_MA[2]+I_NZS_IPos_g] AND ($softplcint[NZ_PlcInt[2]]>0) THEN
+            BRAKE
+            ;NZ2 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[NZS_BASE_MA[2]+I_NZS_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(45,#StateMsg)
+              $OUT[NZS_BASE_MA[2]+O_NZS_FRG]=TRUE
+              $OUT[NZS_BASE_MA[2]+O_NZS_ref]=TRUE
+              WAIT FOR ($IN[NZS_BASE_MA[2]+I_NZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[NZS_BASE_MA[2]+I_NZS_IPos_g])
+              $OUT[NZS_BASE_MA[2]+O_NZS_ref]=FALSE
+              $OUT[NZS_BASE_MA[2]+O_NZS_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+              $softplcbool[125]=FALSE
+            ELSE
+              VA_Msg(85,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+          ENDIF
+        ENDIF
+;
+      CASE 6
+        ;CZ1
+        IF (CZ_PlcInt[1]<>0) THEN
+          IF NOT $OUT[CZS_BASE_MA[1]+O_CZS_FRG] AND NOT $IN[CZS_BASE_MA[1]+I_CZS_IPos_g] AND ($softplcint[CZ_PlcInt[1]]>0) THEN
+            BRAKE
+            ;CZ1 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[CZS_BASE_MA[1]+I_CZS_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(46,#StateMsg)
+              $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+              $OUT[CZS_BASE_MA[1]+O_CZS_ref]=TRUE
+              WAIT FOR ($IN[CZS_BASE_MA[1]+I_CZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[CZS_BASE_MA[1]+I_CZS_IPos_g])
+              $OUT[CZS_BASE_MA[1]+O_CZS_ref]=FALSE
+              $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(86,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+          ENDIF
+        ENDIF
+;
+      CASE 7
+        ;CZ2
+        IF (CZ_PlcInt[2]<>0) THEN
+          IF NOT $OUT[CZS_BASE_MA[2]+O_CZS_FRG] AND NOT $IN[CZS_BASE_MA[2]+I_CZS_IPos_g] AND ($softplcint[CZ_PlcInt[2]]>0) THEN
+            BRAKE
+            ;CZ2 Referenzieren falls erforderlich
+            IF Hibernate_2 AND ($MODE_OP==#EX) THEN
+              WAIT SEC 3
+            ENDIF
+            IF NOT $IN[CZS_BASE_MA[2]+I_CZS_ref] AND (FRG_Referenzieren OR (FRG_Referenzieren2 AND $FLAG[F_SZ_AutoRef]) OR $OUT[O_R_PF0]) THEN
+              VA_Msg(47,#StateMsg)
+              $OUT[CZS_BASE_MA[2]+O_CZS_FRG]=TRUE
+              $OUT[CZS_BASE_MA[2]+O_CZS_ref]=TRUE
+              WAIT FOR ($IN[CZS_BASE_MA[2]+I_CZS_ref] AND ($softplcbool[6]==FALSE) AND $IN[CZS_BASE_MA[2]+I_CZS_IPos_g])
+              $OUT[CZS_BASE_MA[2]+O_CZS_ref]=FALSE
+              $OUT[CZS_BASE_MA[2]+O_CZS_FRG]=FALSE
+              SF_Vorwarnung=FALSE
+            ELSE
+              VA_Msg(87,#StateMsg)
+            ENDIF
+            WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+          ENDIF
+        ENDIF
+;
+      DEFAULT
+        ;fehlerhafter Wert uebergeben
+        BRAKE
+        WAIT SEC 3
+    ENDSWITCH
+    INTERRUPT ON 7
+;
+  CASE 7
+    ;Interrupt durch Schleppfehler bei SZ1 ausgeloest
+    IF (EZ_PlcInt[1]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[SZ_BASE_MA[1]+O_SZ_FRG] AND NOT $OUT[SZ_BASE_MA[1]+O_SZ_Re_aus] AND (abs($softplcreal[1])>max_sf)  AND ($softplcint[EZ_PlcInt[1]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(31,#StateMsg)
+          $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=TRUE
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+          IF (n_VAR_Handle[31]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[31])
+            n_VAR_Handle[31]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=TRUE
+            VA_Msg(1,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+            IF (n_VAR_Handle[1]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[1])
+              n_VAR_Handle[1]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=TRUE
+              VA_Msg(11,#StateMsg)
+              WAIT FOR $IN[SZ_BASE_MA[1]+I_SZ_IPos_g]
+              IF (n_VAR_Handle[11]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[11])
+                n_VAR_Handle[11]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF
+    ;Interrupt durch Schleppfehler bei SZ2 ausgeloest
+    IF (EZ_PlcInt[2]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[SZ_BASE_MA[2]+O_SZ_FRG] AND NOT $OUT[SZ_BASE_MA[2]+O_SZ_Re_aus] AND (abs($softplcreal[2])>max_sf) AND ($softplcint[EZ_PlcInt[2]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(32,#StateMsg)
+          $OUT[SZ_BASE_SL[2]+O_SZ_F_Schl]=TRUE
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+          IF (n_VAR_Handle[32]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[32])
+            n_VAR_Handle[32]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=TRUE
+            VA_Msg(2,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+            IF (n_VAR_Handle[2]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[2])
+              n_VAR_Handle[2]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              $OUT[SZ_BASE_SL[2]+O_SZ_F_Schl]=TRUE
+              VA_Msg(12,#StateMsg)
+              WAIT FOR $IN[SZ_BASE_MA[2]+I_SZ_IPos_g]
+              IF (n_VAR_Handle[12]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[12])
+                n_VAR_Handle[12]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF
+    ;Interrupt durch Schleppfehler bei SZ3 ausgeloest
+    IF (EZ_PlcInt[3]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[SZ_BASE_MA[3]+O_SZ_FRG] AND NOT $OUT[SZ_BASE_MA[3]+O_SZ_Re_aus] AND (abs($softplcreal[3])>max_sf) AND ($softplcint[EZ_PlcInt[3]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(33,#StateMsg)
+          $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=TRUE
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[SZ_BASE_MA[3]+I_SZ_IPos_g]
+          IF (n_VAR_Handle[33]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[33])
+          n_VAR_Handle[33]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=TRUE
+            VA_Msg(3,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[SZ_BASE_MA[3]+I_SZ_IPos_g]
+            IF (n_VAR_Handle[3]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[3])
+              n_VAR_Handle[3]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=TRUE
+              VA_Msg(13,#StateMsg)
+              WAIT FOR $IN[SZ_BASE_MA[13]+I_SZ_IPos_g]
+              IF (n_VAR_Handle[13]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[2])
+                n_VAR_Handle[13]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF 
+    ;Interrupt durch Schleppfehler  bei NZ1 ausgeloest
+    IF (NZ_PlcInt[1]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[NZS_BASE_MA[1]+O_NZS_FRG] AND NOT $OUT[NZS_BASE_MA[1]+O_NZS_Re_aus] AND (abs($softplcreal[4])>max_sf) AND ($softplcint[NZ_PlcInt[1]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(34,#StateMsg)
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+          IF (n_VAR_Handle[34]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[34])
+          n_VAR_Handle[34]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            VA_Msg(4,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+            IF (n_VAR_Handle[4]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[4])
+              n_VAR_Handle[4]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              VA_Msg(14,#StateMsg)
+              WAIT FOR $IN[NZS_BASE_MA[1]+I_NZS_IPos_g]
+              IF (n_VAR_Handle[14]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[14])
+                n_VAR_Handle[14]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF 
+    ;Interrupt durch Schleppfehler  bei NZ2 ausgeloest
+    IF (NZ_PlcInt[2]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[NZS_BASE_MA[2]+O_NZS_FRG] AND NOT $OUT[NZS_BASE_MA[2]+O_NZS_Re_aus] AND (abs($softplcreal[5])>max_sf) AND ($softplcint[NZ_PlcInt[2]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(35,#StateMsg)
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+          IF (n_VAR_Handle[35]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[35])
+          n_VAR_Handle[35]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            VA_Msg(5,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+            IF (n_VAR_Handle[5]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[5])
+              n_VAR_Handle[5]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              VA_Msg(15,#StateMsg)
+              WAIT FOR $IN[NZS_BASE_MA[2]+I_NZS_IPos_g]
+              IF (n_VAR_Handle[15]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[15])
+                n_VAR_Handle[15]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF 
+    ;Interrupt durch Schleppfehler bei CZ1 ausgeloest
+    IF (CZ_PlcInt[1]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[CZS_BASE_MA[1]+O_CZS_FRG] AND NOT $OUT[CZS_BASE_MA[1]+O_CZS_Re_aus] AND (abs($softplcreal[6])>max_sf) AND ($softplcint[CZ_PlcInt[1]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(36,#StateMsg)
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+          IF (n_VAR_Handle[36]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[36])
+          n_VAR_Handle[36]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            VA_Msg(6,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+            IF (n_VAR_Handle[6]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[6])
+              n_VAR_Handle[6]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              VA_Msg(16,#StateMsg)
+              WAIT FOR $IN[CZS_BASE_MA[1]+I_CZS_IPos_g]
+              IF (n_VAR_Handle[16]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[16])
+                n_VAR_Handle[16]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF 
+    ;Interrupt durch Schleppfehler  bei CZ2 ausgeloest
+    IF (CZ_PlcInt[2]<>0) THEN
+      INTERRUPT OFF 8
+      IF NOT $OUT[CZS_BASE_MA[2]+O_CZS_FRG] AND NOT $OUT[CZS_BASE_MA[2]+O_CZS_Re_aus] AND (abs($softplcreal[7])>max_sf) AND ($softplcint[CZ_PlcInt[2]]>0) THEN
+        BRAKE
+        IF ANTEIN_MERKER THEN
+          VA_Msg(37,#StateMsg)
+	       WAIT FOR $softplcbool[6]==FALSE
+          SF_Vorwarnung=FALSE
+          WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+          IF (n_VAR_Handle[37]>-1) THEN
+            bRet=Clear_KrlMsg(n_VAR_Handle[37])
+          n_VAR_Handle[37]=-1
+          ENDIF
+        ELSE
+          IF (Handbetrieb==FALSE) THEN
+            F_Handbetrieb=TRUE
+            VA_Msg(7,#StateMsg)
+		      WHILE Handbetrieb==FALSE
+            ENDWHILE
+            WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+            IF (n_VAR_Handle[7]>-1) THEN
+              bRet=Clear_KrlMsg(n_VAR_Handle[7])
+              n_VAR_Handle[7]=-1
+            ENDIF
+            IF NOT F_Handbetrieb THEN
+              VA_Msg(17,#StateMsg)
+              WAIT FOR $IN[CZS_BASE_MA[2]+I_CZS_IPos_g]
+              IF (n_VAR_Handle[17]>-1) THEN
+                bRet=Clear_KrlMsg(n_VAR_Handle[17])
+                n_VAR_Handle[17]=-1
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF 
+    ;WAIT FOR $softplcbool[6]==FALSE
+    SF_Vorwarnung=FALSE
+    $softplcbool[125]=FALSE
+    $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=FALSE
+    $OUT[SZ_BASE_SL[2]+O_SZ_F_Schl]=FALSE
+    $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=FALSE
+    F_Handbetrieb=FALSE
+    INTERRUPT ON 8
+;
+CASE 8
+  ;Interrupt durch Stop SoftSPS
+  INTERRUPT OFF 21
+  BRAKE
+  WAIT SEC 2
+  WAIT FOR $softplcbool[1]
+  INTERRUPT OFF 21
+;
+CASE 9
+  ;Interrupt durch Schleppfehler >1 und <15 ausgeloest
+  INTERRUPT OFF 6
+  IF $softplcbool[6] AND NOT $softplcbool[5] THEN
+    BRAKE
+    VA_Msg((30+$softplcint[21]),#StateMsg)
+	 WAIT FOR $softplcbool[6]==FALSE
+    SF_Vorwarnung=FALSE
+  ELSE
+    SF_Vorwarnung=FALSE
+  ENDIF
+  $OUT[SZ_BASE_SL[1]+O_SZ_F_Schl]=FALSE
+  $OUT[SZ_BASE_SL[2]+O_SZ_F_Schl]=FALSE
+  $OUT[SZ_BASE_SL[3]+O_SZ_F_Schl]=FALSE
+  INTERRUPT ON 6
+;
+CASE 10
+  ;Kollisionsueberwachung einschalten nach Antriebe AUS/EIN
+  INTERRUPT OFF 23
+  $TORQMON[1]=Koll_dat[Bereich].A1
+  $TORQMON[2]=Koll_dat[Bereich].A1
+  $TORQMON[3]=Koll_dat[Bereich].A1
+  $TORQMON[4]=Koll_dat[Bereich].A1
+  $TORQMON[5]=Koll_dat[Bereich].A1
+  $TORQMON[6]=Koll_dat[Bereich].A1
+  INTERRUPT ON 23
+;
+DEFAULT
+;fehlerhafter Wert uebergeben
+BRAKE
+WAIT SEC 3
+ENDSWITCH
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD FctFrgSZ
+DEFFCT BOOL FctFrgSZ(R_SZNr:IN)
+BOOL FctFrgSZVal
+INT R_SZNr
+SWITCH R_SZNr
+  CASE 1
+    FctFrgSZVal=$OUT[SZ_BASE_MA[1]+O_SZ_FRG]
+  CASE 2
+    FctFrgSZVal=$OUT[SZ_BASE_MA[2]+O_SZ_FRG]
+  CASE 3
+    FctFrgSZVal=$OUT[SZ_BASE_MA[3]+O_SZ_FRG]
+  CASE 4
+    FctFrgSZVal=$OUT[NZS_BASE_MA[1]+O_NZS_FRG]
+  CASE 5
+    FctFrgSZVal=$OUT[NZS_BASE_MA[2]+O_NZS_FRG]
+  CASE 6
+    FctFrgSZVal=$OUT[CZS_BASE_MA[1]+O_CZS_FRG]
+  CASE 7
+    FctFrgSZVal=$OUT[CZS_BASE_MA[2]+O_CZS_FRG]	
+ENDSWITCH
+RETURN(FctFrgSZVal)
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD VAchsen_Meldungen
+DEF VA_Msg(Msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+INT InputNo[5]
+DECL VAR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG={Modul[] "VA_R_Msg", Nr -1,Msg_txt[] " "}
+Opt={VL_Stop True,Clear_P_Reset True,Log_To_DB False}
+Par[1]={Par_type #Value,Par_txt[] " "}
+;
+SWITCH $SoftPlcint[21]
+  CASE 1
+    Par[1]={Par_type #Value,Par_int 1}
+    InputNo[5]=SZ_BASE_MA[1]+I_SZ_Auto
+  CASE 2
+    Par[1]={Par_type #Value,Par_int 2}
+    InputNo[5]=SZ_BASE_MA[2]+I_SZ_Auto
+  CASE 3
+    Par[1]={Par_type #Value,Par_int 3}
+    InputNo[5]=SZ_BASE_MA[3]+I_SZ_Auto
+  CASE 4
+    Par[1]={Par_type #Value,Par_int 4}
+    InputNo[5]=NZS_BASE_MA[1]+I_NZS_Auto
+  CASE 5
+    Par[1]={Par_type #Value,Par_int 5}
+    InputNo[5]=NZS_BASE_MA[2]+I_NZS_Auto
+  CASE 6
+    Par[1]={Par_type #Value,Par_int 6}
+    InputNo[5]=CZS_BASE_MA[1]+I_CZS_Auto
+  CASE 7
+    Par[1]={Par_type #Value,Par_int 7}
+    InputNo[5]=CZS_BASE_MA[2]+I_CZS_Auto
+  DEFAULT
+    Par[1]={Par_type #Value,Par_txt[] " "}
+    InputNo[5]=SZ_BASE_MA[1]+I_SZ_Auto
+ENDSWITCH
+IF ((n_VAR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 2
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 3
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 4
+      USER_MSG.MSG_TXT[]="NZ1: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 5
+      USER_MSG.MSG_TXT[]="NZ2: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 6
+      USER_MSG.MSG_TXT[]="CZ1: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 7
+      USER_MSG.MSG_TXT[]="CZ2: Schleppfehler im Programmbetrieb, Quit in Single-Step erforderlich"
+    CASE 8
+      USER_MSG.MSG_TXT[]=" "
+    CASE 9
+     USER_MSG.MSG_TXT[]=" "
+    CASE 10
+     USER_MSG.MSG_TXT[]=" "
+    CASE 11
+      USER_MSG.MSG_TXT[]="EZ/SP1: Schleppfehler im Programmbetrieb"
+    CASE 12
+      USER_MSG.MSG_TXT[]="EZ/SP2: Schleppfehler im Programmbetrieb"
+    CASE 13
+      USER_MSG.MSG_TXT[]="EZ/SP3: Schleppfehler im Programmbetrieb"
+    CASE 14
+      USER_MSG.MSG_TXT[]="NZ1: Schleppfehler im Programmbetrieb"
+    CASE 15
+      USER_MSG.MSG_TXT[]="NZ2: Schleppfehler im Programmbetrieb"
+    CASE 16
+      USER_MSG.MSG_TXT[]="CZ1: Schleppfehler im Programmbetrieb"
+    CASE 17
+      USER_MSG.MSG_TXT[]="CZ2: Schleppfehler im Programmbetrieb"
+    CASE 18
+      USER_MSG.MSG_TXT[]=" "
+    CASE 19
+      USER_MSG.MSG_TXT[]=" "
+    CASE 20
+      USER_MSG.MSG_TXT[]=" "
+    CASE 30
+      USER_MSG.MSG_TXT[]="Wert $SoftPlcint[21] ungueltig"
+    CASE 31
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 32
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 33
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 34
+      USER_MSG.MSG_TXT[]="NZ1: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 35
+      USER_MSG.MSG_TXT[]="NZ2: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 36
+      USER_MSG.MSG_TXT[]="CZ1: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 37
+      USER_MSG.MSG_TXT[]="CZ2: Schleppfehler, Warte bis kein Schleppfehler"
+    CASE 41
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1: Warten bis Referenziert"
+    CASE 42
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2: Warten bis Referenziert"
+    CASE 43
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3: Warten bis Referenziert"
+    CASE 44
+      USER_MSG.MSG_TXT[]="NZ1: Warten bis Referenziert"
+    CASE 45
+      USER_MSG.MSG_TXT[]="NZ2: Warten bis Referenziert"
+    CASE 46
+      USER_MSG.MSG_TXT[]="CZ1: Warten bis Referenziert"
+    CASE 47
+      USER_MSG.MSG_TXT[]="CZ2, Warte bis Referenziert !"
+    CASE 48
+      USER_MSG.MSG_TXT[]=" "
+    CASE 49
+      USER_MSG.MSG_TXT[]=" "
+    CASE 50
+      USER_MSG.MSG_TXT[]=" "
+    CASE 51
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1: Steuerung nicht in Automatik"
+    CASE 52
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2: Steuerung nicht in Automatik"
+    CASE 53
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3: Steuerung nicht in Automatik"
+    CASE 54
+      USER_MSG.MSG_TXT[]="NZ1: Steuerung nicht in Automatik"
+    CASE 55
+      USER_MSG.MSG_TXT[]="NZ2: Steuerung nicht in Automatik"
+    CASE 56
+      USER_MSG.MSG_TXT[]="CZ1: Steuerung nicht in Automatik"
+    CASE 57
+      USER_MSG.MSG_TXT[]="CZ2: Steuerung nicht in Automatik"
+    CASE 58
+      USER_MSG.MSG_TXT[]=" "
+    CASE 59
+      USER_MSG.MSG_TXT[]=" "
+    CASE 60
+      USER_MSG.MSG_TXT[]=" "
+    CASE 61
+      USER_MSG.MSG_TXT[]="DS: Alle Bahnhoefe belegt"
+    CASE 71
+      USER_MSG.MSG_TXT[]="Ungueltige Werkzeug Nummer"
+    CASE 81
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1: Istposition ungueltig"
+    CASE 82
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2: Istposition ungueltig"
+    CASE 83
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3: Istposition ungueltig"
+    CASE 84
+      USER_MSG.MSG_TXT[]="NZ1: Istposition ungueltig"
+    CASE 85
+      USER_MSG.MSG_TXT[]="NZ2: Istposition ungueltig"
+    CASE 86
+      USER_MSG.MSG_TXT[]="CZ1: Istposition ungueltig"
+    CASE 87
+      USER_MSG.MSG_TXT[]="CZ2: Istposition ungueltig"
+    CASE 88
+      USER_MSG.MSG_TXT[]="VA: In WorkVisual wurden keine virtuellen Achsen konfiguriert"
+    CASE 89
+      USER_MSG.MSG_TXT[]="VA: Wert fuer Drehzahl [U/min] ungueltig"
+    CASE 90
+      USER_MSG.MSG_TXT[]="VA: Wert fuer Brems-/Beschleunigungsrampe [ms] ungueltig"
+    CASE 91
+      USER_MSG.MSG_TXT[]="VA: Wert fuer Uebersetzung [U/m] ungueltig"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="Undefinierter Schleppfehler"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_VAR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_VAR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE ( Exists_KrlMsg(n_VAR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_VAR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_VAR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD Option
+
+

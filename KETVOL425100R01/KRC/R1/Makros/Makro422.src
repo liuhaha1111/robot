@@ -1,0 +1,91 @@
+&ACCESS RVO1
+&COMMENT DS Fehler Reset
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM TPVW_VERSION = 8.3.15
+DEFFCT INT MAKRO422(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Dockingkupplung Fehler Reset -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Dockingkupplung Fehler Reset --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- KS26 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KS26 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Version: 01 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Version: 01 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Stand: 001 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Stand: 001 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 06.03.2017 CE -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 06.03.2017 CE --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD GOTO Label 1 = E540 ;%{E}%MKUKATPVW,%CCONTROL,%VJUMP,%P 1:GOTO Label, 2:1, 3:=, 4:E540
+      ;FOLD  ;%{H}
+         CONTINUE
+         IF $IN[540] THEN
+            CONTINUE
+            GOTO Label1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD A539 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A539 = AUS, 3: BOASG
+      $OUT[539] = FALSE
+   ;ENDFOLD
+   ;FOLD -- Fehler Reset -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Fehler Reset --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A540 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A540 = EIN, 3: BOASG
+      $OUT[540] = TRUE
+   ;ENDFOLD
+   ;FOLD WARTE (EIN) ZEIT 50[1/10Sek] ;%{E}%MKUKATPVW %CVW_SPS %VWTASG %P 2:WARTE (EIN) ZEIT 50[1/10Sek], 3: WTASG
+      $LOOP_MSG[]="Wartezeit..."
+      $LOOP_CONT=TRUE
+      WAIT FOR (FALSE OR TIMER_LIMIT ((50)*0.1) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX)))
+      $LOOP_MSG[]="                                                                                                                                "
+   ;ENDFOLD
+   ;FOLD A540 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A540 = AUS, 3: BOASG
+      $OUT[540] = FALSE
+   ;ENDFOLD
+   ;FOLD t10 ( EIN ) = -20[1/10Sek] ;%{E}%MKUKATPVW %CVW_SPS %VTASG %P 2:t10 ( EIN ) = -20[1/10Sek], 3: TASG
+      VW(#SET_TIME,TRUE,10,0,-20)
+   ;ENDFOLD
+   ;FOLD WARTE BIS E540 + T10 ;%{E}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E540 + T10, 3: WBOASG
+      $LOOP_MSG[]="E540 + T10"
+      $LOOP_CONT=TRUE
+      WAIT FOR ($IN[540] OR $TIMER_FLAG[10]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+      $LOOP_MSG[]="                                                                                                                                "
+   ;ENDFOLD
+   ;FOLD A23 = !T10 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A23 = !T10, 3: BOASG
+      $OUT[23] = NOT $TIMER_FLAG[10]
+   ;ENDFOLD
+   ;FOLD WARTE BIS E540 ;%{E}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E540, 3: WBOASG
+      $LOOP_MSG[]="E540"
+      $LOOP_CONT=TRUE
+      WAIT FOR ($IN[540]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+      $LOOP_MSG[]="                                                                                                                                "
+   ;ENDFOLD
+   ;FOLD A23 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A23 = EIN, 3: BOASG
+      $OUT[23] = TRUE
+   ;ENDFOLD
+   ;FOLD Label 1 ;%{E}%MKUKATPVW,%CCONTROL,%VLABEL,%P 1:Label, 2:1
+      ;FOLD  ;%{H}
+         Label1:
+      ;ENDFOLD
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 0
+   ENDIF
+ENDFCT
+; ENDFOLD

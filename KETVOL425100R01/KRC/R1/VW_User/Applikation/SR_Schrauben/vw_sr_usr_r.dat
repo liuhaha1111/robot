@@ -1,0 +1,50 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/SR_Schrauben
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_SR_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket SR Schrauben                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Schrauben
+;SR Programmnummer
+SIGNAL SO_SR1_Prg_Nr $OUT[2217]  TO $OUT[2222]
+SIGNAL SO_SR2_Prg_Nr $OUT[2233]  TO $OUT[2238]
+SIGNAL SO_SR3_Prg_Nr $OUT[2249]  TO $OUT[2254]
+SIGNAL SO_SR4_Prg_Nr $OUT[2265]  TO $OUT[2270]
+SIGNAL SI_SR1_Prg_Nr $IN[2217]  TO $IN[2222]
+SIGNAL SI_SR2_Prg_Nr $IN[2233]  TO $IN[2238]
+SIGNAL SI_SR3_Prg_Nr $IN[2249]  TO $IN[2254]
+SIGNAL SI_SR4_Prg_Nr $IN[2265]  TO $IN[2270]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;
+GLOBAL INT F_SR1_aktiv=851
+GLOBAL INT F_SR2_aktiv=852
+GLOBAL INT F_SR3_aktiv=853
+GLOBAL INT F_SR4_aktiv=854
+;
+GLOBAL INT O_SR1_aktiv=193
+GLOBAL INT O_SR2_aktiv=201
+GLOBAL INT O_SR3_aktiv=209
+GLOBAL INT O_SR4_aktiv=217
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM SRR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

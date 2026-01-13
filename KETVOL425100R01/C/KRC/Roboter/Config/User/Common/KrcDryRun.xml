@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KrcDryRun xsi:noNamespaceSchemaLocation="/Roboter/Config/System/Common/Schemes/KrcDryRun.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Version Label="">
+    <Info Version="KRC V8.0"/>
+    <Schema Version="1"/>
+  </Version>
+  <!-- **************************** -->
+  <!-- Customer Version "VW"        -->
+  <!-- Stand: 11.11.2019 CE         -->
+  <!-- Roboterkonfiguration "Basic" -->
+  <!-- **************************** -->
+  <Customer_VW>
+    <!-- *********************************************** -->
+    <!-- DRY_RUN:  Bit0 => Assignment to $CycFlag in KBE -->
+    <!-- DRY_RUN:  Bit1 => Anout ON/OFF in KBE           -->
+    <!-- DRY_RUN:  Bit2 => IO-Zero and -Restore          -->
+    <!-- *********************************************** -->
+    <DRY_RUN OPTION="7"/>
+    <EXCEPTIONS_RESET_RESTORE>
+      <DIG_OUT>
+       <!-- **************** -->
+       <!-- Ausgaenge an SPS -->
+       <!-- **************** -->   
+       <!-- Folgenanwahl an SPS -->
+       <NO_RESET_RESTORE StartIdx="1" EndIdx="8" />
+       <!-- Bereit -->
+       <NO_RESET_RESTORE StartIdx="9" />     
+       <!-- Freigabe Stellglieder -->
+       <NO_RESET_RESTORE StartIdx="10" />      
+       <!-- Single Step oder Hand -->
+       <NO_RESET_RESTORE StartIdx="11" />    
+       <!-- Automatik -->
+       <NO_RESET_RESTORE StartIdx="12" />
+       <!-- Medien sind EIN -->
+       <NO_RESET_RESTORE StartIdx="25" />    
+       <!-- BUS Warnung -->
+       <NO_RESET_RESTORE StartIdx="26" />    
+       <!-- BUS Master i.O. -->
+       <NO_RESET_RESTORE StartIdx="27" />    
+       <!-- Online Freigabe 1 fuer Roboter XY -->
+       <NO_RESET_RESTORE StartIdx="127" />     
+        <!-- Online Freigabe 2 fuer Roboter XY -->
+       <NO_RESET_RESTORE StartIdx="128" /> 
+       <!-- SZ1 Feh. Kappenverschleiss -->
+       <NO_RESET_RESTORE StartIdx="140" />  
+        <!-- SK1 Vorwarnung Standmenge -->
+       <NO_RESET_RESTORE StartIdx="147" />   
+       <!-- SK1 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="148" />   
+       <!-- SZ2 Feh. Kappenverschleiss -->
+       <NO_RESET_RESTORE StartIdx="172" />  
+       <!-- SK2 Vorwarnung Standmenge -->
+       <NO_RESET_RESTORE StartIdx="179" />     
+       <!-- SK2 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="180" />   
+       <!-- SZ3 Feh. Kappenverschleiss -->
+       <NO_RESET_RESTORE StartIdx="204" />   
+       <!-- SK3 Vorwarnung Standmenge -->
+       <NO_RESET_RESTORE StartIdx="211" />   
+       <!-- SK3 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="212" />              
+       <!-- Teilespeicher -->
+       <NO_RESET_RESTORE StartIdx="241" EndIdx="248" />   
+       <!-- ******************* -->
+       <!-- Ausgaenge allgemein -->
+       <!-- ******************* --> 
+       <!-- RIP 1 Kuehlwasser -->
+       <NO_RESET_RESTORE StartIdx="513" />
+       <!-- RIP 2 Kuehlwasser -->
+       <NO_RESET_RESTORE StartIdx="521" />
+       <!-- RIP 3 Kuehlwasser -->
+       <NO_RESET_RESTORE StartIdx="529" />       
+       <!-- Could Start Motion -->
+       <NO_RESET_RESTORE StartIdx="4060" />
+       <!-- ****************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse EZ1_SP1 -->
+       <!-- ****************************************** -->
+       <!-- EZ1_SP1 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="707" />
+       <!-- EZ1_SP1 Ohne Kraft -->
+       <NO_RESET_RESTORE StartIdx="708" />       
+       <!-- EZ1_SP1 Mit EK Verschleisswert -->
+       <NO_RESET_RESTORE StartIdx="709" />
+       <!-- EZ1_SP1 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="712" EndIdx="713" />
+       <!-- EZ1_SP1 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="715" />
+       <!-- EZ1_SP1 Sollposition Gueltig -->
+       <NO_RESET_RESTORE StartIdx="716" />      
+       <!-- EZ1_SP1 Verfahrzeit Ausgleich -->
+       <NO_RESET_RESTORE StartIdx="729" EndIdx="736" />
+       <!-- EZ1_SP1 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="737" EndIdx="752" />
+       <!-- EZ1_SP1 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="753" />
+       <!-- EZ1_SP1 Kompensation EK-Verschleiss d. Rob. -->
+       <NO_RESET_RESTORE StartIdx="754" />
+       <!-- EZ1_SP1 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="761" EndIdx="763" />
+       <!-- EZ1_SP1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="769" EndIdx="776" />
+       <!-- EZ1_SP1 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="777" EndIdx="784" />
+       <!-- ****************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse EZ2_SP2 -->
+       <!-- ****************************************** -->
+       <!-- EZ2_SP2 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="867" />
+       <!-- EZ2_SP2 Ohne Kraft -->
+       <NO_RESET_RESTORE StartIdx="868" />
+       <!-- EZ2_SP2 Mit EK Verschleisswert -->
+       <NO_RESET_RESTORE StartIdx="869" />
+       <!-- EZ2_SP2 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="872" EndIdx="873" />     
+       <!-- EZ2_SP2 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="875" />
+       <!-- EZ2_SP2 Sollposition Gueltig -->
+       <NO_RESET_RESTORE StartIdx="876" />
+       <!-- EZ2_SP2 Verfahrzeit Ausgleich -->
+       <NO_RESET_RESTORE StartIdx="889" EndIdx="896" />
+       <!-- EZ2_SP2 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="897" EndIdx="912" />
+       <!-- EZ2_SP2 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="913" />
+       <!-- EZ2_SP2 Kompensation EK-Verschleiss d. Rob. -->
+       <NO_RESET_RESTORE StartIdx="914" />
+       <!-- EZ2_SP2 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="921" EndIdx="923" />
+       <!-- EZ2_SP2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="929" EndIdx="936" />
+       <!-- EZ2_SP2 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="937" EndIdx="944" /> 	   
+       <!-- ****************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse EZ3_SP3 -->
+       <!-- ****************************************** --> 
+       <!-- EZ3_SP3 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="1027" />
+       <!-- EZ3_SP3 Ohne Kraft -->
+       <NO_RESET_RESTORE StartIdx="1028" />
+       <!-- EZ3_SP3 Mit EK Verschleisswert -->
+       <NO_RESET_RESTORE StartIdx="1029" />
+       <!-- EZ3_SP3 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="1032" EndIdx="1033" />
+       <!-- EZ3_SP3 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="1035" />
+       <!-- EZ3_SP3 Sollposition gueltig -->
+       <NO_RESET_RESTORE StartIdx="1036" />  
+       <!-- EZ3_SP3 Verfahrzeit Ausgleich -->
+       <NO_RESET_RESTORE StartIdx="1049" EndIdx="1056" />
+       <!-- EZ3_SP3 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="1057" EndIdx="1072" />
+       <!-- EZ3_SP3 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1073" />
+       <!-- EZ3_SP3 Kompensation EK-Verschleiss -->
+       <NO_RESET_RESTORE StartIdx="1074" />
+       <!-- EZ3_SP3 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="1081" EndIdx="1083" />
+       <!-- EZ3_SP3 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1089" EndIdx="1096" />
+       <!-- EZ3_SP3 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="1097" EndIdx="1104" />
+       <!-- ************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse NZ1 -->
+       <!-- ************************************** -->
+       <!-- NZ1 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="1187" />
+       <!-- NZ1 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="1192" EndIdx="1193" />
+       <!-- NZ1 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="1195" />
+       <!-- NZ1 Sollposition gueltig -->
+       <NO_RESET_RESTORE StartIdx="1196" />
+       <!-- NZ1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1201" EndIdx="1216" />
+       <!-- NZ1 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="1217" EndIdx="1232" />
+       <!-- NZ1 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1233" />
+       <!-- NZ1 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="1241" EndIdx="1243" />
+       <!-- ************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse NZ2 -->
+       <!-- ************************************** -->
+       <!-- NZ2 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="1267" />
+       <!-- NZ2 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="1272" EndIdx="1273" />
+       <!-- NZ2 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="1275" />
+       <!-- NZ2 Sollposition gueltig  -->
+       <NO_RESET_RESTORE StartIdx="1276" />
+       <!-- NZ2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1281" EndIdx="1296" />
+       <!-- NZ2 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="1297" EndIdx="1312" />
+       <!-- NZ2 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1313" />
+       <!-- NZ2 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="1321" EndIdx="1323" />
+       <!-- ************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse CZ1 -->
+       <!-- ************************************** -->
+       <!-- CZ1 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="1347" />
+       <!-- CZ1 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="1352" EndIdx="1353" />
+       <!-- CZ1 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="1355" />
+       <!-- CZ1 Sollposition gueltig -->
+       <NO_RESET_RESTORE StartIdx="1356" />
+       <!-- CZ1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1361" EndIdx="1376" />
+       <!-- CZ1 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="1377" EndIdx="1392" />
+       <!-- CZ1 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1393" />
+       <!-- CZ1 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="1401" EndIdx="1403" />     	   
+       <!-- ************************************** -->
+       <!-- Ausgaenge fuer externe Zusatzachse CZ2 -->
+       <!-- ************************************** -->
+       <!-- CZ2 Reglerfreigabe aus -->
+       <NO_RESET_RESTORE StartIdx="1427" />
+       <!-- CZ2 Roboterbetriebsart an -->
+       <NO_RESET_RESTORE StartIdx="1432" EndIdx="1433" />
+       <!-- CZ2 Freigabe Positionierung -->
+       <NO_RESET_RESTORE StartIdx="1435" />
+       <!-- CZ2 Sollposition gueltig -->
+       <NO_RESET_RESTORE StartIdx="1436" />
+       <!-- CZ2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1441" EndIdx="1456" />
+       <!-- CZ2 Sollposition -->
+       <NO_RESET_RESTORE StartIdx="1457" EndIdx="1472" />
+       <!-- CZ2 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1473" />
+       <!-- CZ2 Zangencode -->
+       <NO_RESET_RESTORE StartIdx="1481" EndIdx="1483" />
+	    <!-- ******************************** -->
+       <!-- Ausgaenge fuer Schweißkoffer 1-3 -->
+       <!-- ******************************** -->
+	    <!-- SK1 Punktanwahl -->
+       <NO_RESET_RESTORE StartIdx="801" EndIdx="816" />
+       <!-- SK1 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="817" EndIdx="824" />
+       <!-- SK2 Punktanwahl -->
+       <NO_RESET_RESTORE StartIdx="961" EndIdx="976" />
+       <!-- SK2 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="977" EndIdx="984" />
+       <!-- SK3 Punktanwahl -->
+       <NO_RESET_RESTORE StartIdx="1121" EndIdx="1136" />
+       <!-- SK3 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="1137" EndIdx="1144" />
+	    <!-- ********************************* -->
+       <!-- Ausgaenge fuer Klebesteuerung 1-3 -->
+       <!-- ********************************* -->
+	    <!-- KL1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1505" EndIdx="1512" />
+       <!-- KL1 Parameteranwahl und Pistolennummer -->
+       <NO_RESET_RESTORE StartIdx="1513" EndIdx="1523" />
+	    <!-- KL1 Betriebsfreigabe -->
+       <NO_RESET_RESTORE StartIdx="1527" />
+       <!-- KL1 Systemkomponenten ein -->
+       <NO_RESET_RESTORE StartIdx="1545" />
+	    <!-- KL2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1569" EndIdx="1576" />
+       <!-- KL2 Parameteranwahl und Pistolennummer -->
+       <NO_RESET_RESTORE StartIdx="1577" EndIdx="1587" />
+	    <!-- KL2 Betriebsfreigabe -->
+       <NO_RESET_RESTORE StartIdx="1591" />
+       <!-- KL2 Systemkomponenten ein -->
+       <NO_RESET_RESTORE StartIdx="1609" />
+	    <!-- KL3 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1633" EndIdx="1640" />
+       <!-- KL3 Parameteranwahl und Pistolennummer -->
+       <NO_RESET_RESTORE StartIdx="1641" EndIdx="1651" />
+	    <!-- KL3 Betriebsfreigabe -->
+       <NO_RESET_RESTORE StartIdx="1655" />
+       <!-- KL3 Systemkomponenten ein -->
+       <NO_RESET_RESTORE StartIdx="1673" />
+	    <!-- ************************************************* -->
+       <!-- Ausgaenge fuer Bolzenschweißen 1-2 (und Rotation) -->
+       <!-- ************************************************* -->
+	    <!-- BZ1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1713" EndIdx="1728" />
+       <!-- BZ2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1761" EndIdx="1776" />
+	    <!-- BZ1 Rotation Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2641" EndIdx="2656" />
+	    <!-- ********************************** -->
+       <!-- Ausgaenge fuer Stanzen Muttern 1-2 -->
+       <!-- ********************************** -->
+	    <!-- SM1 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1795" />
+	    <!-- SM1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1809" EndIdx="1824" />
+	    <!-- SM2 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="1827" />
+       <!-- SM2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1841" EndIdx="1856" />
+	    <!-- ************************** -->
+       <!-- Ausgaenge fuer Mig-Mag 1-2 -->
+       <!-- ************************** -->
+       <!-- MS1 Freigabe Prozess -->
+       <NO_RESET_RESTORE StartIdx="1857" />
+       <!-- MS1 Betriebsart -->
+       <NO_RESET_RESTORE StartIdx="1878" EndIdx="1880" />
+	    <!-- MS1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1881" EndIdx="1888" />
+       <!-- MS2 Freigabe Prozess -->
+       <NO_RESET_RESTORE StartIdx="1889" />
+       <!-- MS2 Betriebsart -->
+       <NO_RESET_RESTORE StartIdx="1910" EndIdx="1912" />
+       <!-- MS2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="1913" EndIdx="1920" />	   
+	    <!-- **************************** -->
+       <!-- Ausgaenge fuer Schrauben 1-4 -->
+       <!-- **************************** -->
+	    <!-- SR1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2217" EndIdx="2222" />
+	    <!-- SR2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2233" EndIdx="2238" />   
+	    <!-- SR3 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2249" EndIdx="2254" />  
+	    <!-- SR4 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2265" EndIdx="2270" />
+       <!-- *********************** -->
+       <!-- Ausgaenge fuer Buersten -->
+       <!-- *********************** -->
+	    <!-- Buersten Motor 1 Drehzahlvorgabe -->
+       <NO_RESET_RESTORE StartIdx="2305" EndIdx="2320" />
+	    <!-- Buersten Motor 2 Drehzahlvorgabe -->
+       <NO_RESET_RESTORE StartIdx="2321" EndIdx="2336" />
+       <!-- ********************************** -->
+       <!-- Ausgaenge fuer Flowdrill Schrauben -->
+       <!-- ********************************** -->
+       <!-- FD1 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="2372" />       
+	    <!-- FD1 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="2393" EndIdx="2400" />
+	    <!-- FD1 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2401" EndIdx="2416" />
+       <!-- FD2 Lebensbit -->
+       <NO_RESET_RESTORE StartIdx="2436" />          
+	    <!-- FD2 Fahrzeugtyp -->
+       <NO_RESET_RESTORE StartIdx="2457" EndIdx="2464" />
+	    <!-- FD2 Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2465" EndIdx="2480" />                 
+       <!-- ************************************* -->
+       <!-- Ausgaenge fuer Nahtkontrolle SmartRay -->
+       <!-- ************************************* -->
+	    <!-- NK SmartRay Programmanwahl -->
+       <NO_RESET_RESTORE StartIdx="2593" EndIdx="2600" />
+       <!-- ************************************** -->
+       <!-- Ausgaenge fuer Umschaltbox bei Docking -->
+       <!-- ************************************** -->
+	    <!-- Umschaltbox bei Docking -->
+       <NO_RESET_RESTORE StartIdx="2745" EndIdx="2768" />                 
+       <!-- ************************** -->
+       <!-- Ausgaenge fuer Laser Clean -->
+       <!-- ************************** -->
+	    <!-- LA Clean Controller einschalten -->
+       <NO_RESET_RESTORE StartIdx="2769" EndIdx="2770" />
+       <!-- LA Clean Typinfo von Roboter -->
+       <NO_RESET_RESTORE StartIdx="2781" EndIdx="2784" /> 	                 
+       <!-- ********************************* -->
+       <!-- Ausgaenge fuer ACF Kontaktflansch -->
+       <!-- ********************************* -->
+	    <!-- ACF Kontaktflansch -->
+       <NO_RESET_RESTORE StartIdx="2961" EndIdx="3016" />
+      </DIG_OUT>
+      <FLAG>
+       <!-- SZ1 - SZ4 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="64" EndIdx="71" />
+       <!-- Kappen gewechselt -->
+       <NO_RESET_RESTORE StartIdx="77" />     
+       <!-- EZ1_SP1 Anwahl Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="78" />
+       <!-- EZ1_SP1 Anwahl Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="79" />
+       <!-- FK von SK1 speichern -->
+       <NO_RESET_RESTORE StartIdx="80" />
+       <!-- EZ1_SP1 E-Kompensation durch EZ_SP -->
+       <NO_RESET_RESTORE StartIdx="121" />  
+       <!-- EZ1_SP1 Fehler Kappenverschleiß -->
+       <NO_RESET_RESTORE StartIdx="122" />
+       <!-- Hilfsflag für Medien -->
+       <NO_RESET_RESTORE StartIdx="127" />
+       <!-- EZ1_SP1 Anwahl ohne Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="129" />
+       <!-- EZ1_SP1 Anwahl 2 Huebe Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="130" /> 
+       <!-- EZ2_SP2 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="133" />
+       <!-- Kappen gewechselt -->
+       <NO_RESET_RESTORE StartIdx="137" />
+       <!-- EZ2_SP2 Anwahl Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="138" />
+       <!-- EZ2_SP2 Anwahl Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="139" />
+       <!-- FK von SK2 speichern -->
+       <NO_RESET_RESTORE StartIdx="140" />
+	    <!-- EZ2_SP2 E-Kompensation durch EZ_SP -->
+       <NO_RESET_RESTORE StartIdx="159" />
+       <!-- EZ2_SP2 Fehler Kappenverschleiß -->
+       <NO_RESET_RESTORE StartIdx="160" />
+       <!-- Hilfsflag für Medien -->
+       <NO_RESET_RESTORE StartIdx="162" />
+       <!-- EZ2_SP2 Anwahl ohne Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="163" />  
+       <!-- EZ2_SP2 Anwahl 2 Huebe Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="164" /> 
+       <!-- EZ3_SP3 maximale Standmenge -->
+       <NO_RESET_RESTORE StartIdx="169" />
+       <!-- Kappen gewechselt -->
+       <NO_RESET_RESTORE StartIdx="173" />
+       <!-- EZ3_SP3 Anwahl Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="174" />
+       <!-- EZ3_SP3 Anwahl Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="175" />
+       <!-- FK von SK3 speichern -->
+       <NO_RESET_RESTORE StartIdx="176" />
+	    <!-- EZ3_SP3 E-Kompensation durch EZ_SP -->
+       <NO_RESET_RESTORE StartIdx="195" />
+       <!-- EZ3_SP3 Fehler Kappenverschleiß -->
+       <NO_RESET_RESTORE StartIdx="196" />
+       <!-- Hilfsflag für Medien -->
+       <NO_RESET_RESTORE StartIdx="198" />
+       <!-- EZ3_SP3 Anwahl ohne Startfraesen -->
+       <NO_RESET_RESTORE StartIdx="199" />
+       <!-- EZ3_SP3 Anwahl 2 Huebe Normalfraesen -->
+       <NO_RESET_RESTORE StartIdx="200" />
+       <!-- RZ -->
+       <NO_RESET_RESTORE StartIdx="226" EndIdx="231" />       
+       <!-- Greifer Ueberbruweckung Saugkreis PoT -->
+       <NO_RESET_RESTORE StartIdx="245" EndIdx="250" />
+       <!-- Anwahlen ZZ1 - RZ3 -->
+       <NO_RESET_RESTORE StartIdx="273" EndIdx="275" />
+       <!-- Medien in Folge 124 ausschalten -->
+       <NO_RESET_RESTORE StartIdx="281" />
+       <!-- Medienueberwachung bei Docking AUS -->
+       <NO_RESET_RESTORE StartIdx="283" />
+		 <!-- 2x EZ_SP an SK1 -->
+       <NO_RESET_RESTORE StartIdx="285" />
+		 <!-- Kappensetzen durchgefuehrt -->
+       <NO_RESET_RESTORE StartIdx="286" />
+       <!-- Anwahl STP -->
+       <NO_RESET_RESTORE StartIdx="289" />
+       <!-- Stationaeres Kappenfraesen durchgefuehrt -->
+       <NO_RESET_RESTORE StartIdx="306" />
+       <!-- RSK in Grundstellung -->
+       <NO_RESET_RESTORE StartIdx="321" />
+       <!-- RSK1 Grundstellung -->
+       <NO_RESET_RESTORE StartIdx="345" />
+       <!-- KL1 Anwahl schwenken -->
+       <NO_RESET_RESTORE StartIdx="352" EndIdx="353" />
+	    <!-- KL1 FK schwenken -->
+       <NO_RESET_RESTORE StartIdx="355" />
+       <!-- RSK2 Grundstellung -->
+       <NO_RESET_RESTORE StartIdx="365" />
+       <!-- KL2 Anwahl schwenken -->
+       <NO_RESET_RESTORE StartIdx="372" EndIdx="373" />
+	    <!-- KL2 FK schwenken -->
+       <NO_RESET_RESTORE StartIdx="375" />
+       <!-- RSK3 Grundstellung -->
+       <NO_RESET_RESTORE StartIdx="385" />
+       <!-- KL3 Anwahl schwenken -->
+       <NO_RESET_RESTORE StartIdx="392" EndIdx="393" />
+	    <!-- KL3 FK schwenken -->
+       <NO_RESET_RESTORE StartIdx="395" />
+	    <!-- RZ robotergefuehrt -->
+       <NO_RESET_RESTORE StartIdx="530" />        
+	    <!-- FD1 -->
+       <NO_RESET_RESTORE StartIdx="671" EndIdx="675" />
+	    <!-- FD2 -->
+       <NO_RESET_RESTORE StartIdx="681" EndIdx="685" />
+       <!-- Mit Wiederholfraesen -->
+       <NO_RESET_RESTORE StartIdx="731" />
+       <!-- EZ Wiederholfraesen -->
+       <NO_RESET_RESTORE StartIdx="748" EndIdx="749" /> 
+       <!-- Anwahl Kappenwechsler -->
+       <NO_RESET_RESTORE StartIdx="805" EndIdx="810" />
+       <!-- KL/MS ohne FRG  -->
+       <NO_RESET_RESTORE StartIdx="837" /> 
+       <!-- Anwahl DS vertikales Docking -->
+       <NO_RESET_RESTORE StartIdx="840" />       
+       <!-- Status Vision -->
+       <NO_RESET_RESTORE StartIdx="871" EndIdx="885" />        
+       <!-- Anwenderflags -->
+       <NO_RESET_RESTORE StartIdx="930" EndIdx="959" />   	   
+	    <!-- Roboter Systemflags -->
+       <NO_RESET_RESTORE StartIdx="980" EndIdx="988" />
+      </FLAG>
+      <ANA_OUT>
+      </ANA_OUT>
+    </EXCEPTIONS_RESET_RESTORE>
+  </Customer_VW>
+  <!-- *********************** -->
+  <!-- Customer Version "KUKA" -->
+  <!-- *********************** -->
+  <Customer_KUKA>
+    <!-- *********************************************** -->
+    <!-- DRY_RUN:  Bit0 => Assignment to $CycFlag in KBE -->
+    <!-- DRY_RUN:  Bit1 => Anout ON/OFF in KBE           -->
+    <!-- DRY_RUN:  Bit2 => IO-Zero and -Restore, ...     -->    
+    <!-- *********************************************** -->
+    <DRY_RUN OPTION="0"/>
+  </Customer_KUKA>
+</KrcDryRun>

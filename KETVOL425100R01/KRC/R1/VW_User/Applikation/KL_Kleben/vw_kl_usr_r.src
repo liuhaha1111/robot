@@ -1,0 +1,435 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/KL_Kleben
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_KL_USR_R( )
+;
+;***************************************************
+;*Technologiepaket KL Kleben                       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD Kleben_Interface
+GLOBAL DEF KL_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+INT RobTimerStart
+BOOL bRet
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;Merker Init
+    ;FOR i=1 TO 3
+    ;  IF MIT_KL[i] THEN
+    ;    KL_MERKER_INIT(i)
+    ;  ENDIF
+    ;ENDFOR
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+    SWITCH PAR1
+      CASE 1
+       IF $IN[KL_BASE_SL[1]+I_KL_o_Proz] THEN
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        CONTINUE
+        SO_KL1_Pistolen_Nr=PAR2
+        IF (PAR3<>0) AND (PAR5==0) THEN
+          CONTINUE
+          SO_KL1_Prg_Nr=PAR3      
+        ENDIF
+        CONTINUE
+        IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+          CONTINUE
+          SO_KL1_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+        ENDIF
+        CONTINUE
+        SO_KL1_Para_Nr=PAR4
+      CASE 2
+       IF $IN[KL_BASE_SL[2]+I_KL_o_Proz] THEN
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        CONTINUE
+        SO_KL2_Pistolen_Nr=PAR2
+        IF (PAR3<>0) AND (PAR5==0) THEN
+          CONTINUE
+          SO_KL2_Prg_Nr=PAR3
+        ENDIF
+        CONTINUE
+        IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+          CONTINUE
+          SO_KL2_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+        ENDIF
+        CONTINUE
+        SO_KL2_Para_Nr=PAR4
+      CASE 3
+       IF $IN[KL_BASE_SL[3]+I_KL_o_Proz] THEN
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        CONTINUE
+        SO_KL3_Pistolen_Nr=PAR2
+        IF (PAR3<>0) AND (PAR5==0) THEN
+          CONTINUE
+          SO_KL3_Prg_Nr=PAR3
+        ENDIF
+        CONTINUE
+        IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+          CONTINUE
+          SO_KL3_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+        ENDIF
+        CONTINUE
+        SO_KL3_Para_Nr=PAR4
+    ENDSWITCH
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    RobTimerStart=$Rob_Timer
+    WAIT FOR ($IN[KL_BASE_MA[PAR1]+I_KL_Auto] OR (($Rob_Timer-RobTimerStart)>2000))
+    IF (($Rob_Timer-RobTimerStart)>2000) THEN
+      KL_Msg (PAR1,#StateMsg)
+    ENDIF
+    WAIT FOR $IN[KL_BASE_MA[PAR1]+I_KL_Auto]
+    IF (n_KLR_Handle[PAR1]>-1) THEN
+      bRet=Clear_KrlMsg(n_KLR_Handle[PAR1])
+      n_KLR_Handle[PAR1]=-1
+    ENDIF
+    ;
+    SWITCH PAR1
+      CASE 1
+       IF $IN[KL_BASE_SL[1]+I_KL_o_Proz] THEN
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL1_Pistolen_Nr<>SO_KL1_Pistolen_Nr) THEN
+          SO_KL1_Pistolen_Nr=PAR2
+        ENDIF
+        WAIT FOR ((SI_KL1_Pistolen_Nr==SO_KL1_Pistolen_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+3),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL1_Pistolen_Nr==SO_KL1_Pistolen_Nr)
+        IF (n_KLR_Handle[PAR1+3]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+3])
+          n_KLR_Handle[PAR1+3]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (PAR3<>0) THEN
+          IF (SI_KL1_Prg_Nr<>SO_KL1_Prg_Nr) THEN
+            IF (PAR3<>0) AND (PAR5==0) THEN
+              SO_KL1_Prg_Nr=PAR3
+            ENDIF
+            IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+              SO_KL1_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+            ENDIF
+          ENDIF
+        ENDIF
+        WAIT FOR ((SI_KL1_Prg_Nr==SO_KL1_Prg_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+6),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL1_Prg_Nr==SO_KL1_Prg_Nr)
+        IF (n_KLR_Handle[PAR1+6]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+6])
+          n_KLR_Handle[PAR1+6]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL1_Para_Nr<>SO_KL1_Para_Nr) THEN
+          SO_KL1_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL1_Para_Nr==SO_KL1_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL1_Para_Nr==SO_KL1_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+      CASE 2
+       IF $IN[KL_BASE_SL[2]+I_KL_o_Proz] THEN
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL2_Pistolen_Nr<>SO_KL2_Pistolen_Nr) THEN
+          SO_KL2_Pistolen_Nr=PAR2
+        ENDIF
+        WAIT FOR ((SI_KL2_Pistolen_Nr==SO_KL2_Pistolen_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+3),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL2_Pistolen_Nr==SO_KL2_Pistolen_Nr)
+        IF (n_KLR_Handle[PAR1]+3>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+3])
+          n_KLR_Handle[PAR1+3]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (PAR3<>0) THEN
+          IF (SI_KL2_Prg_Nr<>SO_KL2_Prg_Nr) THEN
+            IF (PAR3<>0) AND (PAR5==0) THEN
+              SO_KL2_Prg_Nr=PAR3
+            ENDIF
+            IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+              SO_KL2_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+            ENDIF
+          ENDIF
+        ENDIF
+        WAIT FOR ((SI_KL2_Prg_Nr==SO_KL2_Prg_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+6),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL2_Prg_Nr==SO_KL2_Prg_Nr)
+        IF (n_KLR_Handle[PAR1+6]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+6])
+          n_KLR_Handle[PAR1+6]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL2_Para_Nr<>SO_KL2_Para_Nr) THEN
+          SO_KL2_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL2_Para_Nr==SO_KL2_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL2_Para_Nr==SO_KL2_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+      CASE 3
+       IF $IN[KL_BASE_SL[3]+I_KL_o_Proz] THEN
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL3_Pistolen_Nr<>SO_KL3_Pistolen_Nr) THEN
+          SO_KL3_Pistolen_Nr=PAR2
+        ENDIF
+        WAIT FOR ((SI_KL3_Pistolen_Nr==SO_KL3_Pistolen_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+3),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL3_Pistolen_Nr==SO_KL3_Pistolen_Nr)
+        IF (n_KLR_Handle[PAR1]+3>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+3])
+          n_KLR_Handle[PAR1+3]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (PAR3<>0) THEN
+          IF (SI_KL3_Prg_Nr<>SO_KL3_Prg_Nr) THEN
+            IF (PAR3<>0) AND (PAR5==0) THEN
+              SO_KL3_Prg_Nr=PAR3
+            ENDIF
+            IF (PAR5==1) AND ($COUNT_I[i_T_SpeicherNr]==$B_IN[BI_T_SpeicherNr]) THEN
+              SO_KL3_Prg_Nr=$COUNT_I[i_T_SpeicherNr]
+            ENDIF
+          ENDIF
+        ENDIF
+        WAIT FOR ((SI_KL3_Prg_Nr==SO_KL3_Prg_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+6),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL3_Prg_Nr==SO_KL3_Prg_Nr)
+        IF (n_KLR_Handle[PAR1+6]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+6])
+          n_KLR_Handle[PAR1+6]=-1
+        ENDIF
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL3_Para_Nr<>SO_KL3_Para_Nr) THEN
+          SO_KL3_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL3_Para_Nr==SO_KL3_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL3_Para_Nr==SO_KL3_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+;
+    SWITCH PAR1
+      CASE 1
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL1_Para_Nr<>SO_KL1_Para_Nr) THEN
+          SO_KL1_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL1_Para_Nr==SO_KL1_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL1_Para_Nr==SO_KL1_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+      CASE 2
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL2_Para_Nr<>SO_KL2_Para_Nr) THEN
+          SO_KL2_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL2_Para_Nr==SO_KL2_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL2_Para_Nr==SO_KL2_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+      CASE 3
+        RobTimerStart=$Rob_Timer
+        IF (SI_KL3_Para_Nr<>SO_KL3_Para_Nr) THEN
+          SO_KL3_Para_Nr=PAR4
+        ENDIF
+        WAIT FOR ((SI_KL3_Para_Nr==SO_KL3_Para_Nr) OR (($Rob_Timer-RobTimerStart)>2000))
+        IF (($Rob_Timer-RobTimerStart)>2000) THEN
+          KL_Msg ((PAR1+9),#StateMsg)
+        ENDIF
+        WAIT FOR (SI_KL3_Para_Nr==SO_KL3_Para_Nr)
+        IF (n_KLR_Handle[PAR1+9]>-1) THEN
+          bRet=Clear_KrlMsg(n_KLR_Handle[PAR1+9])
+          n_KLR_Handle[PAR1+9]=-1
+        ENDIF
+    ENDSWITCH
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (Kleben Interface)
+;
+;***************************************************
+;FOLD KL_MERKER_INIT
+DEF KL_MERKER_INIT(KLNR :IN)
+INT KLNR
+;
+SWITCH KLNR
+  CASE 1
+    ;KL1 Bereit/Materialdruck
+    $CYCFLAG[146]=$IN[1529] OR $IN[15]
+  CASE 2
+    ;KL1 Bereit/Materialdruck
+    $CYCFLAG[148]=$IN[1593] OR $IN[15]
+  CASE 3
+    ;KL1 Bereit/Materialdruck
+    $CYCFLAG[150]=$IN[1657] OR $IN[15]
+ENDSWITCH
+END
+;
+;***************************************************
+;FOLD KL_Meldungen
+DEF KL_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL KLR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "KL_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_KLR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="KL1: Steuerung nicht in Automatik"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="KL2: Steuerung nicht in Automatik" 
+    CASE 3
+	   USER_MSG.MSG_TXT[]="KL3: Steuerung nicht in Automatik"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="KL1: Spiegelung Pistolen-Nr ungueltig"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="KL2: Spiegelung Pistolen-Nr ungueltig" 
+    CASE 6
+	   USER_MSG.MSG_TXT[]="KL3: Spiegelung Pistolen-Nr ungueltig"
+    CASE 7
+	   USER_MSG.MSG_TXT[]="KL1: Spiegelung Programm-Nr ungueltig"
+    CASE 8
+	   USER_MSG.MSG_TXT[]="KL2: Spiegelung Programm-Nr ungueltig" 
+    CASE 9
+	   USER_MSG.MSG_TXT[]="KL3: Spiegelung Programm-Nr ungueltig"
+    CASE 10
+	   USER_MSG.MSG_TXT[]="KL1: Spiegelung Parametertafel-Nr ungueltig"
+    CASE 11
+	   USER_MSG.MSG_TXT[]="KL2: Spiegelung Parametertafel-Nr ungueltig" 
+    CASE 12
+	   USER_MSG.MSG_TXT[]="KL3: Spiegelung Parametertafel-Nr ungueltig"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_KLR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_KLR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE (Exists_KrlMsg(n_KLR_Handle[msg_nr]))  ;Warten bis der Anwender quittiert
+        WAIT SEC 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_KLR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_KLR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (KL_Meldungen)
+

@@ -1,0 +1,1326 @@
+&ACCESS RO
+&COMMENT KS26
+&REL 141
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/VMT
+&PARAM TPUSER_VERSION = 8.3.0
+DEF vw_vmt_usr_r()
+;
+;***************************************************
+;* VMT Vision Machine Technic GmbH                 *
+;*                                                 *
+;* Bearbeitet am:                                  *
+;* 01.09.2015 FH  Erstellt                         *
+;***************************************************
+
+END
+
+GLOBAL DEF VMT_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT CMD_SEL
+INT PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL Result
+
+IF USER_CMD == #USR_INIT THEN
+    BK_Init()
+		BK_ClearData()
+    VMT_RstFlag()
+ELSE
+	SWITCH CMD_SEL
+	CASE 701 ;BK
+		SWITCH USER_CMD
+		CASE #USR_ADV
+			; Aufrufe von VMT-BK
+			;------------------------------------------
+			; PAR1 = 3  --> Start Korrektur
+			; PAR1 = 11 --> Korrektur (Base 31)
+			; PAR1 = 12 --> FIX KORREKTUR
+			; PAR1 = 99 --> Simulation
+			;------------------------------------------
+			SWITCH PAR1
+			CASE 3 ; Start Korrektur
+					BK_Start (PAR2, PAR3, BK_M_CORRECT)
+
+			CASE 7 ; Systemstatus
+				Result = BK_Status()
+				VMT_ResFlag()
+
+				CASE 11 ; Korrektur
+					IF ((N_VMT_BKMODE == BK_M_CORRECT) OR (N_VMT_BKMODE == BK_M_CHECK)) THEN
+							BK_Korr(PAR4)
+					ENDIF
+
+			CASE 12 ; FIX KOREKTUR
+					BK_CHANGE_BASE(PAR2,PAR3,PAR4,PAR6)
+
+			CASE 99 ; Simulation
+					BK_Start (PAR2, PAR3, BK_M_OFF)
+			ENDSWITCH  ; PAR1
+
+
+
+		CASE #USR_TRIG
+			; Aufrufe von VMT-BK
+			;-----------------------------------------
+			; PAR1 = 1  --> Start Messung
+			; PAR1 = 2  --> Start TCP Bestimmung
+			; PAR1 = 4  --> Start Referenz Messung
+			; PAR1 = 5  --> Start Referenz TCP
+			; PAR1 = 6  --> Start Kontrollmessung
+			; PAR1 = 10 --> Messung
+			; PAR1 = 13 --> Messbereich Anfang
+			; PAR1 = 14 --> Messbereich Ende
+			; PAR1 = 20 --> Ende
+			; PAR1 = 30 --> Sensortausch
+			; PAR1 = 31 --> Tooltausch
+			; PAR1 = 32 --> Robotertausch
+			;-----------------------------------------
+			SWITCH PAR1
+			 CASE 1 ; Start Messung
+				 BK_Start (PAR2, PAR3, BK_M_MEASURE)
+
+			 CASE 2 ; Start TCP Bestimmung
+				 BK_Start (PAR2, PAR3, BK_M_TCP)
+
+			 CASE 4 ; Start Referenz Messung
+				 BK_Start (PAR2, PAR3, BK_M_MEASREF)
+
+			 CASE 5 ; Start Referenz TCP
+				 BK_Start (PAR2, PAR3, BK_M_TCP_REF)
+
+			 CASE 6 ; Start Check Messung
+				 BK_Start (PAR2, PAR3, BK_M_CHECK)
+
+			 CASE 10 ; Messung
+				 IF (N_VMT_BKMODE <> BK_M_CORRECT) THEN
+					 IF (B_VMT_UMulti == TRUE) THEN
+						 BK_MeasureEx(PAR4, PAR5)
+					 ELSE
+						 BK_Measure(PAR4)
+					 ENDIF
+				 ENDIF
+
+			 CASE 13 ; Messbereich Anfang
+				 IF (N_VMT_BKMODE <> BK_M_CORRECT) THEN
+					 BK_Meas_On(PAR4)
+				 ENDIF
+
+			 CASE 14 ; Messbereich Ende
+				 IF (N_VMT_BKMODE <> BK_M_CORRECT) THEN
+					 BK_Meas_Off(PAR4)
+				 ENDIF
+
+			 CASE 20 ; Ende
+				 ;BK Ende
+				 BK_Ende (PAR4)
+
+			 CASE 30 ; Sensortausch
+				 ; Sensortausch
+             IF ($FLAG[F_VMT_IO]) THEN
+               VMT_SET_STATUS_MSG(MsgSensChgOK,FALSE, 0, 0, 0)
+             ELSE
+               VMT_SET_STATUS_MSG(MsgSensChgNo,TRUE, 0, 0, 0)
+             ENDIF
+			 CASE 31 ; Tooltausch
+				 ; Tooltausch
+				 BK_CHANGE_TOOL(PAR2,PAR3,PAR4,PAR6)
+				 IF ($FLAG[F_VMT_IO]) THEN
+               VMT_SET_STATUS_MSG(MsgToolChgOK, FALSE, 0, 0, 0)
+				 ELSE
+               VMT_SET_STATUS_MSG(MsgToolChgNo, TRUE, 0, 0, 0)
+				 ENDIF
+			 CASE 32 ; Robotertausch
+				 ; Robotertausch
+				 BK_CHANGE_BASE(PAR2,PAR3,PAR4,PAR6)
+				 IF ($FLAG[F_VMT_IO]) THEN
+               VMT_SET_STATUS_MSG(MsgRobChgOK, FALSE, 0, 0, 0)
+				 ELSE
+               VMT_SET_STATUS_MSG(MsgRobChgNo, TRUE, 0, 0, 0)
+				 ENDIF
+
+			ENDSWITCH  ; PAR1
+
+
+
+		CASE #USR_MAIN
+			VMT_FIRE_MSG()
+			;VMT_BK_MAIN(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+		CASE #USR_MAKRO
+			;VMT_BK_MAKRO(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+		DEFAULT
+	ENDSWITCH ;USER_CMD
+
+	CASE 702 ;VMT 3D
+	SWITCH USER_CMD
+	 CASE #USR_ADV
+		 ;VMT3D_ADV(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_TRIG
+		 ;VMT_3D_TRIG(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAIN
+		 ;VMT_3D_MAIN(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAKRO
+		 ;VMT_3D_MAKRO(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 DEFAULT
+	ENDSWITCH ; USER_CMD
+
+	CASE 703 ;VMT TOOLBOX
+	SWITCH USER_CMD
+	 CASE #USR_ADV
+		 ;VMT_TBOX_ADV(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_TRIG
+		 ;VMT_TBOX_TRIG(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAIN
+		 ;VMT_TBOX_MAIN(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAKRO
+		 ;VMT_TBOX_MAKRO(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 DEFAULT
+	ENDSWITCH ; USER_CMD
+
+	CASE 704 ;VMT KLEBERAUPE
+	SWITCH USER_CMD
+	 CASE #USR_ADV
+			SWITCH PAR1
+			 CASE 1 ; Auto-Follow mode start
+				; VMT_SPINTOP_START()
+
+			 CASE 2 ; Auto-Follow mode stop
+				; VMT_SPINTOP_STOP()
+
+			 CASE 3 ;Set angle manually
+				 ;VMT_SPINTOP_SetAngle(PAR2)
+
+			 CASE 4 ;Set offset angle
+				 ;VMT_SPINTOP_SetOffset(PAR2)
+
+			ENDSWITCH  ; PAR1
+	 CASE #USR_TRIG
+		 ;VMT_GBEAD_TRIG(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAIN
+		 ;VMT_GBEAD_MAIN(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 CASE #USR_MAKRO
+		 ;VMT_GBEAD_MAKRO(PAR1, PAR2, PAR3, PAR4, PAR5, PAR6)
+	 DEFAULT
+	ENDSWITCH ;USER_CMD
+
+	DEFAULT
+	ENDSWITCH ; CMD_SEL
+ENDIF
+
+END
+;--------------------------------------------------
+
+
+
+;-------------------------------------------------
+
+
+;###############   VMT MODULES   #################
+;=================================================
+
+;FOLD VMT BK
+;==================================================
+; Bereitet je nach ausgewaehltem Modus eine
+; - Messfahrt
+; - Applikationsfahrt (korrigiert)
+; - Referenzfahrt
+; vor. 
+;==================================================
+GLOBAL DEF BK_Start(Typ :IN, Bahn :IN, Modus : IN)
+;==================================================
+INT Typ
+INT Bahn
+INT Modus
+
+INT I
+INT J
+BOOL Result
+BOOL Restarted
+BOOL Accepted
+DECL MESSAGE_TYPE Meldung
+
+Restarted = FALSE
+
+
+RESTART:  ; Wiedereinsprungstelle
+
+; Korrekturen im Base0 sind nicht moeglich, 
+; da Base0 nicht verschoben werden kann
+IF ((Modus <> BK_M_TCP_REF) AND (Modus <> BK_M_TCP) AND (Modus <> BK_M_OFF) AND (VW_MPARA_ACT.BASE_NO == 0)) THEN
+  VMT_SET_ERROR_MSG(MsgBase0)
+	Meldung = GetMessage(MsgBase0)
+  IF Meldung.QUIT_MSG THEN
+    GOTO RESTART
+  ENDIF
+  N_VMT_BKMODE = BK_M_OFF
+  VMT_SET_ERROR_MSG(MsgSim)
+  RETURN
+ENDIF
+
+;Pruefen, ob der Typ gewechselt wurde - 
+;dann alle bisherigen Messungen abloeschen
+IF (Typ <> N_VMT_TYPE) THEN
+  BK_ClearData()
+ENDIF
+
+N_VMT_TYPE = Typ
+N_VMT_PATH = Bahn
+
+SWITCH Modus
+;--------------------------------------------------
+  CASE BK_M_OFF ;Simulation
+;--------------------------------------------------
+    N_VMT_BKMODE = Modus
+    
+;--------------------------------------------------
+  CASE BK_M_MEASURE ;Messung
+;--------------------------------------------------
+    ;IO / NIO Flags zuruecksetzen
+		VMT_RstFlag()
+
+    Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_MES, Typ, Bahn, 0, 0, $NULLFRAME)
+		IF (Result == FALSE) THEN
+			VMT_SET_ERROR_MSG(MsgCOMM)
+			GOTO Restart
+		ENDIF
+    Result = BK_RecStateOnly()
+    IF ((N_VMT_BKSTAT B_AND BK_E_GENERAL) == BK_E_GENERAL) THEN
+			;Dialog ob Referenzmessung
+			IF (MSG_DIALOG(Typ,Bahn,0,TitleMISS[])==TRUE) THEN
+            Restarted = TRUE
+            Modus = BK_M_MEASREF
+				GOTO Restart
+			ENDIF
+		ENDIF
+    IF CheckStartState(Typ, Bahn) == FALSE THEN
+		  Meldung = GetMessage(MsgRights)
+      IF Meldung.QUIT_MSG THEN
+        GOTO RESTART
+      ENDIF
+      N_VMT_BKMODE = BK_M_OFF
+      VMT_SET_ERROR_MSG(MsgSim)
+      RETURN
+    ENDIF
+    IF ($MODE_OP < #T2) THEN
+      Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_LIVE, Typ, Bahn, 0, 0, $NULLFRAME)
+    ENDIF
+    N_VMT_BKMODE = Modus
+
+;--------------------------------------------------
+  CASE BK_M_CHECK ;Nachkontrolle
+;--------------------------------------------------
+    ;IO / NIO Flags zuruecksetzen
+		VMT_RstFlag()
+
+    Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_CHK, Typ, Bahn, 0, 0, $NULLFRAME)
+		IF (Result == FALSE) THEN
+			VMT_SET_ERROR_MSG(MsgCOMM)
+			GOTO Restart
+		ENDIF
+    Result = BK_RecStateOnly()
+    IF CheckStartState(Typ, Bahn) == FALSE THEN
+		  Meldung = GetMessage(MsgRights)
+      IF Meldung.QUIT_MSG THEN
+        GOTO RESTART
+      ENDIF
+      N_VMT_BKMODE = BK_M_OFF
+      VMT_SET_ERROR_MSG(MsgSim)
+      RETURN
+    ENDIF
+    IF ($MODE_OP < #T2) THEN
+      Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_LIVE, Typ, Bahn, 0, 0, $NULLFRAME)
+    ENDIF
+    N_VMT_BKMODE = Modus
+    ; Aktuelle Base-Frames erst mal sichern
+    IF N_VMT_CORACT == 0 THEN
+      FOR I = 31 TO 31
+        ;IF TOOL_TYPE[I] == #BASE THEN
+          FRA_VMT_BASE[I] = BASE_DATA[I]
+        ;ELSE
+        ;  FRA_VMT_BASE[I] = TOOL_DATA[I]
+        ;ENDIF
+      ENDFOR
+    ELSE
+      ;Hinweis, dass Korrektur aktiv war
+      VMT_SET_ERROR_MSG(MsgCorr_Act, N_VMT_CORACT, 0, 0)
+    ENDIF
+    N_VMT_BKMODE = Modus
+;--------------------------------------------------
+  CASE BK_M_TCP ;Messung des TCP
+;--------------------------------------------------
+    ;IO / NIO Flags zuruecksetzen
+		VMT_RstFlag()
+
+    ; TCP Bestimmung immer in Tool 0 !
+    IF (VW_MPARA_ACT.TOOL_NO  > 0) THEN
+      VMT_SET_ERROR_MSG(MsgTool0, 0, 0, 0)
+			Meldung = GetMessage(MsgTool0)
+      IF Meldung.QUIT_MSG THEN
+        GOTO RESTART
+      ENDIF
+      N_VMT_BKMODE = BK_M_OFF
+      VMT_SET_ERROR_MSG(MsgSim)
+      RETURN
+    ELSE
+      Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_TCP, Typ, Bahn, 0, 0, $NULLFRAME)
+			IF (Result == FALSE) THEN
+				VMT_SET_ERROR_MSG(MsgCOMM)
+				GOTO Restart
+			ENDIF
+      Result = BK_RecStateOnly()
+			IF ((N_VMT_BKSTAT B_AND BK_E_GENERAL) == BK_E_GENERAL) THEN
+				;Dialog ob Referenzmessung
+				IF (MSG_DIALOG(Typ,Bahn,0,TitleMISS[])==TRUE) THEN
+               Restarted = TRUE
+               Modus = BK_M_TCP_REF
+					GOTO Restart
+				ENDIF
+			ENDIF
+      IF CheckStartState(Typ, Bahn) == FALSE THEN
+				GOTO RESTART
+      ENDIF
+      N_VMT_BKMODE = Modus
+      IF ($MODE_OP < #T2) THEN
+        Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_LIVE, Typ, Bahn, 0, 0, $NULLFRAME)
+      ENDIF
+    ENDIF
+
+;--------------------------------------------------
+  CASE BK_M_MEASREF ;MP Referenz
+;--------------------------------------------------
+	VMT_RstFlag()
+
+	IF (Restarted == TRUE) THEN 
+		Accepted = TRUE
+	ELSE
+		Accepted = MSG_DIALOG(Typ,Bahn,0,TitleRef[])
+	ENDIF
+    Restarted = FALSE
+    IF (Accepted == TRUE) THEN
+      Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_MREF, Typ, Bahn, 0, 0, $NULLFRAME)
+			IF (Result == FALSE) THEN
+				VMT_SET_ERROR_MSG(MsgCOMM)
+				GOTO Restart
+			ENDIF
+      Result = BK_RecStateOnly()
+      N_VMT_BKMODE = Modus
+      IF CheckStartState(Typ, Bahn) == FALSE THEN
+        GOTO RESTART
+      ENDIF
+    ELSE
+		GOTO RESTART
+    ENDIF
+
+;--------------------------------------------------
+  CASE BK_M_TCP_REF ;TCP Referenz
+;--------------------------------------------------
+		VMT_RstFlag()
+
+    ; TCP Bestimmung immer in Tool 0 !
+    IF (VW_MPARA_ACT.TOOL_NO > 0) THEN
+      VMT_SET_ERROR_MSG(MsgTool0, 0, 0, 0)
+      GOTO RESTART
+    ELSE
+		IF (Restarted == TRUE) THEN 
+			Accepted = TRUE
+		ELSE
+			Accepted = MSG_DIALOG(Typ,Bahn,0,TitleRef[])
+		ENDIF
+		Restarted = FALSE
+		IF (Accepted == TRUE) THEN
+			Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_TCPR, Typ, Bahn, 0, 0, $NULLFRAME)
+			IF (Result == FALSE) THEN
+				VMT_SET_ERROR_MSG(MsgCOMM)
+				GOTO Restart
+			ENDIF
+			Result = BK_RecStateOnly()
+			N_VMT_BKMODE = Modus
+			IF CheckStartState(Typ, Bahn) == FALSE THEN
+				GOTO RESTART
+			ENDIF
+		ELSE
+			GOTO RESTART
+		ENDIF
+    ENDIF
+
+
+;--------------------------------------------------
+  CASE BK_M_CORRREF ;BP Referenz
+;--------------------------------------------------
+    VMT_RstFlag()
+
+    IF (MSG_DIALOG(Typ, Bahn, 0, TitleRef[]) == TRUE) THEN
+      Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_ST_PREF, Typ, Bahn, 0, 0, $NULLFRAME)
+			IF (Result == FALSE) THEN
+				VMT_SET_ERROR_MSG(MsgCOMM)
+				GOTO Restart
+			ENDIF
+      Result = BK_RecStateOnly()
+      N_VMT_BKMODE = Modus
+      IF CheckStartState(Typ, Bahn) == FALSE THEN
+			  Meldung = GetMessage(MsgRights)
+        IF Meldung.QUIT_MSG THEN
+          GOTO RESTART
+        ENDIF
+        N_VMT_BKMODE = BK_M_OFF
+        VMT_SET_ERROR_MSG(MsgSim)
+        RETURN
+      ENDIF
+    ELSE
+      N_VMT_BKMODE = BK_M_OFF
+      VMT_SET_ERROR_MSG(MsgSim)
+      RETURN
+    ENDIF
+
+;--------------------------------------------------
+  CASE BK_M_CORRECT
+;--------------------------------------------------
+    ; Aktuelle Base-Frames erst mal sichern
+    IF N_VMT_CORACT == 0 THEN
+      FOR I = 1 TO N_VMT_NBASES
+        ;IF TOOL_TYPE[I] == #BASE THEN
+          FRA_VMT_BASE[I] = BASE_DATA[I]
+        ;ELSE
+        ;  FRA_VMT_BASE[I] = TOOL_DATA[I]
+        ;ENDIF
+      ENDFOR
+    ELSE
+      ;Hinweis, dass Korrektur aktiv war
+      VMT_SET_ERROR_MSG(MsgCorr_Act, N_VMT_CORACT, 0, 0)
+    ENDIF
+    N_VMT_BKMODE = Modus
+
+;--------------------------------------------------
+  DEFAULT
+;--------------------------------------------------
+    ; Meldung bringen: Ungueltiger Modus
+    VMT_SET_ERROR_MSG(MsgINV_MODE, N_VMT_BKMODE, 0, 0)
+		Meldung = GetMessage(MsgINV_MODE)
+    IF Meldung.QUIT_MSG THEN
+      GOTO RESTART
+    ENDIF
+    N_VMT_BKMODE = BK_M_OFF
+    VMT_SET_ERROR_MSG(MsgSim)
+ENDSWITCH  ;Modus
+
+WAIT SEC 0
+
+IF ((N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_TCP)) THEN
+  ; Aktuelle Messpositionen loeschen
+  FOR I = 1 TO N_VMT_MAXMES
+    FRA_VMT_MPOS[I] = $NULLFRAME
+    NA_VMT_MPID[I] = 0
+  ENDFOR
+
+  ;Aktuellen BahnIndex bestimmen
+  N_VMT_PATHIX = 0
+  FOR I = 1 to BK_MAXPATH
+    IF ((NA_VMT_PTHID[I] == N_VMT_PATH) OR (NA_VMT_PTHID[I] == -N_VMT_PATH)) THEN
+      N_VMT_PATHIX = I
+      NA_VMT_PTHID[I] = N_VMT_PATH
+      NA_VMT_VALID[I] = 0
+      NA_VMT_INVAL[I] = 0
+      FOR J = 1 TO BK_MAXCORR
+        FRA_VMT_CORR[I, J] = $NULLFRAME
+        NA_VMT_CORID[I, J] = 0
+      ENDFOR
+    ENDIF
+  ENDFOR
+
+  ;Keine aktuellen Ergebnisse fuer diese Bahn gefunden
+  IF (N_VMT_PATHIX == 0) THEN
+    ; Erste freie Stelle suchen
+    FOR I = 1 to BK_MAXPATH
+      IF (NA_VMT_PTHID[I] == 0) THEN
+        N_VMT_PATHIX = I
+        NA_VMT_PTHID[I] = N_VMT_PATH
+        NA_VMT_VALID[I] = 0
+				NA_VMT_INVAL[I] = 0
+        FOR J = 1 TO BK_MAXCORR
+          FRA_VMT_CORR[I, J] = $NULLFRAME
+          NA_VMT_CORID[I, J] = 0
+        ENDFOR
+        EXIT
+      ENDIF
+    ENDFOR
+  ENDIF
+
+  ; Kein Platz mehr - einen loeschen 
+  ; (den ersten bereits abgeholten)
+  IF (N_VMT_PATHIX == 0) THEN
+    ; Erste freie Stelle suchen
+    FOR I = 1 to BK_MAXPATH
+      IF (NA_VMT_PTHID[I] < 0) THEN
+        N_VMT_PATHIX = I
+        NA_VMT_PTHID[I] = N_VMT_PATH
+        NA_VMT_VALID[I] = 0
+				NA_VMT_INVAL[I] = 0
+        FOR J = 1 TO BK_MAXCORR
+          FRA_VMT_CORR[I, J] = $NULLFRAME
+          NA_VMT_CORID[I, J] = 0
+        ENDFOR
+        EXIT
+      ENDIF
+    ENDFOR
+  ENDIF
+
+  ; Kein freier Platz mehr  Fehler bringen
+  IF (N_VMT_PATHIX == 0) THEN
+    VMT_SET_ERROR_MSG(MsgBuffer, 0, 0, 0)
+		Meldung = GetMessage(MsgBuffer)
+    IF Meldung.QUIT_MSG THEN
+      GOTO RESTART
+    ENDIF
+    N_VMT_BKMODE = BK_M_OFF
+    RETURN
+  ENDIF
+ENDIF
+
+;Jetzt die Hintergrunduebertragung aktivieren
+N_VMT_REQCNT = 1
+N_VMT_MESCNT = 1
+
+
+IF ((N_VMT_BKMODE == BK_M_CORRECT) OR (N_VMT_BKMODE == BK_M_CHECK)) THEN
+  ;BahnIndex bestimmen
+  N_VMT_PATHIX = 0
+  FOR I = 1 to BK_MAXPATH
+    IF ((NA_VMT_PTHID[I] == N_VMT_PATH) or (NA_VMT_PTHID[I] == -N_VMT_PATH)) THEN
+      N_VMT_PATHIX = I
+    ENDIF
+  ENDFOR
+  IF (N_VMT_PATHIX == 0) THEN
+    VMT_SET_ERROR_MSG(MsgNoValidCo, N_VMT_TYPE, N_VMT_PATH)
+		Meldung = GetMessage(MsgNoValidCo)
+    IF Meldung.QUIT_MSG THEN
+      GOTO RESTART
+    ENDIF
+    N_VMT_BKMODE = BK_M_OFF
+    RETURN
+  ENDIF
+  IF (NA_VMT_VALID[N_VMT_PATHIX] == 0) OR (NA_VMT_INVAL[N_VMT_PATHIX] > 0) THEN
+    VMT_SET_ERROR_MSG(MsgNoValidCo, N_VMT_TYPE, N_VMT_PATH)
+		Meldung = GetMessage(MsgNoValidCo)
+    IF Meldung.QUIT_MSG THEN
+      GOTO RESTART
+    ENDIF
+    N_VMT_BKMODE = BK_M_OFF
+    RETURN
+  ENDIF
+	
+ENDIF
+END
+
+
+;==================================================
+; Wird am Ende des Bewegungsprogramms aufgerufen,
+; synchronisiert sich ggfs mit dem Hintergrund-Task
+; Kontrolliert nochmals, ob die Anzahl der angegebenen Punkte
+; auch mit der realen Anzahl uebereinstimmt
+;
+; Aenderungen:
+; 14.06.2013 - FH - Verweigerung des IS-Starts
+;==================================================
+GLOBAL DEF BK_Ende(PointCount : IN)
+;==================================================
+INT PointCount
+INT I
+INT J
+BOOL Result
+INT PointIndex
+BOOL StartVerweigert
+FRAME Differenz
+
+RESTART:
+
+SWITCH N_VMT_BKMODE
+;--------------------------------------------------
+CASE BK_M_MEASURE, BK_M_CHECK
+;--------------------------------------------------
+; wait for background task to finish
+; N_VMT_REQCNT is incremented by background task.
+VMT_START_TIMER(4, 2000)
+REPEAT
+	WAIT SEC 0.01
+UNTIL ((N_VMT_REQCNT >= N_VMT_MESCNT) OR VMT_IS_TIMER(4))
+VMT_STOP_TIMER(4)
+IF VMT_IS_TIMER(4) THEN
+	VMT_SET_ERROR_MSG(MsgSync, 2000)
+	GOTO RESTART
+ENDIF
+
+WaitISReady()
+DoErrorQuitt()
+
+;get available corrections
+J = NA_VMT_VALID[N_VMT_PATHIX]
+
+; Folgenden Block wiederholen, bis Abbruchbedingung erfuellt
+REPEAT
+  ; request to PC - any corrections available ?
+  Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_REQUEST, N_VMT_TYPE, N_VMT_PATH, 0, 0, $NULLFRAME)
+  ; receive results
+  Result = BK_RecShiftData()
+  J = CheckReceivedData(J)
+  WAIT SEC R_VMT_BKWAIT
+UNTIL (N_VMT_BKSTAT B_AND BK_S_MORE) == 0
+NA_VMT_VALID[N_VMT_PATHIX] = J
+
+; Sollten keine gueltigen Ergebnisse uebertragen 
+; worden sein, kann das auch an einer fehlerhaften 
+; Konfiguration auf dem PC liegen
+IF (NA_VMT_VALID[N_VMT_PATHIX] == 0) THEN
+  VMT_SET_ERROR_MSG(MsgCONFIG, N_VMT_TYPE, N_VMT_PATH, 0)
+ENDIF
+
+StartVerweigert = FALSE
+REPEAT
+  DoErrorQuitt()
+  WaitISReady()
+  DoErrorQuitt()
+
+  Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_STP_MES, N_VMT_TYPE, N_VMT_PATH, PointCount, 0, $NULLFRAME)
+  Result = BK_RecStateOnly()
+  IF (B_VMT_UDeny) THEN
+    IF (N_VMT_BKSTAT == 255) THEN
+      StartVerweigert = TRUE
+    ENDIF
+  ENDIF
+UNTIL StartVerweigert == FALSE
+
+;Wenn nicht alle Korrekturen berechnet werden 
+;konnten, meldet BK_Ende einen Fehler.
+IF (N_VMT_BKSTAT B_AND BK_E_GENERAL) == BK_E_GENERAL THEN
+  VMT_SET_ERROR_MSG(MsgGENERAL, 0, 0, 0)
+ENDIF
+
+;Stimmt die Anzahl der gemessenen Punkten
+;mit der erwarteten Anzahl ueberein?
+IF (N_VMT_MESCNT-1 <> PointCount) THEN
+  VMT_SET_ERROR_MSG(MsgPointCnt, PointCount, N_VMT_MESCNT - 1, 0)
+ENDIF
+VMT_ResFlag()
+IF ($FLAG[F_VMT_NIO] == TRUE) THEN
+	VMT_SET_ERROR_MSG(MsgNoSuccess,N_VMT_TYPE,N_VMT_PATH,0)
+ENDIF
+
+;--------------------------------------------------
+CASE BK_M_TCP
+;--------------------------------------------------
+;Warte auf Synchronisierung durch freilaufende SPS
+VMT_START_TIMER(4, 2000)
+REPEAT
+	WAIT SEC 0.01
+UNTIL ((N_VMT_REQCNT >= N_VMT_MESCNT) OR VMT_IS_TIMER(4))
+VMT_STOP_TIMER(4)
+IF VMT_IS_TIMER(4) THEN
+	VMT_SET_ERROR_MSG(MsgSync, 2000)
+	GOTO RESTART
+ENDIF
+
+WaitISReady()
+DoErrorQuitt()
+
+WAIT SEC 0
+;get available corrections
+J = NA_VMT_VALID[N_VMT_PATHIX]
+
+REPEAT
+  Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_REQUEST, N_VMT_TYPE, N_VMT_PATH, 0, 0, $NULLFRAME)
+  Result = BK_RecShiftData()
+  J = CheckReceivedData(J)
+  WAIT SEC R_VMT_BKWAIT
+UNTIL (N_VMT_BKSTAT B_AND BK_S_MORE) == 0
+NA_VMT_VALID[N_VMT_PATHIX] = J
+
+IF (NA_VMT_VALID[N_VMT_PATHIX] <> 1) THEN
+  VMT_SET_ERROR_MSG(MsgCONFIG, N_VMT_TYPE, N_VMT_PATH, 0)
+ENDIF
+
+WaitISReady()
+DoErrorQuitt()
+
+Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_STPTCP, N_VMT_TYPE, N_VMT_PATH, PointCount, 0, $NULLFRAME)
+Result = BK_RecStateOnly()
+
+;Stimmt die Anzahl der gemessenen Punkten
+;mit der erwarteten Anzahl ueberein?
+IF (N_VMT_MESCNT-1 <> PointCount) THEN
+  VMT_SET_ERROR_MSG(MsgPointCnt, PointCount, N_VMT_MESCNT-1, 0)
+ENDIF
+
+;Gibt es TCP Daten (Korrektur 1)?
+PointIndex = BK_GetIndex(N_VMT_PATHIX, 1)
+IF (PointIndex > 0) THEN
+  ;Abfrage Dialog zur Uebernahme des neuen TCP
+	Differenz = $NULLFRAME
+	Differenz.X = TOOL_DATA[N_VMT_PATH].X - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].X
+	Differenz.Y = TOOL_DATA[N_VMT_PATH].Y - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].Y
+	Differenz.Z = TOOL_DATA[N_VMT_PATH].Z - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].Z
+	Differenz.A = TOOL_DATA[N_VMT_PATH].A - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].A
+	Differenz.B = TOOL_DATA[N_VMT_PATH].B - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].B
+	Differenz.C = TOOL_DATA[N_VMT_PATH].C - FRA_VMT_CORR[N_VMT_PATHIX, PointIndex].C
+  IF (MSG_FRAME_DIALOG(N_VMT_PATH,Differenz,TitleTCPDiff[]) == TRUE) THEN
+    TOOL_DATA[N_VMT_PATH] = FRA_VMT_CORR[N_VMT_PATHIX, PointIndex]
+		VMT_SET_FRAME_MSG(N_VMT_PATH, FRA_VMT_CORR[N_VMT_PATHIX, PointIndex], 2)
+	ELSE
+	  VMT_SET_ERROR_MSG(MsgCancel, 0, 0, 0)
+  ENDIF
+ELSE
+  VMT_SET_ERROR_MSG(MsgCONFIG, N_VMT_TYPE, N_VMT_PATH, 0)
+ENDIF
+VMT_ResFlag()
+IF ($FLAG[F_VMT_NIO] == TRUE) THEN
+	VMT_SET_ERROR_MSG(MsgNoSuccess,N_VMT_TYPE,N_VMT_PATH,0)
+ENDIF
+
+
+;--------------------------------------------------
+CASE BK_M_MEASREF, BK_M_TCP_REF
+;--------------------------------------------------
+;wait for background task
+VMT_START_TIMER(4, 5000)
+REPEAT
+	WAIT SEC 0.01
+UNTIL ((N_VMT_REQCNT >= N_VMT_MESCNT) OR VMT_IS_TIMER(4))
+VMT_STOP_TIMER(4)
+IF VMT_IS_TIMER(4) THEN
+	VMT_SET_ERROR_MSG(MsgSync, 5000)
+	GOTO RESTART
+ENDIF
+WaitISReady()
+DoErrorQuitt()
+
+N_VMT_BKMODE = BK_M_OFF
+WAIT SEC 0.3
+Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_STPMREF, N_VMT_TYPE, N_VMT_PATH, PointCount, 0, $NULLFRAME)
+Result = BK_RecStateOnly()
+IF (N_VMT_BKSTAT == BK_S_OK) THEN
+	VMT_SET_ERROR_MSG(MsgRefOK, N_VMT_TYPE, N_VMT_PATH, 0)
+ELSE
+	VMT_SET_ERROR_MSG(MsgRefNOK, N_VMT_TYPE, N_VMT_PATH, 0)
+ENDIF
+VMT_ResFlag()
+
+
+;--------------------------------------------------
+CASE BK_M_CORRREF
+;--------------------------------------------------
+N_VMT_BKMODE = BK_M_OFF
+FOR I = 1 TO PointCount
+  Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_DATA, N_VMT_TYPE, N_VMT_PATH, NA_VMT_MPID[I], NA_VMT_MCID[I], FRA_VMT_MPOS[I])
+  WAIT SEC 0.1
+ENDFOR
+WAIT SEC 0.3
+Result = BK_SendCMD(N_VMT_ROB_ID, BK_C_STPPREF, N_VMT_TYPE, N_VMT_PATH, PointCount, 0, $NULLFRAME)
+Result = BK_RecStateOnly()
+VMT_ResFlag()
+
+
+;--------------------------------------------------
+CASE BK_M_CORRECT
+;--------------------------------------------------
+N_VMT_BKMODE = BK_M_OFF
+; restore formerly saved base frames
+; VW-USER nur Base 31 !
+FOR I = 31 TO 31
+  ;IF TOOL_TYPE[I] == #BASE THEN
+    BASE_DATA[I] = FRA_VMT_BASE[I]
+  ;ELSE
+  ;  TOOL_DATA[I] = FRA_VMT_BASE[I]
+  ;ENDIF
+ENDFOR
+IF (VW_MPARA_ACT.BASE_NO > 0) THEN
+  $BASE = BASE_DATA[VW_MPARA_ACT.BASE_NO]
+ENDIF
+
+N_VMT_CORACT = 0
+FR_VMT_CORACT = $NULLFRAME
+
+;Diese Korrekturen als bereits abgeholt markieren
+NA_VMT_PTHID[N_VMT_PATHIX] = -NA_VMT_PTHID[N_VMT_PATHIX]
+
+ENDSWITCH ; N_VMT_MODE
+
+BK_Init()
+END
+
+;==================================================
+; Diese Funktion wird fuer jeden Messpunkt
+; durch den Trigger aufgerufen.
+; Der Sensortrigger wird gepulst und die 
+; aktuelle Position wird zur Uebertragung durch
+; den Submit-Interpreter zwischengespeichert
+;==================================================
+GLOBAL DEF BK_Measure(PointID : IN)
+;==================================================
+INT PointID
+FRAME InvTool
+
+InvTool = $NULLFRAME
+
+IF (VW_MPARA_ACT.TOOL_NO  > 0) THEN
+  InvTool = MBF_INV_FRAME(TOOL_DATA[VW_MPARA_ACT.TOOL_NO])
+ENDIF
+
+IF N_VMT_MESCNT > 0 THEN
+  IF (N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_MEASREF) OR (N_VMT_BKMODE == BK_M_CHECK) THEN
+    CONTINUE
+    PulseTrigger(TRUE, 0.03)
+    CONTINUE
+    FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_int
+    CONTINUE
+    NA_VMT_MPID[N_VMT_MESCNT] = PointID
+    NA_VMT_MCID[N_VMT_MESCNT] = 0
+    N_VMT_MESCNT = N_VMT_MESCNT + 1
+  ENDIF
+  ; Bei TCP Bestimmung immer auf Tool0 zurueckrechnen
+  IF (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_TCP_REF) THEN
+    CONTINUE
+    PulseTrigger(TRUE, 0.03)
+    CONTINUE
+    FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_int:InvTool
+    CONTINUE
+    NA_VMT_MPID[N_VMT_MESCNT] = PointID
+    NA_VMT_MCID[N_VMT_MESCNT] = 0
+    N_VMT_MESCNT = N_VMT_MESCNT + 1
+  ENDIF
+ENDIF
+END
+
+
+
+;==================================================
+;Erweiterung von BK_Measure zur Verwendung in
+;Multi-BK-Systemen. Die Nummer des Sensors wird
+;zusaetzlich vorgegeben
+;==================================================
+GLOBAL DEF BK_MeasureEx(PunktNummer:IN, Kamera:IN)
+;==================================================
+INT PunktNummer
+INT Kamera
+INT TR
+FRAME InvTool
+FRAME KameraTool
+DECL VMT_CAMERA_TYPE T_CAM
+InvTool = $NULLFRAME
+KameraTool = $NULLFRAME
+
+IF N_VMT_MESCNT <= 0 THEN
+  RETURN
+ENDIF
+
+IF (VW_MPARA_ACT.TOOL_NO  > 0) THEN
+  InvTool = MBF_INV_FRAME(TOOL_DATA[VW_MPARA_ACT.TOOL_NO])
+ENDIF
+
+IF ((Kamera > 0) AND (Kamera <= 16)) THEN
+  T_CAM = GetVMTCam(Kamera)
+  TR = T_CAM.TriggerOut
+  IF ((T_CAM.ToolNo > 0) AND (T_CAM.ToolNo <= 32)) THEN
+    KameraTool = TOOL_DATA[T_CAM.ToolNo]
+  ENDIF
+ELSE
+  Kamera = 0
+ENDIF
+
+IF (B_VMT_UMulti == FALSE) THEN
+  TR = 0
+  Kamera= 0
+  KameraTool = $NULLFRAME
+ENDIF
+
+IF (N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_MEASREF) OR (N_VMT_BKMODE == BK_M_CHECK) THEN
+  CONTINUE
+  IF (TR == 0) THEN
+    PulseTrigger(TRUE, 0.03)
+  ELSE
+    PULSE($OUT[TR], TRUE, 0.03)
+  ENDIF
+  CONTINUE
+  FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_int : InvTool : KameraTool
+  CONTINUE
+  NA_VMT_MPID[N_VMT_MESCNT] = PunktNummer
+  NA_VMT_MCID[N_VMT_MESCNT] = Kamera
+  N_VMT_MESCNT = N_VMT_MESCNT + 1
+ENDIF
+
+IF (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_TCP_REF) THEN
+  CONTINUE
+  IF (TR == 0) THEN
+    PulseTrigger(TRUE, 0.03)
+  ELSE
+    PULSE($OUT[TR], TRUE, 0.03)
+  ENDIF
+  CONTINUE
+  FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_int:InvTool
+  CONTINUE
+  NA_VMT_MPID[N_VMT_MESCNT] = PunktNummer
+  NA_VMT_MCID[N_VMT_MESCNT] = Kamera
+  N_VMT_MESCNT = N_VMT_MESCNT + 1
+ENDIF
+END
+
+;==================================================
+; Diese Funktion beginnt einen Messabschnitt
+;==================================================
+GLOBAL DEF BK_Meas_On(PunktNummer : IN)
+;==================================================
+INT PunktNummer
+
+IF N_VMT_MESCNT <= 0 THEN
+  RETURN
+ENDIF
+
+IF (N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_MEASREF) OR (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_TCP_REF) OR (N_VMT_BKMODE == BK_M_CHECK) THEN
+  CONTINUE
+  SetTrigger(TRUE)
+  CONTINUE
+  FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_int
+  CONTINUE
+  NA_VMT_MPID[N_VMT_MESCNT] = PunktNummer
+  NA_VMT_MCID[N_VMT_MESCNT] = 0
+ENDIF
+END
+
+;==================================================
+; Diese Funktion beendet einen Messabschnitt
+;==================================================
+GLOBAL DEF BK_Meas_Off(PunktNummer : IN)
+;==================================================
+INT PunktNummer
+
+IF N_VMT_MESCNT <= 0 THEN
+  RETURN
+ENDIF
+
+IF (N_VMT_BKMODE == BK_M_MEASURE) OR (N_VMT_BKMODE == BK_M_MEASREF) OR (N_VMT_BKMODE == BK_M_TCP) OR (N_VMT_BKMODE == BK_M_TCP_REF) OR (N_VMT_BKMODE == BK_M_CHECK) THEN
+  CONTINUE
+  SetTrigger(FALSE)
+  CONTINUE
+  N_VMT_MESCNT = N_VMT_MESCNT + 1
+ENDIF
+END
+
+;===============================================
+; Anwendung einer vorher uebertragenen Korrektur
+; Diese Funktion wird bei der korrigierten
+; Applikationsfahrt vom Vorlaufzeiger aus
+; aufgerufen um die aktuelle Base zu verschieben.
+;=================================================
+GLOBAL DEF BK_Korr(PointID : IN)
+;=================================================
+INT PointID
+INT PointIndex
+
+IF N_VMT_MESCNT <= 0 THEN
+  RETURN
+ENDIF
+
+SWITCH N_VMT_BKMODE
+
+;--------------------------------------------------
+CASE BK_M_CORRREF
+;--------------------------------------------------
+  CONTINUE
+  ; Falls wir den realen Punkt uebergeben, dann hier nicht $POS_FOR sondern Punkt.Pos
+  FRA_VMT_MPOS[N_VMT_MESCNT] = $pos_for
+  CONTINUE
+  NA_VMT_MPID[N_VMT_MESCNT] = PointID
+  N_VMT_MESCNT = N_VMT_MESCNT + 1
+
+  
+;-------------------------------------------------
+CASE BK_M_CORRECT, BK_M_CHECK
+;-------------------------------------------------
+  ;Base Verschiebung deaktivieren
+  IF (PointID == 0) THEN
+    CONTINUE
+    ;IF TOOL_TYPE[31] == #BASE THEN
+      BASE_DATA[31] = FRA_VMT_BASE[31]
+      CONTINUE
+      $BASE = BASE_DATA[VW_MPARA_ACT.BASE_NO]
+    ;ELSE
+    ;  TOOL_DATA[31] = FRA_VMT_BASE[31]
+    ;  CONTINUE
+    ;  $TOOL = TOOL_DATA[VW_MPARA_ACT.BASE_NO]
+    ;ENDIF
+    VMT_SET_FRAME_MSG(0, $NULLFRAME, 1)
+  ELSE
+    ;Base verschiebung aktivieren
+    PointIndex = BK_GetIndex(N_VMT_PATHIX, PointID)
+    N_VMT_CORACT = PointID
+    IF (PointIndex >= 0) THEN
+      FR_VMT_CORACT = FRA_VMT_CORR[N_VMT_PATHIX, PointIndex]
+      ;IF TOOL_TYPE[31] == #BASE THEN
+        CONTINUE
+        BASE_DATA[31] = FRA_VMT_BASE[31]:FR_VMT_CORACT
+        CONTINUE
+        $BASE = BASE_DATA[VW_MPARA_ACT.BASE_NO]
+      ;ELSE
+      ;  CONTINUE
+      ;  TOOL_DATA[31] = FRA_VMT_BASE[31]:FR_VMT_CORACT
+      ;  CONTINUE
+      ;  $TOOL = BASE_DATA[VW_MPARA_ACT.BASE_NO]
+      ;ENDIF
+      VMT_SET_FRAME_MSG(PointID, FR_VMT_CORACT, 1)
+    ELSE
+      ;$MSG_T.RELEASE = TRUE
+      VMT_SET_ERROR_MSG(MsgNOCORR, PointID, 0, 0)
+    ENDIF
+  ENDIF
+ENDSWITCH
+
+END
+;==================================================
+;Modifiziert das vorgegebene Tool mit der 
+;ausgewaehlten Korrektur
+;==================================================
+GLOBAL DEF BK_CHANGE_TOOL(TYPE:IN, PATH:IN, POINT:IN, TOOL:IN)
+;==================================================
+INT TYPE,PATH,POINT
+INT TOOL
+INT I, PATH_IDX, PT_IDX
+
+IF (N_VMT_TYPE <> TYPE) THEN
+  VMT_SET_ERROR_MSG(MsgINV_TYPE, TYPE, PATH, 0)
+  RETURN
+ENDIF
+PATH_IDX = -1
+FOR I = 1 TO BK_MAXPATH
+  IF ((NA_VMT_PTHID[I] == PATH) OR (NA_VMT_PTHID[I] == -PATH))THEN
+    PATH_IDX = I
+  ENDIF
+ENDFOR
+IF (PATH_IDX == -1) THEN
+  VMT_SET_ERROR_MSG(MsgINV_PATH, TYPE, PATH, 0)
+  RETURN
+ENDIF
+PT_IDX = BK_GetIndex(PATH_IDX, POINT)
+IF (PT_IDX <= 0) THEN
+  VMT_SET_ERROR_MSG(MsgINV_PNT, TYPE, PATH, POINT)
+  RETURN
+ENDIF
+IF (TOOL < 1) OR (TOOL > 32) THEN
+  VMT_SET_ERROR_MSG(MsgINV_B_T, TOOL, 0, 0)
+  RETURN
+ENDIF
+
+;Jetzt kommt die eigentliche Action
+  IF (MSG_FRAME_DIALOG(TOOL,FRA_VMT_CORR[PATH_IDX, PT_IDX],TitleTCPDiff[]) == TRUE) THEN
+		TOOL_DATA[TOOL] = FRA_VMT_CORR[PATH_IDX, PT_IDX] : TOOL_DATA[TOOL]
+		VMT_SET_FRAME_MSG(TOOL, FRA_VMT_CORR[PATH_IDX, PT_IDX], 2)
+	ENDIF
+
+END
+
+;==================================================
+;Modifiziert die vorgegebene Base mit der 
+;ausgewaehlten Korrektur
+;==================================================
+GLOBAL DEF BK_CHANGE_BASE(TYPE:IN, PATH:IN, POINT:IN, BASE:IN)
+;==================================================
+INT TYPE,PATH,POINT
+INT BASE
+INT I, PATH_IDX, PT_IDX
+
+IF (N_VMT_TYPE <> TYPE) THEN
+  VMT_SET_ERROR_MSG(MsgINV_TYPE, TYPE, PATH, 0)
+  RETURN
+ENDIF
+PATH_IDX = -1
+FOR I = 1 TO BK_MAXPATH
+  IF ((NA_VMT_PTHID[I] == PATH) OR (NA_VMT_PTHID[I] == -PATH))THEN
+    PATH_IDX = I
+  ENDIF
+ENDFOR
+IF (PATH_IDX == -1) THEN
+  VMT_SET_ERROR_MSG(MsgINV_PATH, TYPE, PATH, 0)
+  RETURN
+ENDIF
+PT_IDX = BK_GetIndex(PATH_IDX, POINT)
+IF (PT_IDX <= 0) THEN
+  VMT_SET_ERROR_MSG(MsgINV_PNT, TYPE, PATH, POINT)
+  RETURN
+ENDIF
+IF (BASE < 1) OR (BASE > 32) THEN
+  VMT_SET_ERROR_MSG(MsgINV_B_T, BASE, 0, 0)
+  RETURN
+ENDIF
+
+;Jetzt kommt die eigentliche Action
+  IF (MSG_FRAME_DIALOG(BASE,FRA_VMT_CORR[PATH_IDX, PT_IDX],TitleBASDiff[]) == TRUE) THEN
+		BASE_DATA[BASE] = BASE_DATA[BASE] : FRA_VMT_CORR[PATH_IDX, PT_IDX]
+		VMT_SET_FRAME_MSG(BASE, FRA_VMT_CORR[PATH_IDX, PT_IDX], 3)
+	ENDIF
+END
+;ENDFOLD
+;FOLD VMT 3D with Cameras
+
+;=================================================
+;Visionsystem Global 3D (with cameras) SUBROUTINES
+;=================================================
+
+
+;ENDFOLD
+
+
+;FOLD VMT TOOLBox3D
+;=================================================
+;Visionsystem TOOLBox3D SUBROUTINES
+;=================================================
+
+;=================================================
+;Start a TCP measurement run with multiple points following
+;=================================================
+GLOBAL DEF TBOX_TCP_START(ToolNum : IN, BaseNum : IN)
+INT ToolNum
+INT BaseNum
+
+TB_TOOL_NUM = ToolNum
+TB_BASE_NUM = BaseNum
+
+WaitISReady()
+END
+
+
+;=================================================
+; TCP Determination point n - place command AFTER
+; each PTP point
+;=================================================
+GLOBAL DEF TBOX_TCP_POINT(PointNum : IN )
+INT PointNum
+BOOL result
+
+result = TBOX_SendCMD(N_VMT_ROB_ID, TB_C_TCP_N, TB_TOOL_NUM, PointNum, $pos_act)
+result = TBOX_RecShiftData()
+END
+
+
+;=================================================
+; place this after last PTP point of TCP
+; measurement run
+;=================================================
+GLOBAL DEF TBOX_TCP_END()
+
+BOOL result
+
+result = TBOX_SendCMD(N_VMT_ROB_ID, TB_C_TCP_N, TB_TOOL_NUM, 255, $pos_act)
+
+;receive tool data
+result = TBOX_RecShiftData()
+FR_VMT_TTOOL = FR_VMT_TBCOR
+
+;receive box position
+result = TBOX_RecShiftData()
+FR_VMT_TBASE = FR_VMT_TBCOR
+
+IF (N_VMT_TBSTAT == TB_S_OK) THEN
+  IF (MSG_FRAME_DIALOG(TB_TOOL_NUM, FR_VMT_TTOOL, TitleTCP[]) == TRUE) THEN
+    ;take new data as reference and use it in tool[TB_TOOL_NUM]
+    FRA_VMT_TBREF[TB_TOOL_NUM] = FR_VMT_TTOOL
+    TOOL_DATA[TB_TOOL_NUM] = FR_VMT_TTOOL
+  ENDIF
+ELSE
+  VMT_SET_ERROR_MSG(MsgINVALID1, 0, 0, 0)
+ENDIF
+
+WAIT SEC 1
+
+IF (N_VMT_TBSTAT == TB_S_OK) THEN
+  IF (MSG_FRAME_DIALOG(TB_BASE_NUM, FR_VMT_TBASE, TitleBASE[]) == TRUE) THEN
+    ;memorize new toolbox position
+    FR_VMT_TBPOS = FR_VMT_TBASE
+  ENDIF
+ENDIF
+
+END
+
+
+;=================================================
+; one shot TCP determination
+;=================================================
+GLOBAL DEF TBOX_TCP_1SHOT(ToolNum : IN)
+INT ToolNum
+
+BOOL result
+
+result = TBOX_SendCMD(N_VMT_ROB_ID, TB_C_TCP_1, ToolNum, 255, $pos_act)
+
+;receive tool data
+result = TBOX_RecShiftData()
+FR_VMT_TTOOL = FR_VMT_TBCOR
+
+;take new data as reference and use it in tool[ToolNum]
+IF (N_VMT_TBSTAT == TB_S_OK) THEN
+  ; Show dialogue asking the user if he wants to use the new TCP
+  IF (MSG_FRAME_DIALOG(ToolNum, FR_VMT_TBCOR, TitleTCP[]) == TRUE) THEN
+    FRA_VMT_TBREF[ToolNum] = FR_VMT_TTOOL
+    TOOL_DATA[ToolNum] = FR_VMT_TTOOL
+  ENDIF
+ENDIF
+END
+
+
+;=================================================
+;Check given tool
+;=================================================
+GLOBAL DEF TBOX_CHECK(ToolNum : IN )
+INT ToolNum
+BOOL result
+
+result = TBOX_SendCMD(N_VMT_ROB_ID, TB_C_CHECK, ToolNum, 1, $pos_act)
+
+;rec tool
+result = TBOX_RecShiftData()
+FRA_VMT_TBDIF[ToolNum] = FR_VMT_TBCOR ;variable for quick checking (KCP panel)
+
+IF N_VMT_TBSTAT <> TB_S_OK THEN
+  VMT_SET_ERROR_MSG(MsgTBLimits, 0, 0, 0)
+ENDIF
+
+END
+
+
+;=================================================
+; Shift given tool by the correction frame
+; calculated by VMT IS
+;=================================================
+GLOBAL DEF TBOX_CORR(ToolNum : IN)
+INT ToolNum
+BOOL result
+
+result = TBOX_SendCMD(N_VMT_ROB_ID, TB_C_CORR, ToolNum, 1, $pos_act)
+
+;receive tool correction data
+result = TBOX_RecShiftData()
+
+IF N_VMT_TBSTAT == TB_S_OK THEN
+  FRA_VMT_TBCOR[ToolNum] = FR_VMT_TBCOR
+  TOOL_DATA[ToolNum] = FR_VMT_TBCOR : FRA_VMT_TBREF[ToolNum]
+ELSE
+  VMT_SET_ERROR_MSG(MsgTBLimits, 0, 0, 0)
+ENDIF
+
+END
+
+;=================================================
+;set current tool data as reference tool
+;Corrections are applied relative to this data (!)
+;=================================================
+GLOBAL DEF TBOX_REF(ToolNum : IN)
+INT ToolNum
+  FRA_VMT_TBREF[ToolNum] = TOOL_DATA[ToolNum]
+END
+;ENDFOLD
+
+
+;FOLD VMT KLEBERAUPE / SPINTOP
+
+;=================================================
+;Berechnet den Abstand zwischen zwei Posen
+;=================================================
+DEFFCT REAL Calc_Distance(From_pos : IN, To_pos : IN)
+FRAME From_pos
+FRAME To_pos
+RETURN SQRT((From_pos.X - To_pos.X)*(From_pos.X - To_pos.X) + (From_pos.Y - To_pos.Y)*(From_pos.Y - To_pos.Y) + (From_pos.Z - To_pos.Z)*(From_pos.Z - To_pos.Z))
+ENDFCT
+;ENDFOLD

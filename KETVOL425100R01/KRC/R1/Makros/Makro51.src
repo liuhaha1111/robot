@@ -1,0 +1,118 @@
+&ACCESS RVO1
+&REL 22
+&COMMENT Initialisierung Merker
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM DISKPATH = Makros
+DEFFCT INT MAKRO51(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 18.02.2019 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 18.02.2019 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Initialisierung Merker -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Initialisierung Merker --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- GREIFER BAUTEILKONTROLLEN -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- GREIFER BAUTEILKONTROLLEN --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Ohne teil 1 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ohne teil 1 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M1 = !E605 & !E603 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M1 = !E605 & !E603, 3: BOASG
+      $CYCFLAG[1] = NOT $IN[605] AND NOT $IN[603]
+   ;ENDFOLD
+   ;FOLD -- Mit teil 1 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Mit teil 1 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M2 = E605 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M2 = E605, 3: BOASG
+      $CYCFLAG[2] = $IN[605]
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- GREIFER SPANNGRUPPEN -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- GREIFER SPANNGRUPPEN --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Magnetgreifer KKP11 AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Magnetgreifer KKP11 AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M31 = !E579 & E580 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M31 = !E579 & E580, 3: BOASG
+      $CYCFLAG[31] = NOT $IN[579] AND $IN[580]
+   ;ENDFOLD
+   ;FOLD -- Magnetgreifer KKP11 ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Magnetgreifer KKP11 ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M32 = !E580 & E579 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M32 = !E580 & E579, 3: BOASG
+      $CYCFLAG[32] = NOT $IN[580] AND $IN[579]
+   ;ENDFOLD
+   ;FOLD -- Zentrierzylinder KKP12 AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Zentrierzylinder KKP12 AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M33 = !E582 & E583 & !E584 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M33 = !E582 & E583 & !E584, 3: BOASG
+      $CYCFLAG[33] = NOT $IN[582] AND $IN[583] AND NOT $IN[584]
+   ;ENDFOLD
+   ;FOLD -- Zentrierzylinder KKP12 ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Zentrierzylinder KKP12 ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M34 = !E581 & E582 & !E583 & E584 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M34 = !E581 & E582 & !E583 & E584, 3: BOASG
+      $CYCFLAG[34] = NOT $IN[581] AND $IN[582] AND NOT $IN[583] AND $IN[584]
+   ;ENDFOLD
+   ;FOLD -- Spannzylinder KKP13 AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Spannzylinder KKP13 AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M35 = E585 & !E586 & E587 & !E588 & E589 & !E590 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M35 = E585 & !E586 & E587 & !E588 & E589 & !E590, 3: BOASG
+      $CYCFLAG[35] = $IN[585] AND NOT $IN[586] AND $IN[587] AND NOT $IN[588] AND $IN[589] AND NOT $IN[590]
+   ;ENDFOLD
+   ;FOLD -- Spannzylinder KKP13 ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Spannzylinder KKP13 ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M36 = !E585 & E586 & !E587 & E588 & !E589 & E590 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M36 = !E585 & E586 & !E587 & E588 & !E589 & E590, 3: BOASG
+      $CYCFLAG[36] = NOT $IN[585] AND $IN[586] AND NOT $IN[587] AND $IN[588] AND NOT $IN[589] AND $IN[590]
+   ;ENDFOLD
+   ;FOLD -- Zentrierzylinder KKP14 AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Zentrierzylinder KKP14 AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M37 = !E591 & E592 & !E593 & E594 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M37 = !E591 & E592 & !E593 & E594, 3: BOASG
+      $CYCFLAG[37] = NOT $IN[591] AND $IN[592] AND NOT $IN[593] AND $IN[594]
+   ;ENDFOLD
+   ;FOLD -- Zentrierzylinder KKP14 ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Zentrierzylinder KKP14 ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M38 = E591 & !E592 & E593 & !E594 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M38 = E591 & !E592 & E593 & !E594, 3: BOASG
+      $CYCFLAG[38] = $IN[591] AND NOT $IN[592] AND $IN[593] AND NOT $IN[594]
+   ;ENDFOLD
+   ;FOLD -- Sauger KKP12 EIN -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Sauger KKP12 EIN --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M63 = E595 + F245 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M63 = E595 + F245, 3: BOASG
+      $CYCFLAG[63] = $IN[595] OR $FLAG[245]
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- GREIFER SPANNGRUPPEN MIX -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- GREIFER SPANNGRUPPEN MIX --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- KKP11 AUF / KKP14 AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KKP11 AUF / KKP14 AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M21 = !E579 & E580 & E585 & !E586 & E587 & !E588 & E589 & !E590 & E591 & !E592 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M21 = !E579 & E580 & E585 & !E586 & E587 & !E588 & E589 & !E590 & E591 & !E592, 3: BOASG
+      $CYCFLAG[21] = NOT $IN[579] AND $IN[580] AND $IN[585] AND NOT $IN[586] AND $IN[587] AND NOT $IN[588] AND $IN[589] AND NOT $IN[590] AND $IN[591] AND NOT $IN[592]
+   ;ENDFOLD
+   ;FOLD -- KKP11 ZU / KKP14 ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KKP11 ZU / KKP14 ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD M22 = E579 & !E580 & !E585 & E586 & !E587 & E588 & !E589 & E590 & !E591 & E592 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M22 = E579 & !E580 & !E585 & E586 & !E587 & E588 & !E589 & E590 & !E591 & E592, 3: BOASG
+      $CYCFLAG[22] = $IN[579] AND NOT $IN[580] AND NOT $IN[585] AND $IN[586] AND NOT $IN[587] AND $IN[588] AND NOT $IN[589] AND $IN[590] AND NOT $IN[591] AND $IN[592]
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 1
+   ENDIF
+ENDFCT
+; ENDFOLD

@@ -1,0 +1,154 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SK_Schweisssteuerung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_sk_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket SK Schweisssteuerung            *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_SK CHAR Name[20],INT Datum
+DECL _Tech_SK Tech_SK
+;ENDFOLD
+; 
+;***************************************************
+;FOLD RIP
+;SK Master Ausgaenge
+GLOBAL INT O_RIP_SK_Sens=514
+;ENDFOLD
+; 
+;***************************************************
+;FOLD SK
+;VARIABLEN REAL
+GLOBAL REAL SK_Reset_Pulszeit=0.500000
+;VARIABLEN INTEGER
+GLOBAL INT Default_SK_BASE_SL[3]
+Default_SK_BASE_SL[1]=145
+Default_SK_BASE_SL[2]=177
+Default_SK_BASE_SL[3]=209
+GLOBAL INT CF_SK_BASE_SL[3]
+CF_SK_BASE_SL[1]=449
+CF_SK_BASE_SL[2]=449
+CF_SK_BASE_SL[3]=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_SK[3]
+MIT_SK[1]=FALSE
+MIT_SK[2]=FALSE
+MIT_SK[3]=FALSE
+GLOBAL BOOL B_KE_Proz[3]
+B_KE_Proz[1]=FALSE
+B_KE_Proz[2]=FALSE
+B_KE_Proz[3]=FALSE
+GLOBAL BOOL MIT_SK_WdhFraesen[3]
+MIT_SK_WdhFraesen[1]=FALSE
+MIT_SK_WdhFraesen[2]=FALSE
+MIT_SK_WdhFraesen[3]=FALSE
+;FLAGS
+GLOBAL INT F_MIT_WDHFRS=731
+GLOBAL INT F_SK_o_Strom[3]
+F_SK_o_Strom[1]=75
+F_SK_o_Strom[2]=135
+F_SK_o_Strom[3]=170
+GLOBAL INT F_SK_FK[3]
+F_SK_FK[1]=80
+F_SK_FK[2]=140
+F_SK_FK[3]=176
+GLOBAL INT F_SK_Sammel[3]
+F_SK_Sammel[1]=119
+F_SK_Sammel[2]=157
+F_SK_Sammel[3]=193
+GLOBAL INT F_SK_S_niO[3]
+F_SK_S_niO[1]=132
+F_SK_S_niO[2]=166
+F_SK_S_niO[3]=202
+GLOBAL INT F_2SZ_an_SK1=285
+GLOBAL INT F_SK_WdhFraesen=261
+;SLAVE ADRESSIERUNG
+GLOBAL INT SK_BASE_SL[3] ;SK Indirekte Slave Adressen
+SK_BASE_SL[1]=449
+SK_BASE_SL[2]=449
+SK_BASE_SL[3]=449
+;Slave Eingaenge
+GLOBAL INT I_SK_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_SK_Protokoll=1 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_SK_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_SK_Normfr=1 ;indirekt adressiert
+GLOBAL INT O_SK_V_Stdm=2 ;indirekt adressiert
+GLOBAL INT O_SK_M_Stdm=3 ;indirekt adressiert
+GLOBAL INT O_SK_Bereit=4 ;indirekt adressiert
+GLOBAL INT O_SK_WPS_nio=5 ;indirekt adressiert
+GLOBAL INT O_SK_W_Folge=6 ;indirekt adressiert
+GLOBAL INT O_SK_Diff_str=7 ;indirekt adressiert
+GLOBAL INT O_SK_Phase_nio=8 ;indirekt adressiert
+GLOBAL INT O_SK_Primaer=9 ;indirekt adressiert
+GLOBAL INT O_SK_F_Strom=10 ;indirekt adressiert
+GLOBAL INT O_SK_F_Spann=11 ;indirekt adressiert
+GLOBAL INT O_SK_24V=12 ;indirekt adressiert
+GLOBAL INT O_SK_Inverter=13 ;indirekt adressiert
+GLOBAL INT O_SK_F_Anw=14 ;indirekt adressiert
+GLOBAL INT O_SK_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT SK_BASE_MA[3] ;SK Indirekte Master Adressen
+SK_BASE_MA[1]=785
+SK_BASE_MA[2]=945
+SK_BASE_MA[3]=1105
+;Master Eingaenge
+GLOBAL INT I_SK_FK=0 ;785,945,1105
+GLOBAL INT I_SK_Normfr=1 ;786,946,1106
+GLOBAL INT I_SK_Stfr=3 ;788,948,1108
+GLOBAL INT I_SK_KF_erf=4 ;789,949,1109
+GLOBAL INT I_SK_V_Stdm=6 ;791,951,1111
+GLOBAL INT I_SK_KSoll_LBit=8 ;793,953,1113
+GLOBAL INT I_SK_KSoll_HBit=15 ;800,960,1120
+GLOBAL INT I_SK_M_Stdm=16 ;801,961,1121
+GLOBAL INT I_SK_Bereit=17 ;802,962,1122
+GLOBAL INT I_SK_Proz_iO=19 ;804,964,1124
+GLOBAL INT I_SK_WPS_nio=20 ;805,965,1125
+GLOBAL INT I_SK_W_Folge=21 ;806,966,1126
+GLOBAL INT I_SK_Diff_str=23 ;808,968,1128
+GLOBAL INT I_SK_Phase_nio=24 ;809,969,1129
+GLOBAL INT I_SK_Primaer=25 ;810,970,1130
+GLOBAL INT I_SK_F_Strom=26 ;811,971,1131
+GLOBAL INT I_SK_F_Spann=27 ;812,972,1132
+GLOBAL INT I_SK_24V=28 ;813,973,1133
+GLOBAL INT I_SK_Inverter=29 ;814,974,1134
+GLOBAL INT I_SK_F_Anw=30 ;815,975,1135
+;Master Ausgaenge
+GLOBAL INT O_SK_S_Schw=0 ;785,945,1105
+GLOBAL INT O_SK_Q_EKW=2 ;787,947,1107
+GLOBAL INT O_SK_F_Res=3 ;788,948,1108
+GLOBAL INT O_SK_F_R_FK=4 ;789,949,1109
+GLOBAL INT O_SK_Protokoll=5 ;790,950,1110
+GLOBAL INT O_SK_FT_oBT=6 ;791,951,1111
+GLOBAL INT O_SK_o_Prozess=7 ;792,952,1112
+GLOBAL INT O_SK_PNr_LBit=16 ;801,961,1121
+GLOBAL INT O_SK_PNr_HBit=31 ;816,976,1136
+GLOBAL INT O_SK_Fzg_LBit=32 ;817,977,1137
+GLOBAL INT O_SK_Fzg_HBit=39 ;824,984,1144
+GLOBAL INT O_SK_BTEnde=40 ;825,985,1145
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM SKS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_SKS_Handle[100]
+GLOBAL INT n_SKR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

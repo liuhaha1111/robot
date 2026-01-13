@@ -1,0 +1,72 @@
+&ACCESS RVO
+&REL 223
+&PARAM DISKPATH = VW_User/Applikation/RZ_Schweisszange
+&PARAM TPVW_VERSION = 8.3.0
+DEF VW_RZ_USR_R( )
+; 
+;*-------------------------------------------------------*
+;*Technologiepaket RZ Schweisszange                      *
+;*                                                       *
+;*Konzernstandard                                        *
+;*-------------------------------------------------------*
+;
+END
+;
+;FOLD RZ Interface
+GLOBAL DEF RZ_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+INT ret, i
+;
+;-----------------------------------------------------
+;
+SWITCH USER_CMD
+;
+;-----------------------------------------------------
+;
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;-----------------------------------------------------
+;
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;-----------------------------------------------------
+;
+  CASE #USR_TRIG
+    ;FOLD Trig
+      ;
+    ;ENDFOLD (Trig)
+;
+;-----------------------------------------------------
+;
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;-----------------------------------------------------
+;
+  CASE #USR_MAKRO
+    ;FOLD Makro
+	;
+	;
+    ;ENDFOLD (Makro)
+;
+;-----------------------------------------------------
+  DEFAULT
+;  
+ENDSWITCH
+END
+;
+;ENDFOLD (RZ Interface)
+;

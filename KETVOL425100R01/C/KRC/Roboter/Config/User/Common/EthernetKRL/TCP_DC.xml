@@ -1,0 +1,34 @@
+<ETHERNETKRL>
+	<CONFIGURATION>
+		<EXTERNAL>
+			<IP>172.30.0.230</IP>
+			<PORT>2020</PORT>
+		</EXTERNAL>
+                                <INTERNAL>
+                                                <MESSAGES Logging="disabled" Display="disabled"/>
+                                </INTERNAL>
+	</CONFIGURATION>
+	<RECEIVE>
+		<XML>
+			<ELEMENT Tag="Sensor/Message" Type="STRING"/>
+			<ELEMENT Tag="Sensor/Positions/Current/@X" Type="REAL"/>
+			<ELEMENT Tag="Sensor/Positions/Before/X" Type="REAL"/>
+			<ELEMENT Tag="Sensor/Nmb" Type="INT"/>
+			<ELEMENT Tag="Sensor/Status/IsActive" Type="BOOL"/>
+			<ELEMENT Tag="Sensor/Read/xyzabc" Type="FRAME"/>
+			<ELEMENT Tag="Sensor/Show/@error" Type="BOOL"/>
+			<ELEMENT Tag="Sensor/Show/@temp" Type="INT"/>
+			<ELEMENT Tag="Sensor/Show" Type="STRING"/>
+			<ELEMENT Tag="Sensor/Free" Type="INT" Set_Out="998"/>
+			<ELEMENT Tag="Sensor" Set_Flag="998"/>
+		</XML>
+	</RECEIVE>
+	<SEND>
+		<XML>
+			<ELEMENT Tag="Robot/ID"/>
+			<ELEMENT Tag="Robot/CRAF"/>
+			<ELEMENT Tag="Robot/VALUE"/>
+			
+		</XML>
+	</SEND>
+</ETHERNETKRL>

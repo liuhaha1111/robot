@@ -1,0 +1,848 @@
+&ACCESS RV2
+&REL 1
+&COMMENT KS26
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = KRC:\R1\VW_User\Applikation\Projekt_Modul
+DEF VW_MOD_USR_R( )
+;
+;***************************************************
+;*Technologiepaket Projekt Modul                   *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD MOD1_Interface
+GLOBAL DEF MOD1_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+BOOL bRet
+;
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+    ;
+    ;
+    ;ENDFOLD (Makro)
+    ;
+;***************************************************
+ENDSWITCH ;(USER_CMD)
+END
+;
+;ENDFOLD (MOD1_Interface)
+;
+;***************************************************
+;FOLD MOD1 Zangenfunktion
+;
+;
+;ENDFOLD (Zangenfunktion)
+;
+;***************************************************
+;FOLD MOD1_Meldungen
+DEF MOD1_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL MOD1R_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG={ Modul[] "MOD1_R_Msg", Nr -1, Msg_txt[] " "}
+Opt={ VL_Stop TRUE, Clear_P_Reset TRUE, Log_To_DB FALSE }
+Par[1]={ Par_type #Value, Par_txt[] " " }
+;
+IF ((n_MOD1R_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr=msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]=" "
+    CASE 2
+      USER_MSG.MSG_TXT[]=" "
+    CASE 3
+      USER_MSG.MSG_TXT[]=" "
+    CASE 4
+      USER_MSG.MSG_TXT[]=" "
+    CASE 5
+      USER_MSG.MSG_TXT[]=" "
+    CASE 6
+      USER_MSG.MSG_TXT[]=" "
+    CASE 7
+      USER_MSG.MSG_TXT[]=" "
+    CASE 8
+      USER_MSG.MSG_TXT[]=" "
+    CASE 9
+      USER_MSG.MSG_TXT[]=" "
+    CASE 10
+      USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_MOD1R_Handle[msg_nr]=Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_MOD1R_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE (Exists_KrlMsg(n_MOD1R_Handle[msg_nr]))  ;Warten bis der Anwender quittiert
+        WAIT SEC 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_MOD1R_Handle[msg_nr]=Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_MOD1R_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (MOD1 Meldungen)
+;
+;***************************************************
+;FOLD MOD2_Interface
+GLOBAL DEF MOD2_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+BOOL bRet
+;
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    $OUT[O_BT_FEHL] = FALSE
+    $FLAG[F_X_Lauf_nio] = FALSE
+    $FLAG[F_Y_Lauf_nio] = FALSE
+    $FLAG[F_Z_Lauf_nio] = FALSE
+    $FLAG[F_XYZ_OutOfRange] = FALSE
+    VisuKorrWert=$NULLFRAME
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    SWITCH PAR1
+      CASE 1 ; VW_xyz-Scan
+    
+    DEFAULT
+      ;
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    SWITCH PAR1
+      CASE 1 ; VW_xyz-Scan
+    
+    DEFAULT
+      ;
+    ENDSWITCH
+    ;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    SWITCH PAR1
+      CASE 1 ; VW_xyz-Scan
+        XYZ_MODE=1 ; Art der MESSUNG, 1: x,y,z, sonst: scan_Circ (not supported)
+        XYZ_Fct=PAR2 ; Funktion, 21: Messfahrt, 22:Referenzfahrt, 23:Nullsetzen, 24: Berechnung Korrektur
+        XYZ_Rtng=PAR3 ; Such-Richtung, Par3=1+n*3: x, Par3=2+n*3: y, Par3=3+n*3: z
+        XYZ_BaseNr=PAR4; Base-Nr mit der MESSUNG durchgefuehrt wird
+        XYZ_Suchweg=PAR5 ; Suchstrecke in [mm]
+        XYZ_C_Mess=PAR6 ; Nummer Starteingang fuer Interrupt
+        ;
+        ;Funktion VW-XYZ-Scan (Init,Ref,Messen,Calc)
+        WHILE (XYZ_Rtng<21) OR (XYZ_Rtng>44) ; selection out of range
+          MOD2_Msg(33, #QuitMsg) ;Falsche Richtung PAR3
+          RETURN
+        ENDWHILE
+        ;Check act. Base-Nr
+        WHILE ((VW_MPARA_ACT.BASE_NO<1) OR (VW_MPARA_ACT.BASE_NO>32)) AND (XYZ_Fct <> 21) ; selection out of range
+          MOD2_Msg(42, #QuitMsg) ;Base-Nr ungueltig
+          RETURN
+        ENDWHILE
+        SWITCH XYZ_Rtng
+          CASE 21, 24, 27, 30, 33, 36, 39, 42 ; Gruppe X
+            MODELL=(XYZ_Rtng-18)/3
+          CASE 22, 25, 28, 31, 34, 37, 40, 43 ; Gruppe Y
+            MODELL=(XYZ_Rtng-19)/3
+          CASE 23, 26, 29, 32, 35, 38, 41, 44 ; Gruppe Z
+            MODELL=(XYZ_Rtng-20)/3
+          DEFAULT
+            MOD2_Msg(33, #QuitMsg) ;Richtung ungueltig
+            HALT
+        ENDSWITCH
+        $OUT[O_BT_FEHL] = FALSE
+        $FLAG[F_X_Lauf_nio] = FALSE
+        $FLAG[F_Y_Lauf_nio] = FALSE
+        $FLAG[F_Z_Lauf_nio] = FALSE
+        $FLAG[F_XYZ_OutOfRange] = FALSE
+        VisuKorrWert=$NULLFRAME
+        SWITCH XYZ_Fct
+          CASE 21 ; Base auf $nullframe setzen
+            Base_init()
+          CASE 22 ; Funktion Ref-Fahrt
+            WHILE ($CYCFLAG[XYZ_C_Mess]== FALSE)
+              MOD2_Msg(40, #StateMsg) ;Suchlaufsensor defekt!
+              HALT
+            ENDWHILE
+            scan_xyz()
+            IF NOT MESSUNG THEN
+              MOD2_Msg(41, #StateMsg) ;Interrupt nicht geschaltet!
+              HALT
+            ENDIF  
+          CASE 23 ; Funktion Messfahrt
+            WHILE ($CYCFLAG[XYZ_C_Mess]== FALSE)
+              MOD2_Msg(40, #StateMsg) ;Suchlaufsensor defekt!
+              HALT
+            ENDWHILE
+            scan_xyz()
+            IF (MESSUNG AND NOT $FLAG[F_XYZ_OutOfRange]) THEN
+              BASE_BERECHNUNG()
+            ELSE
+              $OUT[O_BT_FEHL] = TRUE
+              MOD2_Msg(39, #StateMsg) ;Roboter faehrt ohne Korrektur!
+              HALT
+            ENDIF  
+          DEFAULT
+            MOD2_Msg(32, #QuitMsg) ;Falsche Funktion PAR2
+        ENDSWITCH         
+      DEFAULT
+        ;
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+    ;
+    ;
+    ;ENDFOLD (Makro)
+    ;
+;***************************************************
+ENDSWITCH ;(USER_CMD)
+END
+;
+;ENDFOLD (MOD2_Interface)
+;
+;***************************************************
+;FOLD MOD2 Zangenfunktion
+;
+;
+;ENDFOLD (Zangenfunktion)
+;
+;***************************************************
+;FOLD MOD2_Meldungen
+DEF MOD2_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Hilfsint
+DECL MOD2R_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat
+REAL HilfsReal 
+;
+USER_MSG = { Modul[] "MOD2_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_MOD2R_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 11
+      USER_MSG.MSG_TXT[]="Base wurde initialisiert."
+    CASE 12
+      USER_MSG.MSG_TXT[]="Ref-Pos wurde gespeichert."	
+    CASE 13
+      USER_MSG.MSG_TXT[]="Mess-Pos wurde gespeichert."
+    CASE 14
+      Par[1] = { Par_type #Value, par_real 1}
+      ;Real auf zwei Nachkommastellen runden
+      HilfsReal = VisuKorrWert.x*100
+      HilfsInt = HilfsReal*1
+      Par[1].par_real = HilfsInt*0.01
+      Par[2] = { Par_type #Value, par_real 1}
+      ;Real auf zwei Nachkommastellen runden
+      HilfsReal = VisuKorrWert.y*100
+      HilfsInt = HilfsReal*1
+      Par[2].par_real = HilfsInt*0.01
+      Par[3] = { Par_type #Value, par_real 1}
+      ;Real auf zwei Nachkommastellen runden
+      HilfsReal = VisuKorrWert.z*100
+      HilfsInt = HilfsReal*1
+      Par[3].par_real = HilfsInt*0.01
+      USER_MSG.MSG_TXT[]="Basedaten berechnet. Korrekturen [mm]: x %1,y %2, z %3"
+    CASE 31
+      USER_MSG.MSG_TXT[]="Falsche Messart PAR1"
+    CASE 32
+      USER_MSG.MSG_TXT[]="Falsche Funktion PAR2"	
+    CASE 33
+      USER_MSG.MSG_TXT[]="Falsche Richtung PAR3"
+    CASE 34
+      USER_MSG.MSG_TXT[]="Meldung nicht Deklariert"
+    CASE 35
+      USER_MSG.MSG_TXT[]="Falsche Bezugsbase PAR5"
+    CASE 36
+      USER_MSG.MSG_TXT[]="MESSUNG in X fehlerhaft"
+    CASE 37
+      USER_MSG.MSG_TXT[]="MESSUNG in Y fehlerhaft"
+    CASE 38
+      USER_MSG.MSG_TXT[]="MESSUNG in Z fehlerhaft"
+    CASE 39
+      USER_MSG.MSG_TXT[]="Roboter faehrt ohne Korrektur!" 
+    CASE 40
+      USER_MSG.MSG_TXT[]="Suchlaufsensor defekt!"	
+    CASE 41
+      USER_MSG.MSG_TXT[]="Interrupt nicht geschaltet! Sensor defekt?"
+    CASE 42
+      USER_MSG.MSG_TXT[]="Aktuelle Base-Nummer ungueltig!"
+    CASE 51
+      USER_MSG.MSG_TXT[]="Par 1 falscher Wert!"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"   
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_MOD2R_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_MOD2R_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_MOD2R_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_MOD2R_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_MOD2R_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (MOD2 Meldungen)
+;
+;***************************************************
+;FOLD MOD3_Interface
+GLOBAL DEF MOD3_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+BOOL bRet
+;
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+    ;
+    ;
+    ;ENDFOLD (Makro)
+    ;
+;***************************************************
+ENDSWITCH ;(USER_CMD)
+END
+;
+;ENDFOLD (MOD3_Interface)
+;
+;***************************************************
+;FOLD MOD3 Zangenfunktion
+;
+;
+;ENDFOLD (Zangenfunktion)
+;
+;***************************************************
+;FOLD MOD3_Meldungen
+DEF MOD3_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL MOD1R_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG={ Modul[] "MOD3_R_Msg", Nr -1, Msg_txt[] " "}
+Opt={ VL_Stop TRUE, Clear_P_Reset TRUE, Log_To_DB FALSE }
+Par[1]={ Par_type #Value, Par_txt[] " " }
+;
+IF ((n_MOD3R_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr=msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]=" "
+    CASE 2
+     USER_MSG.MSG_TXT[]=" "
+    CASE 3
+      USER_MSG.MSG_TXT[]=" "
+    CASE 4
+      USER_MSG.MSG_TXT[]=" "
+    CASE 5
+      USER_MSG.MSG_TXT[]=" "
+    CASE 6
+      USER_MSG.MSG_TXT[]=" "
+    CASE 7
+      USER_MSG.MSG_TXT[]=" "
+    CASE 8
+      USER_MSG.MSG_TXT[]=" "
+    CASE 9
+      USER_MSG.MSG_TXT[]=" "
+    CASE 10
+      USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_MOD3R_Handle[msg_nr]=Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_MOD3R_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE (Exists_KrlMsg(n_MOD3R_Handle[msg_nr]))  ;Warten bis der Anwender quittiert
+        WAIT SEC 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_MOD3R_Handle[msg_nr]=Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_MOD3R_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (MOD3 Meldungen)
+;
+;***************************************************
+;FOLD DZ Interface
+GLOBAL DEF DZ_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    ;
+    SWITCH PAR1
+      CASE 21 ; Handling    
+        SWITCH PAR2
+          CASE 2101, 2102  ;Setze Ansteuerung 
+            DZ_busy=TRUE
+            DZ_fm=FALSE
+            FOR i = 1 TO AnzSpnGr
+              IF ($FLAG[i]==TRUE) THEN
+                dzSpnGrYr[i]=PAR2-2100
+              ENDIF
+            ENDFOR
+            DZ_busy=FALSE
+          CASE 2103  ;Setze Stellung
+            DZ_busy=TRUE
+            FOR i = 1 TO AnzSpnGr
+              IF (i<17) THEN ;zwei Positionen
+                IF ($CYCFLAG[30+i]==FALSE) AND  ($CYCFLAG[30+(i*2)]==TRUE) THEN
+                  dzSpnGrKe[i]=1
+                ENDIF
+                IF ($CYCFLAG[30+i]==TRUE) AND  ($CYCFLAG[30+(i*2)]==FALSE) THEN
+                  dzSpnGrKe[i]=2
+                ENDIF
+              ELSE ;eine Position
+                IF ($CYCFLAG[30+i]==TRUE) THEN
+                  dzSpnGrKe[i]=1
+                ELSE
+                  dzSpnGrKe[i]=2
+                ENDIF              
+              ENDIF
+            ENDFOR
+            DZ_fm=TRUE
+            DZ_busy=FALSE
+          CASE 2104  ;Auswertung
+            DZ_busy=TRUE
+
+            DZ_busy=FALSE        
+          DEFAULT
+            ;
+        ENDSWITCH
+      DEFAULT
+        ;
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (DZ Interface)
+;
+;***************************************************
+;FOLD Subroutinen
+;***************************************************
+;FOLD scan_xyz
+DEF scan_xyz()
+
+  START_POS=$NULLFRAME
+  ;
+  ;Interrupts initialisieren
+  INTERRUPT DECL 15 WHEN NOT $CYCFLAG[XYZ_C_Mess] DO TCP_MESS1 ()
+  MESSUNG = FALSE
+  OV_MERK=$OV_PRO
+  $OV_PRO=XYZ_vRED
+  ;Startpunkt fuer den Messlauf anfahren
+  LIN  $POS_ACT
+  START_POS=$pos_act
+  INTERRUPT ON 15
+  ;Suchbewegung
+  SUCH_MOVE()
+  ;Interrupts ausschalten
+  INTERRUPT OFF 15
+  $OV_PRO=OV_MERK
+  $ADVANCE=1
+  LIN START_POS
+  ;
+  IF MESSUNG_X OR MESSUNG_Y OR MESSUNG_Z THEN
+    IF (MESSUNG_X AND MESSUNG_Y) OR (MESSUNG_X AND MESSUNG_Z) OR (MESSUNG_Y AND MESSUNG_Z) THEN
+      SWITCH XYZ_Rtng
+        CASE 21,24,27,30,33,36,39,42
+          $FLAG[F_X_Lauf_nio] = TRUE
+          IF(MESSUNG_X== FALSE) THEN
+            MOD2_Msg(36, #NotifyMsg) ;MESSUNG in X fehlerhaft
+          ENDIF
+        CASE 22,25,28,31,34,37,40,43
+          $FLAG[F_Y_Lauf_nio] = TRUE
+          IF(MESSUNG_Y== FALSE) THEN
+            MOD2_Msg(37, #NotifyMsg) ;MESSUNG in Y fehlerhaft
+          ENDIF
+        CASE 23,26,29,32,35,38,41,44
+          $FLAG[F_Z_Lauf_nio] = TRUE
+          IF(MESSUNG_Z== FALSE) THEN
+            MOD2_Msg(38, #NotifyMsg) ;MESSUNG in Z fehlerhaft
+          ENDIF
+        DEFAULT
+          MOD2_Msg(33, #QuitMsg) ;Falsche Richtung PAR3
+      ENDSWITCH
+    ELSE
+      MESSUNG=MESSUNG_X OR MESSUNG_Y OR MESSUNG_Z
+    ENDIF
+  ELSE
+    $FLAG[F_XYZ_OutOfRange] = TRUE
+  ENDIF
+  ; 
+END
+;ENDFOLD scan_xyz
+;
+;***************************************************
+;FOLD BASE_BERECHNUNG
+DEF BASE_BERECHNUNG()
+  
+  INT OFFSET
+  DECL STATE_T STATE
+  BOOL hilf
+  
+  hilf = FALSE
+  IF(XYZ_BaseNr<21) OR (XYZ_BaseNr>31) THEN
+    MOD2_Msg(35, #QuitMsg) ;Falsche Bezugsbase PAR5
+  ELSE
+    korr_wert=$NULLFRAME
+    SWITCH XYZ_Rtng
+      CASE 21,24,27,30,33,36,39,42
+        IF(MESSUNG_X== TRUE) THEN
+          korr_wert.x=XYZ_MESS_POS[MODELL,1].x-XYZ_REF_POS[MODELL,1].x
+          hilf = TRUE
+        ENDIF
+      CASE 22,25,28,31,34,37,40,43
+        IF(MESSUNG_Y== TRUE) THEN
+          korr_wert.y=XYZ_MESS_POS[MODELL,2].y-XYZ_REF_POS[MODELL,2].y
+          hilf = TRUE
+        ENDIF
+      CASE 23,26,29,32,35,38,41,44
+        IF(MESSUNG_Z== TRUE) THEN
+          korr_wert.z=XYZ_MESS_POS[MODELL,3].z-XYZ_REF_POS[MODELL,3].z
+          hilf = TRUE
+        ENDIF
+      DEFAULT
+        MOD2_Msg(33, #QuitMsg) ;Falsche Richtung PAR3
+    ENDSWITCH
+    
+    IF(hilf== TRUE) THEN
+      XyzBaseOld=base_data[XYZ_BaseNr]
+      base_data[XYZ_BaseNr]=base_data[XYZ_BaseNr]:korr_wert
+      VisuKorrWert=$NULLFRAME
+      VisuKorrWert.X=base_data[XYZ_BaseNr].X-XyzBaseOld.X
+      VisuKorrWert.Y=base_data[XYZ_BaseNr].Y-XyzBaseOld.Y
+      VisuKorrWert.Z=base_data[XYZ_BaseNr].Z-XyzBaseOld.Z
+      IF($MODE_OP <> #EX) OR (XYZ_KORR_DBG == TRUE) THEN
+        MOD2_Msg(14, #NotifyMsg) ;Basedaten berechnet
+      ENDIF
+      datum=$date
+      offset=0
+      swrite(korr_tab[log_nr].korr_wert[],state,offset,"x: %.2f,y: %.2f, z: %.2f",korr_wert.x,korr_wert.y,korr_wert.z)
+      offset=0
+      swrite(korr_tab[log_nr].korr_datum[],state,offset,"%d.%d.%d  %d:%d:%d",datum.day,datum.month,datum.year,datum.hour,datum.min,datum.sec)
+      log_nr=log_nr+1
+      IF log_nr>50 THEN
+        log_nr=1
+      ENDIF
+    ELSE
+      korr_wert=$nullframe
+      datum=$date
+      offset=0
+      swrite(korr_tab[log_nr].korr_wert[],state,offset,"x: %.2f,y: %.2f, z: %.2f",korr_wert.x,korr_wert.y,korr_wert.z)
+      offset=0
+      swrite(korr_tab[log_nr].korr_datum[],state,offset,"%d.%d.%d  %d:%d:%d",datum.day,datum.month,datum.year,datum.hour,datum.min,datum.sec)
+      log_nr=log_nr+1
+      IF log_nr>50 THEN
+        log_nr=1
+      ENDIF
+      MOD2_Msg(39, #StateMsg) ;Roboter faehrt ohne Korrektur!
+    ENDIF
+  ENDIF
+END
+;ENDFOLD BASE_BERECHNUNG
+;
+;***************************************************
+;FOLD SUCH_MOVE
+DEF SUCH_MOVE ()
+  
+  FRAME LIN_ZIEL
+  FRAME SUCH_STRECKE
+  
+  SUCH_STRECKE=$nullframe
+  MESSUNG_X = FALSE
+  MESSUNG_Y = FALSE
+  MESSUNG_Z = FALSE
+  
+  SWITCH XYZ_Rtng
+    CASE 21,24,27,30,33,36,39,42
+      SUCH_STRECKE.x=-XYZ_Suchweg
+      LIN_REL SUCH_STRECKE
+    CASE 22,25,28,31,34,37,40,43
+      SUCH_STRECKE.y=-XYZ_Suchweg
+      LIN_REL SUCH_STRECKE
+    CASE 23,26,29,32,35,38,41,44
+      SUCH_STRECKE.z=-XYZ_Suchweg
+      LIN_REL SUCH_STRECKE
+    DEFAULT
+      MOD2_Msg(33, #NotifyMsg) ;Falsche Richtung PAR3
+  ENDSWITCH
+  $ADVANCE=0
+END
+;ENDFOLD SUCH_MOVE
+;
+;***************************************************
+;FOLD TCP_MESS1
+DEF TCP_MESS1 ()
+  SWITCH XYZ_Fct
+    CASE 22
+      BASE_ORG=BASE_DATA[VW_MPARA_ACT.BASE_NO]
+      SWITCH XYZ_Rtng
+        CASE 21,24,27,30,33,36,39,42
+          XYZ_REF_POS[MODELL,1]=$POS_INT
+        CASE 22,25,28,31,34,37,40,43
+          XYZ_REF_POS[MODELL,2]=$POS_INT
+        CASE 23,26,29,32,35,38,41,44
+          XYZ_REF_POS[MODELL,3]=$POS_INT
+        DEFAULT
+      ENDSWITCH  
+      IF($MODE_OP <> #EX) THEN
+        MOD2_Msg(12, #StateMsg) ;Ref-Pos wurde gespeichert
+      ENDIF
+      BRAKE
+    CASE 23
+      SWITCH XYZ_Rtng
+        CASE 21,24,27,30,33,36,39,42
+          XYZ_MESS_POS[MODELL,1]=$POS_INT
+          MESSUNG_X = TRUE
+        CASE 22,25,28,31,34,37,40,43
+          XYZ_MESS_POS[MODELL,2]=$POS_INT
+          MESSUNG_Y = TRUE
+        CASE 23,26,29,32,35,38,41,44
+          XYZ_MESS_POS[MODELL,3]=$POS_INT
+          MESSUNG_Z = TRUE
+        DEFAULT
+      ENDSWITCH  
+      IF($MODE_OP <> #EX) AND (MESSUNG_X OR MESSUNG_Y OR MESSUNG_Z) THEN
+		MOD2_Msg(13, #NotifyMsg) ;Mess-Pos wurde gespeichert.
+      ENDIF
+      BRAKE
+    DEFAULT
+      HALT
+      MOD2_Msg(32, #QuitMsg) ;Falsche Funktion PAR2
+  ENDSWITCH
+  
+  SWITCH XYZ_Rtng
+    CASE 21,24,27,30,33,36,39,42
+      MESSUNG_X = TRUE
+    CASE 22,25,28,31,34,37,40,43
+      MESSUNG_Y = TRUE
+    CASE 23,26,29,32,35,38,41,44
+      MESSUNG_Z = TRUE
+    DEFAULT
+      MOD2_Msg(33, #QuitMsg) ;Falsche Richtung PAR3
+  ENDSWITCH
+  RESUME
+  
+END
+;ENDFOLD BASE_BERECHNUNG
+;
+;***************************************************
+;FOLD BASE_INIT
+DEF BASE_INIT()
+  IF(XYZ_BaseNr<21) OR (XYZ_BaseNr>31) THEN
+    MOD2_Msg(35, #QuitMsg) ;Falsche Bezugsbase PAR5
+  ELSE
+    BASE_DATA[XYZ_BaseNr]=BASE_ORG
+    IF($MODE_OP <> #EX) THEN
+      MOD2_Msg(11, #NotifyMsg) ;Base wurde initialisiert.
+    ENDIF
+  ENDIF
+END
+;ENDFOLD BASE_INIT
+;
+;***************************************************
+;FOLD DZ LogBaseCorr
+;
+GLOBAL DEF DZ_LogBaseCorr(sender :IN, corrType :IN, corrFrame :IN, baseNr :IN)
+;
+DECL CHAR sender[] ;should be name of calling user-module (Bsp. vw_xml_usr)
+DECL CHAR corrType[] ;only abs, rel
+DECL FRAME corrFrame
+DECL STATE_T state
+DECL DATE DATUM
+INT baseNr
+
+;DZ_LogBaseCorr(vw_xyz_usr_r,abs,BASE_DATA[3],3)
+
+DATUM=$date
+offset=0
+swrite(dzCorrTab[logNr].dzSender[],state,offset,"                ")
+offset=0
+swrite(dzCorrTab[logNr].dzSender[],state,offset,"%s",sender[])
+;
+offset=0
+swrite(dzCorrTab[logNr].dzCorrType[],state,offset,"   ")
+offset=0
+swrite(dzCorrTab[logNr].dzCorrType[],state,offset,"%s",corrType[])
+;
+offset=0
+swrite(dzCorrTab[logNr].dzCorr[],state,offset,"    ")
+offset=0
+On_Error_Proceed
+swrite(dzCorrTab[logNr].dzCorr[],state,offset,"x %.1f y %.1f z %.1f a %.4f b %.4f c %.4f",corrFrame.x,corrFrame.y,corrFrame.z,corrFrame.a,corrFrame.b,corrFrame.c)
+;
+offset=0
+swrite(dzCorrTab[logNr].dzCorrBase[],state,offset,"  ")
+offset=0
+swrite(dzCorrTab[logNr].dzCorrBase[],state,offset,"%d",baseNr)
+;
+offset=0
+swrite(dzCorrTab[logNr].dzLogDatum[],state,offset,"%d.%d.%d  %d:%d:%d",datum.day,datum.month,datum.year,datum.hour,datum.min,datum.sec)
+;
+logNr=logNr+1
+IF logNr>200 then
+  logNr=1
+ENDIF
+;
+END
+;
+;ENDFOLD (DZ_LogBaseCorr)
+;***************************************************
+;ENDFOLD (Subroutinen)
+;

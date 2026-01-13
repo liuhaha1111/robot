@@ -1,0 +1,32 @@
+&ACCESS RVO
+&REL 1
+&COMMENT MAKRO_SPS_BASIC
+&PARAM EDITMASK = MakroSPS
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrospsvorgabe.src
+&PARAM TPVW_VERSION = 8.3.17
+DEF MAKROSPS()
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      SPS_N=-1
+   ;ENDFOLD
+   ;FOLD -- Freilaufende  SPS  (Basic) -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freilaufende  SPS  (Basic) --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- KS26 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KS26 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Version: 01 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Version: 01 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Stand: 001 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Stand: 001 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- letzte  Aenderung  17.10.2016 CE -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte  Aenderung  17.10.2016 CE --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A201 = F886 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A201 = F886, 3: BOASG
+      $OUT[201] = $FLAG[886]
+   ;ENDFOLD
+   ;FOLD A202 = F887 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A202 = F887, 3: BOASG
+      $OUT[202] = $FLAG[887]
+   ;ENDFOLD
+   ;FOLD A203 = T30 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A203 = T30, 3: BOASG
+      $OUT[203] = $TIMER_FLAG[30]
+   ;ENDFOLD
+   ; FOLD ;%{H}
+END
+; ENDFOLD

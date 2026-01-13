@@ -1,0 +1,284 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/CZ_Clinchen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_cz_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket CZ Clinchen                     *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.09 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_CZ CHAR Name[20],INT Datum
+DECL _Tech_CZ Tech_CZ
+;ENDFOLD
+; 
+;***************************************************
+;FOLD CZ SERVO
+;VARIABLEN INTEGER
+GLOBAL INT Default_CZS_BASE_SL[2]
+Default_CZS_BASE_SL[1]=177
+Default_CZS_BASE_SL[2]=161
+GLOBAL INT CF_CZS_BASE_SL[2]
+CF_CZS_BASE_SL[1]=449
+CF_CZS_BASE_SL[2]=449
+GLOBAL INT Default_CZP_BASE_SL[2]
+Default_CZP_BASE_SL[1]=177
+Default_CZP_BASE_SL[2]=161
+GLOBAL INT CF_CZP_BASE_SL[2]
+CF_CZP_BASE_SL[1]=449
+CF_CZP_BASE_SL[2]=449
+GLOBAL INT Default_CZF_BASE_SL[1]
+Default_CZF_BASE_SL[1]=177
+GLOBAL INT CF_CZF_BASE_SL[1]
+CF_CZF_BASE_SL[1]=449
+GLOBAL INT CZS1_Konfig_Makro[4]
+CZS1_Konfig_Makro[1]=931
+CZS1_Konfig_Makro[2]=932
+CZS1_Konfig_Makro[3]=933
+CZS1_Konfig_Makro[4]=934
+GLOBAL INT CZS2_Konfig_Makro=939
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_CZS[2]
+MIT_CZS[1]=FALSE
+MIT_CZS[2]=FALSE
+GLOBAL BOOL MIT_CZP[2]
+MIT_CZP[1]=FALSE
+MIT_CZP[2]=FALSE
+GLOBAL BOOL MIT_CZF[2]
+MIT_CZF[1]=FALSE
+MIT_CZF[2]=FALSE
+GLOBAL BOOL B_CZ_AUF_ZU[2]
+B_CZ_AUF_ZU[1]=FALSE
+B_CZ_AUF_ZU[2]=FALSE
+GLOBAL BOOL B_CZ_Tastend[2]
+B_CZ_Tastend[1]=FALSE
+B_CZ_Tastend[2]=FALSE
+GLOBAL BOOL B_CZ_Hilf[2]
+B_CZ_Hilf[1]=FALSE
+B_CZ_Hilf[2]=FALSE
+;FLAGS
+GLOBAL INT F_CZS_FK[2]
+F_CZS_FK[1]=447
+F_CZS_FK[2]=468
+GLOBAL INT F_CZS_nio[2]
+F_CZS_nio[1]=448
+F_CZS_nio[2]=469
+GLOBAL INT F_CZ_def[2]
+F_CZ_def[1]=449
+F_CZ_def[2]=470
+GLOBAL INT F_CZS_Feh[2]
+F_CZS_Feh[1]=452
+F_CZS_Feh[2]=472
+GLOBAL INT F_CZS_Sammel[2]
+F_CZS_Sammel[1]=453
+F_CZS_Sammel[2]=473
+GLOBAL INT F_CZS_Reset=489
+GLOBAL INT F_CZ1_BMS_ANW_Z[4]
+F_CZ1_BMS_ANW_Z[1]=552
+F_CZ1_BMS_ANW_Z[2]=553
+F_CZ1_BMS_ANW_Z[3]=554
+F_CZ1_BMS_ANW_Z[4]=555
+GLOBAL INT F_CZ2_BMS_ANW_Z[1]
+F_CZ2_BMS_ANW_Z[1]=556
+;CZ SLAVE ADRESSIERUNG
+GLOBAL INT CZS_BASE_SL[2] ;CZS Indirekte Slave Adressen
+CZS_BASE_SL[1]=449
+CZS_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_CZS_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_CZ_anw_Z[4]
+I_CZ_anw_Z[1]=3
+I_CZ_anw_Z[2]=4
+I_CZ_anw_Z[3]=5
+I_CZ_anw_Z[4]=6
+;Slave Ausgaenge
+GLOBAL INT O_CZS_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_CZS_nio=2 ;indirekt adressiert
+GLOBAL INT O_CZS_W_SZ=3 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Kr_n=4 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Kr_h=5 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Prog=7 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Ziel=8 ;indirekt adressiert
+GLOBAL INT O_CZS_F_schw=9 ;indirekt adressiert
+GLOBAL INT O_CZS_W_Tool=10 ;indirekt adressiert
+GLOBAL INT O_CZS_defekt=11 ;indirekt adressiert
+GLOBAL INT O_CZS_VW_Spruehm=12 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Spruehm=13 ;indirekt adressiert
+GLOBAL INT O_CZS_F_Betr=14 ;indirekt adressiert
+GLOBAL INT O_CZS_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT CZS_BASE_MA[2] ;CZS Indirekte Master Adressen
+CZS_BASE_MA[1]=1345
+CZS_BASE_MA[2]=1425
+;Master Eingaenge
+GLOBAL INT I_CZS_bereit=0 ;1345,1425
+GLOBAL INT I_CZS_Re_aus=2 ;1347,1427
+GLOBAL INT I_CZS_Auto=8 ;1353,1433
+GLOBAL INT I_CZS_ref=9 ;1354,1434
+GLOBAL INT I_CZS_aktiv=10 ;1355,1435
+GLOBAL INT I_CZS_IPos_g=11 ;1356,1436
+GLOBAL INT I_CZS_auf=12 ;1357,1437
+GLOBAL INT I_CZS_zu=13 ;1358,1438
+GLOBAL INT I_CZS_Vorz=47 ;1392,1472
+GLOBAL INT I_CZS_LBit=48 ;1393,1473
+GLOBAL INT I_CZS_VW_Spruehm=59 ;1404,1484
+GLOBAL INT I_CZS_F_Spruehm=60 ;1405,1485
+GLOBAL INT I_CZS_GCodW1=61 ;1406,1486
+GLOBAL INT I_CZS_GCodW2=62 ;1407,1487
+GLOBAL INT I_CZS_GCodW4=63 ;1408,1488
+GLOBAL INT I_CZS_W_SZ=64 ;1409,1489
+GLOBAL INT I_CZS_W_Schm=65 ;1410,1490
+GLOBAL INT I_CZS_W_Tool=66 ;1411,1491
+GLOBAL INT I_CZS_F_Prog=67 ;1412,1492
+GLOBAL INT I_CZS_F_Ziel=68 ;1413,1493
+GLOBAL INT I_CZS_F_Baut=69 ;1414,1494
+GLOBAL INT I_CZS_F_schw=70 ;1415,1495
+GLOBAL INT I_CZS_F_Kr_n=71 ;1416,1496
+GLOBAL INT I_CZS_F_Kr_h=72 ;1417,1497
+GLOBAL INT I_CZS_F_Schl=74 ;1419,1499
+GLOBAL INT I_CZS_F_Sich=75 ;1420,1500
+GLOBAL INT I_CZS_F_Regl=76 ;1421,1501
+GLOBAL INT I_CZS_F_Phas=77 ;1422,1502
+GLOBAL INT I_CZS_F_Mot=78 ;1423,1503
+GLOBAL INT I_CZS_Sammel=79 ;1424,1504
+;Master Ausgaenge
+GLOBAL INT O_CZS_Reset=0 ;1345,1425
+GLOBAL INT O_CZS_Re_aus=2 ;1347,1427
+GLOBAL INT O_CZS_o_Fue=3 ;1348,1428
+GLOBAL INT O_CZS_m_Prog=4 ;1349,1429
+GLOBAL INT O_CZS_R_Hand=7 ;1352,1432
+GLOBAL INT O_CZS_R_Auto=8 ;1353,1433
+GLOBAL INT O_CZS_ref=9 ;1354,1434
+GLOBAL INT O_CZS_FRG=10 ;1355,1435
+GLOBAL INT O_CZS_SPos_g=11 ;1356,1436
+GLOBAL INT O_CZS_auf=12 ;1357,1437
+GLOBAL INT O_CZS_zu=13 ;1358,1438
+GLOBAL INT O_CZS_t_auf=14 ;1359,1439
+GLOBAL INT O_CZS_t_zu=15 ;1360,1440
+GLOBAL INT O_CZS_LBit=48 ;1393,1473
+GLOBAL INT O_CZS_D_Auf=4014 ;CZ Master Dummy
+GLOBAL INT O_CZS_D_Zu=4015 ;CZ Master Dummy
+;SZ Zangencode
+SIGNAL SO_CZ1_ZCode $OUT[1401]  TO $OUT[1403]
+SIGNAL SO_CZ2_ZCode $OUT[1481]  TO $OUT[1483]
+;ENDFOLD
+; 
+;***************************************************
+;FOLD CZ PNEUM
+;FLAGS
+GLOBAL INT F_CZP_nio[2]
+F_CZP_nio[1]=448
+F_CZP_nio[2]=469
+GLOBAL INT F_CZP_Feh[2]
+F_CZP_Feh[1]=452
+F_CZP_Feh[2]=472
+GLOBAL INT F_CZP_Sammel[2]
+F_CZP_Sammel[1]=453
+F_CZP_Sammel[2]=473
+GLOBAL INT F_CZP_Reset=489
+;CZ SLAVE ADRESSIERUNG
+GLOBAL INT CZP_BASE_SL[2] ;CZP Indirekte Slave Adressen
+CZP_BASE_SL[1]=449
+CZP_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_CZP_o_Proz=0 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_CZP_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_CZP_nio=2 ;indirekt adressiert
+GLOBAL INT O_CZP_F_EPWX=3 ;indirekt adressiert
+GLOBAL INT O_CZP_F_Oel=4 ;indirekt adressiert
+GLOBAL INT O_CZP_F_Druck=5 ;indirekt adressiert
+GLOBAL INT O_CZP_defekt=6 ;indirekt adressiert
+GLOBAL INT O_CZP_Sammel=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT CZP_BASE_MA[2] ;CZP Indirekte Master Adressen
+CZP_BASE_MA[1]=1345
+CZP_BASE_MA[2]=1425
+;Master Eingaenge
+GLOBAL INT I_CZP_LBit=2 ;1347,1427
+GLOBAL INT I_CZP_F_Druck=17 ;1362,1442
+GLOBAL INT I_CZP_F_Arbs=18 ;1363,1443
+GLOBAL INT I_CZP_F_Oel=19 ;1364,1444
+GLOBAL INT I_CZP_F_EPWX=20 ;1365,1445
+GLOBAL INT I_CZP_Sammel=23 ;1368,1448
+;Master Ausgaenge
+GLOBAL INT O_CZP_Reset=0 ;1345,1425
+GLOBAL INT O_CZP_o_Fu2=1 ;1346,1426
+GLOBAL INT O_CZP_LBit=2 ;1347,1427
+GLOBAL INT O_CZP_E_Mo=3 ;1348,1428
+GLOBAL INT O_CZP_Hand=4 ;1349,1429
+GLOBAL INT O_CZP_Auto=5 ;1350,1430
+GLOBAL INT O_CZP_auf=8 ;1353,1433
+GLOBAL INT O_CZP_Mit=9 ;1354,1434
+GLOBAL INT O_CZP_zu=10 ;1355,1435
+GLOBAL INT O_CZP_F_auf=11 ;1356,1436
+GLOBAL INT O_CZP_F_zu=12 ;1357,1437
+;ENDFOLD
+; 
+;***************************************************
+;FOLD CZ Flat
+;FLAGS
+GLOBAL INT F_CZF_Feh[2]
+F_CZF_Feh[1]=452
+F_CZF_Feh[2]=472
+;CZF SLAVE ADRESSIERUNG
+GLOBAL INT CZF_BASE_SL[1] ;CZF Indirekte Slave Adressen
+CZF_BASE_SL[1]=449
+;Slave Eingaenge
+GLOBAL INT I_CZF_o_Proz=0 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_CZF_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_CZF_F_Oel=4 ;indirekt adressiert
+GLOBAL INT O_CZF_F_Druck=5 ;indirekt adressiert
+GLOBAL INT O_CZF_defekt=6 ;indirekt adressiert
+GLOBAL INT O_CZF_Samel=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT CZF_BASE_MA[1] ;CZF Indirekte Master Adressen
+CZF_BASE_MA[1]=2193
+;Master Eingaenge
+GLOBAL INT I_CZF_Oel=7 ;2200
+;Master Ausgaenge
+GLOBAL INT O_V_CZF=0 ;2193
+GLOBAL INT O_CZF_auf=2 ;2195
+GLOBAL INT O_CZF_zu=3 ;2196
+GLOBAL INT O_V_CZF_Bew=4 ;2197
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit CZ
+;VARIABLEN BOOL
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL CZ_LBitFeh[2]
+CZ_LBitFeh[1]=FALSE
+CZ_LBitFeh[2]=FALSE
+;VARIABLEN INTEGER
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrCZNr=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM CZS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_CZS_Handle[100]
+GLOBAL INT n_CZR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

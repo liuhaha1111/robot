@@ -1,0 +1,25 @@
+&ACCESS RVO
+&REL 223
+&PARAM DISKPATH = VW_User/Applikation/TR_Traceaufzeichnung
+&PARAM TPVW_VERSION = 8.3.0
+DEFDAT  vw_tr_usr_r PUBLIC
+; FOLD ;%{H}%MKUKATPVW
+; ENDFOLD
+;
+;***************************************************
+;*Technologiepaket TR Traceaufzeichnung            *
+;*                                                 *
+;*Konzernstandard                                  *
+;*                                                 *
+;***************************************************
+;
+;
+;***************************************************
+;
+STRUC _TraceTime INT YEAR,MONTH,DAY,HOUR,MIN,SEC
+DECL _TraceTime TraceTime={YEAR 2017,MONTH 10,DAY 16,HOUR 9,MIN 42,SEC 0}
+DECL STATE_T st_ausg
+INT offset=18
+INT zaehlertrace=1
+;
+ENDDAT

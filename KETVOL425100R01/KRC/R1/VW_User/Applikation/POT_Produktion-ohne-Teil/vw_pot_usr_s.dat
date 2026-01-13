@@ -1,0 +1,70 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/POT_Prozess-ohne-Teil
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_POT_USR_S PUBLIC
+;
+;***************************************************
+;*Technologiepaket POT Produktion ohne Teil        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.09.03 CE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Version Techpaket
+STRUC _Tech_POT CHAR Name[20],INT Datum
+DECL _Tech_POT Tech_POT
+;ENDFOLD
+; 
+;FOLD POT
+;
+GLOBAL INT BZ1_Schweissen=6
+GLOBAL INT BZ2_Schweissen=7
+GLOBAL INT BZ1_Nachladen=8
+GLOBAL INT BZ2_Nachladen=9
+GLOBAL INT MS_Zuenden=10
+GLOBAL INT KL_Ende=15
+GLOBAL INT KL_Spuelen=16
+GLOBAL INT KL_Prozesskontrolle=17
+GLOBAL INT KL_Start=18
+GLOBAL INT NZH_Fuegen=20
+GLOBAL INT NZH_Nachladen=21
+GLOBAL INT NZS_Fuegen=22
+GLOBAL INT NZS_Nachladen=23
+GLOBAL INT NZ_Befuellstation=24
+GLOBAL INT CZP_Fuegen=25
+GLOBAL INT CZS_Fuegen=26
+GLOBAL INT CZF_Fuegen=27
+GLOBAL INT SM_Fuegen=30
+GLOBAL INT SM_Ende=31
+GLOBAL INT MB_Buckeln=45
+GLOBAL INT SR_Schrauben=35
+GLOBAL INT PR_mit_Zaehler=40
+GLOBAL INT PR_ohne_Zaehler=41
+GLOBAL INT PR_Arplas=42
+GLOBAL INT FD_Schrauben=50 
+GLOBAL INT FD_Nachladen=51
+GLOBAL INT Sensor_Messen=55
+GLOBAL INT NC_Schneiden=60
+GLOBAL INT RE_Band_Start=65
+GLOBAL INT RE_Band_Ende=66
+GLOBAL INT RW_Schweissen=70
+GLOBAL INT RW_Nachladen=71
+;
+;FOLD Meldungsausgabe
+ENUM POTS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_POTS_Handle[100]
+GLOBAL INT n_POTR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+;ENDFOLD
+
+ENDDAT

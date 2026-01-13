@@ -1,0 +1,57 @@
+&ACCESS RVO
+&COMMENT DB 6 ZU/AUF
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TPVW_VERSION = 8.3.15
+DEFFCT INT MAKRO439(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Docking Bahnhof 6 ZU/AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Docking Bahnhof 6 ZU/AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- KS26 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KS26 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Version: 01 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Version: 01 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Stand: 001 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Stand: 001 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 16.03.2017 CE -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 16.03.2017 CE --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A121 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A121 = EIN, 3: BOASG
+      $OUT[121] = TRUE
+   ;ENDFOLD
+   ;FOLD -- Steuerluft EIN -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A561 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A561 = EIN, 3: BOASG
+      $OUT[561] = TRUE
+   ;ENDFOLD
+   ;FOLD -- DB ZU -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- DB ZU --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A566 = !F23 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A566 = !F23, 3: BOASG
+      $OUT[566] = NOT $FLAG[23]
+   ;ENDFOLD
+   ;FOLD -- Spanngruppe AUF -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Spanngruppe AUF --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A565 = F23 ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A565 = F23, 3: BOASG
+      $OUT[565] = $FLAG[23]
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 1
+   ENDIF
+ENDFCT
+; ENDFOLD

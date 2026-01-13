@@ -1,0 +1,129 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SZ_Schweisszangen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_sz_usr_r PUBLIC
+;
+;***************************************************
+;*Technologiepaket SZ Schweisszangen               *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.19 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Schweisszange
+REAL MyPos=99.0000
+REAL MyPos1=99.0000
+REAL MyPos2=0.0
+; 
+REAL Startzeit=1.82913318E+09
+;
+INT StatModeOldOV=-1
+;
+INT ZeitZangeZu=640
+INT ZeitSchweissen=640
+INT ZeitZangeAuf=512
+INT QDurchbiegung=-70
+INT QAusgleich=30
+;
+GLOBAL INT GunBalanceStartTime=0
+GLOBAL INT GunBalanceEndTime=0
+GLOBAL INT GunBalanceTime=0
+;
+GLOBAL REAL C_ArmDurchbiegung=0
+GLOBAL REAL X_ArmDurchbiegung=0
+;
+INT nActivePathDefault=40 ;Ausgleichswegvorgabe
+INT nActivePathVectormove=40
+; 
+GLOBAL BOOL FRG_Referenzieren=FALSE
+GLOBAL BOOL FRG_Referenzieren2=FALSE
+GLOBAL BOOL F_Handbetrieb=FALSE
+; 
+GLOBAL INT F_SZ_FAusgl=302
+GLOBAL INT F_SZ_AutoRef=304
+GLOBAL INT F_SZ_A_akt=309
+GLOBAL INT I_SZ_FAusgl=25
+GLOBAL INT R_SZNr=8
+;
+;SZ Zangencode
+SIGNAL SO_SZ1_ZCode $OUT[761] TO $OUT[763]
+SIGNAL SO_SZ2_ZCode $OUT[921] TO $OUT[923]
+SIGNAL SO_SZ3_ZCode $OUT[1081] TO $OUT[1083]
+;SZ Ist-Position
+SIGNAL SI_SZ1_IstPos $IN[737] TO $IN[751]
+SIGNAL SI_SZ2_IstPos $IN[897] TO $IN[911]
+SIGNAL SI_SZ3_IstPos $IN[1057] TO $IN[1071]
+;SZ Programmnummer
+SIGNAL SO_SZ1_Prg_Nr $OUT[769] TO $OUT[776]
+SIGNAL SO_SZ2_Prg_Nr $OUT[929] TO $OUT[936]
+SIGNAL SO_SZ3_Prg_Nr $OUT[1089] TO $OUT[1096]
+;SZ Fahrzeugtyp
+SIGNAL SO_SZ1_Fzg_Typ $OUT[777] TO $OUT[784]
+SIGNAL SO_SZ2_Fzg_Typ $OUT[937] TO $OUT[944]
+SIGNAL SO_SZ3_Fzg_Typ $OUT[1097] TO $OUT[1104]
+;SK Punktnummer
+SIGNAL SO_SK1_Pkt_Nr $OUT[801] TO $OUT[816]
+SIGNAL SO_SK2_Pkt_Nr $OUT[961] TO $OUT[976]
+SIGNAL SO_SK3_Pkt_Nr $OUT[1121] TO $OUT[1136]
+;SK Fahrzeugtyp
+SIGNAL SO_SK1_Fzg_Typ $OUT[817] TO $OUT[824]
+SIGNAL SO_SK2_Fzg_Typ $OUT[977] TO $OUT[984]
+SIGNAL SO_SK3_Fzg_Typ $OUT[1137] TO $OUT[1144]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;ENDFOLD
+;
+;FOLD SZ TCP-Korrektur
+FRAME MyCorr
+FRAME MyCorrWeg
+;
+INT Weg=0
+INT Offset=0
+;
+GLOBAL REAL MyGunValue=0.0
+GLOBAL REAL MyCorrValue=0.0
+GLOBAL REAL MyCorrVal_EK=0.0
+GLOBAL REAL MyCorrVal_GEO=0.0
+GLOBAL REAL MyCorrOff=0.0
+GLOBAL REAL MyCorrGeo_1=0.0
+GLOBAL REAL MyCorrGeo_11=0.0
+GLOBAL REAL MyCorrGeo_12=0.0
+GLOBAL REAL MyCorrGeo_13=0.0
+GLOBAL REAL MyCorrGeo_14=0.0
+GLOBAL REAL MyCorrGeo_2=0.0
+GLOBAL REAL MyCorrGeo_3=0.0
+;
+GLOBAL REAL EZ1_EK_Wert=0.0
+GLOBAL REAL EZ2_EK_Wert=0.0
+GLOBAL REAL EZ3_EK_Wert=0.0
+;
+GLOBAL INT EZ1_FORCE_FBit=721
+GLOBAL INT EZ1_EK_FBit=729
+GLOBAL INT EZ1_GEO_FBit=817
+GLOBAL INT EZ1_GUN_FBit=821
+;
+GLOBAL INT EZ2_FORCE_FBit=881
+GLOBAL INT EZ2_EK_FBit=889
+GLOBAL INT EZ2_GEO_FBit=977
+GLOBAL INT EZ2_GUN_FBit=981
+;
+GLOBAL INT EZ3_FORCE_FBit=1041
+GLOBAL INT EZ3_EK_FBit=1049
+GLOBAL INT EZ3_GEO_FBit=1137
+GLOBAL INT EZ3_GUN_FBit=1141
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM SZR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

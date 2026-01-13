@@ -1,0 +1,34 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/OE_Objekterkennung
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_OE_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket OE Objekterkennungssensor       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2016.07.27 CE                                   *
+;*                                                 *
+;***************************************************
+;
+;FOLD OE
+;
+;Punktnummer an SPS
+SIGNAL SO_SPS_Proz_Nr $OUT[97] TO $OUT[112]
+;OE Programmnummer
+SIGNAL SO_OE1_Prg_Nr $OUT[2739]  TO $OUT[2740]
+SIGNAL SO_OE2_Prg_Nr $OUT[2743]  TO $OUT[2744]
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM OER_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

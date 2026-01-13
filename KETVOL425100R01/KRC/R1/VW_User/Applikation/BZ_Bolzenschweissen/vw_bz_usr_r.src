@@ -1,0 +1,170 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/BZ_Bolzenschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_BZ_USR_R( )
+;
+;***************************************************
+;*Technologiepaket BZ Bolzenschweissen             *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD BZ_Interface
+GLOBAL DEF BZ_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;    
+     CONTINUE
+     SO_SPS_Proz_Nr=PAR6
+     IF (PAR1==1) THEN
+       IF $IN[BZ_BASE_SL[1]+I_BZ_o_Proz] THEN
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+       CONTINUE
+       SO_BZ1_Prg_Nr=PAR2 ;Programmanwahl an Bolzen-Steuerung 1
+     ENDIF
+     IF (PAR1==2) THEN
+       IF $IN[BZ_BASE_SL[2]+I_BZ_o_Proz] THEN
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         CONTINUE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+       CONTINUE
+       SO_BZ2_Prg_Nr=PAR2 ;Programmanwahl an Bolzen-Steuerung 2
+     ENDIF
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+;
+    SO_SPS_Proz_Nr=PAR6
+    IF (PAR6==$COUNT_I[I_Arbpkt_Nr]) THEN
+      BZ_Msg(1,#QuitMsg) ; Bolzen schon geschweisst
+    ENDIF
+    IF (PAR1==1) THEN
+       IF $IN[BZ_BASE_SL[1]+I_BZ_o_Proz] THEN
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+      IF (SO_BZ1_Prg_Nr<>PAR2) THEN
+        SO_BZ1_Prg_Nr=PAR2 ;Programmanwahl an Bolzen-Steuerung 1
+	     WAIT SEC 0.1
+	   ENDIF
+    ENDIF
+    IF (PAR1==2) THEN
+       IF $IN[BZ_BASE_SL[1]+I_BZ_o_Proz] THEN
+         $FLAG[F_o_Proz_BMS]=TRUE
+       ELSE
+         $FLAG[F_o_Proz_BMS]=FALSE
+       ENDIF
+      IF (SO_BZ2_Prg_Nr<>PAR2) THEN
+        SO_BZ2_Prg_Nr=PAR2 ;Programmanwahl an Bolzen-Steuerung 2
+	     WAIT SEC 0.1
+	   ENDIF
+    ENDIF
+;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+    $FLAG[F_o_Proz_BMS]=FALSE
+    $COUNT_I[I_Arbpkt_Nr]=PAR6
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;  
+  ENDSWITCH
+END
+;
+;ENDFOLD (Bolzen Interface)
+;
+;***************************************************
+;FOLD BZ_Meldungen
+DEF BZ_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL BZR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "BZ_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_BZR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="Bolzen schon geschweisst"
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+      USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 19
+	   USER_MSG.MSG_TXT[]="Falsche Gruppen-Auswahl"  
+    CASE 20
+	   USER_MSG.MSG_TXT[]="P1: Falsche Auswahl"
+    CASE 21
+	   USER_MSG.MSG_TXT[]="P2: Falsche Auswahl" 
+    CASE 22
+	   USER_MSG.MSG_TXT[]="P3: Falsche Auswahl"    
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_BZR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_BZR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_BZR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_BZR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_BZR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (BZ Meldungen)
+

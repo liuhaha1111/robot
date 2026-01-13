@@ -1,0 +1,45 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/NZ_Nieten
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_NZ_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket NZ Nieten                       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.09 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD NZ
+;Servo
+SIGNAL SO_NZS1_Prg_Nr $OUT[1201]  TO $OUT[1216]
+SIGNAL SO_NZS1_Prg_Nr_Nachladen $OUT[1249]  TO $OUT[1264]
+SIGNAL SO_NZS2_Prg_Nr $OUT[1281]  TO $OUT[1296]
+SIGNAL SO_NZS2_Prg_Nr_Nachladen $OUT[1329]  TO $OUT[1344]
+;pneumohydraulisch
+SIGNAL SO_NZP1_Prg_Nr $OUT[1217]  TO $OUT[1232]
+SIGNAL SO_NZP2_Prg_Nr $OUT[1297]  TO $OUT[1312]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;
+;TCP-Korrektur
+INT Weg=0
+INT Offset=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM NZR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

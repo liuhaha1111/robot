@@ -1,0 +1,69 @@
+&ACCESS RV1
+&REL 1
+&COMMENT Werkzeugverriegelungen
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM DISKPATH = Makros
+DEFFCT INT MAKRO46(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 18.02.2019 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 18.02.2019 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- Werkzeugverriegelungen -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Werkzeugverriegelungen --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD A80 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A80 = EIN, 3: BOASG
+      $OUT[80] = TRUE
+   ;ENDFOLD
+   ;FOLD A77 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A77 = EIN, 3: BOASG
+      $OUT[77] = TRUE
+   ;ENDFOLD
+   ;FOLD A74 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A74 = EIN, 3: BOASG
+      $OUT[74] = TRUE
+   ;ENDFOLD
+   ;FOLD A71 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A71 = EIN, 3: BOASG
+      $OUT[71] = TRUE
+   ;ENDFOLD
+   ;FOLD A73 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A73 = AUS, 3: BOASG
+      $OUT[73] = FALSE
+   ;ENDFOLD
+   ;FOLD A64 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A64 = AUS, 3: BOASG
+      $OUT[64] = FALSE
+   ;ENDFOLD
+   ;FOLD A68 = EIN ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A68 = EIN, 3: BOASG
+      $OUT[68] = TRUE
+   ;ENDFOLD
+   ;FOLD A67 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A67 = AUS, 3: BOASG
+      $OUT[67] = FALSE
+   ;ENDFOLD
+   ;FOLD A62 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A62 = AUS, 3: BOASG
+      $OUT[62] = FALSE
+   ;ENDFOLD
+   ;FOLD A60 = AUS ;%{E}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A60 = AUS, 3: BOASG
+      $OUT[60] = FALSE
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 1
+   ENDIF
+ENDFCT
+; ENDFOLD

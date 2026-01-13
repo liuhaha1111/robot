@@ -1,0 +1,36 @@
+<ETHERNETKRL>
+  <CONFIGURATION>
+    <EXTERNAL>
+      <IP>10.210.193.229</IP>
+      <PORT>6009</PORT>
+      <TYPE>Server</TYPE>
+    </EXTERNAL>
+    <INTERNAL>
+      <ENVIRONMENT>Program</ENVIRONMENT>
+      <BUFFSIZE Limit="32767" />
+      <BUFFERING Limit="100" />
+      <TIMEOUT Connect="60000" />
+      <ALIVE Set_Flag="873" />
+      <PROTOCOL>TCP</PROTOCOL>
+      <MESSAGES Logging="error" Display="disabled"/>
+    </INTERNAL>
+  </CONFIGURATION>
+  <RECEIVE>
+    <XML>
+	  <!--Receive from Camera-->
+	  <ELEMENT Tag="VISION/TEL_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/STAT_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/ERR_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/ERR_TEXT" Type="STRING"/>
+	  <ELEMENT Tag="VISION/POS" Type="FRAME"></ELEMENT>
+	  <ELEMENT Tag="VISION/PAR" Type="STRING"/>
+	  <ELEMENT Tag="VISION/T" Type="STRING"/>
+	  <!--Flag for Data Transfer completed-->
+	  <ELEMENT Tag="VISION" Set_Flag="871"/>
+    </XML>
+  </RECEIVE>
+  <SEND>
+    <XML>
+    </XML>
+  </SEND>
+</ETHERNETKRL>

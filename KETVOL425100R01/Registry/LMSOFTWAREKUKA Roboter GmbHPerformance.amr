@@ -1,0 +1,100 @@
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance]
+"FrequencyPerformanceCounter"=qword:000000000029d7c8
+"FrequencyProcessor"=dword:a75f22a0
+
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance\PowerOff]
+"PMS_WindowsShutdown"=qword:0016688ba13328f5
+
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance\PowerOffLast]
+"PMS_WindowsShutdown"=qword:001017675b051cdc
+"PMS_RTSFreeze"=qword:0016688227129e12
+"@"="08.08.2025 05:58:33 = 6307355265188255"
+"Cross_FileManager:Powerfail_Start"=bin:52 92 13 96 81 68 16 00
+"Cross_FileManager:Powerfail_End"=bin:f5 c5 0c d8 81 68 16 00
+"PMS_RTSFrozen"=qword:00166885b39bba2c
+"StartKRC_APMSuspend"=qword:00166885c3e4d1a6
+"Cross_CrossApp:APMSuspend"=bin:bc d3 8c 34 86 68 16 00
+"PMS_Stopped"=qword:001668863b987f6e
+"RtosDrv_ModuleDriver:OnSystemHibernate_Start"=bin:97 86 c3 e0 8a 68 16 00
+"RtosDrv_ModuleOs:OsDrvSuspend"=bin:ed 14 ca e0 8a 68 16 00
+"RtosDrv_ModuleDriver:OnSystemHibernate_End"=bin:f5 db 8d 14 8b 68 16 00
+"KS_SM:Starting from <RUNNING>"=qword:00166880566576b4
+"KS_SM:BootState <MOTIONDISABLED> reached"=qword:0016688075c2be0a
+"KS_SM:BootState <BUSDISCONNECTED> reached"=qword:001668807df89687
+"KS_SM:BootState <BUSPOWEREDOFF (SOFT)> reached"=qword:00166880943742cf
+"KS_SM:Starting from <BUSPOWEREDOFF_SOFT>"=qword:0016688188ba108b
+"KS_SM:BootState <SLEEPING> reached"=qword:001668827f3ba360
+"KS_SM:BootState <FROZEN> reached"=qword:00166885942b229e
+
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance\PowerOn]
+"RtosDrv_ModuleDriver:OnSystemResume_Start"=bin:3f 26 c1 4d 8b 68 16 00
+"RtosDrv_ModuleOs:OsDrvResume"=bin:b7 5c eb 6b 8b 68 16 00
+"StartKRC_APMResumeAutomatic"=qword:0016688b86263cad
+"RtosDrv_ModuleDriver:OnSystemResume_End"=bin:50 3e 04 88 8b 68 16 00
+"@"="18.08.2025 23:30:29 = 6307398651422483"
+"Cross_CrossApp:APMResumeAutomatic_Start"=bin:7e 9f 19 b0 8b 68 16 00
+"Cross_ADSInterface:OnConnect"=bin:13 2f 5b fd 8e 68 16 00
+"Cross_CrossApp:APMResumeAutomatic_End"=bin:31 15 6f fd 8e 68 16 00
+"PMS_Started_resume"=qword:0016688f0c893a55
+"Cross_CrossApp:APMResumeSuspend"=bin:6f 68 1d 02 8f 68 16 00
+"PMS_HMIConnected"=qword:0016688f0ba2de50
+"PMS_PS3_resume: 25"=qword:0016688f43380146
+"KS_SM:Starting from <FROZEN>"=qword:0010176d0e256e2c
+"KS_SM:BootState <SLEEPING > reached"=qword:00101773283cc1e7
+"KS_SM:BootState <BUSPOWEREDOFF> reached"=qword:0010177332d1eb50
+"KS_SM:Starting from <BUSPOWEREDOFF>"=qword:001017744188bfcb
+"KS_SM:BootState <BUSDISCONNECTED (on BUSPOWERON)> reached"=qword:00101777e90750b0
+"KS_SM:BootState <MOTIONDISABLED (on BUSCONNECT)> reached"=qword:001017785c2dff37
+"KS_SM:BootState <RUNNING> reached"=qword:001017794457bf33
+"PMS_RTSConnected"=qword:0016689cc3a3e874
+
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance\PowerOnLast]
+"RtosDrv_ModuleDriver:OnSystemResume_Start"=bin:f6 06 02 f4 66 17 10 00
+"RtosDrv_ModuleOs:OsDrvResume"=bin:21 67 a7 12 67 17 10 00
+"StartKRC_APMResumeAutomatic"=qword:00101767179fe68a
+"RtosDrv_ModuleDriver:OnSystemResume_End"=bin:97 6d af 2d 67 17 10 00
+"@"="31.07.2025 22:05:05 = 4529331937428506"
+"Cross_CrossApp:APMResumeAutomatic_Start"=bin:f2 49 3b 45 67 17 10 00
+"Cross_ADSInterface:OnConnect"=bin:be 84 cb a2 6a 17 10 00
+"Cross_CrossApp:APMResumeAutomatic_End"=bin:81 21 f4 a2 6a 17 10 00
+"PMS_Started_resume"=qword:0010176ab1b34db4
+"Cross_CrossApp:APMResumeSuspend"=bin:2e fb e4 a7 6a 17 10 00
+"PMS_HMIConnected"=qword:0010176ab0f1d407
+"PMS_PS3_resume: 25"=qword:0010176aeb41a5b5
+"KS_SM:Starting from <FROZEN>"=qword:000fd8545db59464
+"KS_SM:BootState <SLEEPING > reached"=qword:000fd859dbea33b4
+"KS_SM:BootState <BUSPOWEREDOFF> reached"=qword:000fd859e6d3b4d8
+"KS_SM:Starting from <BUSPOWEREDOFF>"=qword:000fd85ae8fb9de6
+"KS_SM:BootState <BUSDISCONNECTED (on BUSPOWERON)> reached"=qword:000fd85e91f96bf3
+"KS_SM:BootState <MOTIONDISABLED (on BUSCONNECT)> reached"=qword:000fd85f039f1771
+"KS_SM:BootState <RUNNING> reached"=qword:000fd85fd3850fc4
+"PMS_RTSConnected"=qword:0010177991dbd68d
+
+[\LocalMachine\SOFTWARE\KUKA Roboter GmbH\Performance\Run]
+"SmartHMI_IntercommunicationComponent:Spoc.InitializeHost_Start"=qword:0000003eadd1ff11
+"SmartHMI_IntercommunicationComponent:Spoc.InitializeHost_End"=qword:0000003eaefe595c
+"SmartHMI_ProjectManager:ViewModel.SaveAndCloseProject. Thread ID: 1_Start"=qword:001ffc037543d690
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges_Start"=qword:001ffc039b91517a
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.RefreshAll_Start"=qword:001ffc039b937cf9
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.RefreshAll_End"=qword:001ffc05d67c0585
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.MergeCurrentFilesToProject_Start"=qword:001ffc05d6929524
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.MergeCurrentFilesToProject_End"=qword:001ffc0f65389390
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.BackToModel_Start"=qword:001ffc0f653b730d
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.BackToModel_End"=qword:001ffc10a3e5c53b
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.UpdateOptionVersionInformation_Start"=qword:001ffc10a3e7a6c9
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges.UpdateOptionVersionInformation_End"=qword:001ffc10a50e7375
+"SmartHMI_ProjectManager:ProjectManagerService.MergeExternalChanges_End"=qword:001ffc10a5109903
+"SmartHMI_ProjectManager:ProjectManagerService.SaveSolution_Start"=qword:001ffc10a511b98f
+"SmartHMI_ProjectManager:ProjectManagerService.SaveSolution_End"=qword:001ffc1337a08d15
+"SmartHMI_ProjectManager:ViewModel.SaveAndCloseProject. Thread ID: 1_End"=qword:001ffc1337a43919
+"SmartHMI_ProjectManager:ProjectManagerService.CloseObjectStoreSolution_Start"=qword:00003420e225ac5b
+"SmartHMI_ProjectManager:ProjectManagerService.CloseObjectStoreSolution_End"=qword:000034213e92e0b9
+"SmartHMI_ProjectManager:ProjectManagerService.RefreshProjectState_Start"=qword:0000344d6cf2f67f
+"SmartHMI_ProjectManager:ProjectManagerService.GetLocalDevice_Start"=qword:0000344d6cf5852f
+"SmartHMI_ProjectManager:ProjectManagerService.GetLocalDevice_End"=qword:0000344d8406e946
+"SmartHMI_ProjectManager:ProjectManagerService.SetActiveProject_Start"=qword:0000344d8424a393
+"SmartHMI_ProjectManager:ProjectManagerService.OpenActiveProject_Start"=qword:0000344d8429729d
+"SmartHMI_ProjectManager:ProjectManagerService.OpenActiveProject_End"=qword:0000345051e69b5f
+"SmartHMI_ProjectManager:ProjectManagerService.SetActiveProject_End"=qword:0000345051e91939
+"SmartHMI_ProjectManager:ProjectManagerService.RefreshProjectState_End"=qword:0000345051e9df83
+

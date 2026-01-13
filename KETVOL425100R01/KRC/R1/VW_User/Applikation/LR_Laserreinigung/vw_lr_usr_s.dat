@@ -1,0 +1,78 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/LR_Laserreinigung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_lr_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket LR Laserreinigung               *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;FOLD Version Techpaket
+STRUC _Tech_LR CHAR Name[20],INT Datum
+DECL _Tech_LR Tech_LR
+;ENDFOLD
+; 
+;FOLD LR
+;VARIABLEN INTEGER
+GLOBAL INT Default_LR_BASE_SL=145
+GLOBAL INT CF_LR_BASE_SL=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_LR=FALSE
+GLOBAL BOOL LR_Fehler=FALSE
+GLOBAL BOOL B_LR_St_Quit=FALSE
+GLOBAL BOOL B_LR_Naht_niO=FALSE
+GLOBAL BOOL B_LR_Start_AUS=FALSE
+GLOBAL BOOL B_LR_NIO_NahtNr[100]
+;FLAGS
+GLOBAL INT F_LR_Ueb_Ein=694
+;LR SLAVE ADRESSIERUNG
+GLOBAL INT LR_BASE_SL=449 ;LR Indirekte Slave Adressen
+;Slave Eingaenge
+GLOBAL INT I_LR_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_LR_C_Ein=1 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_LR_P_aktiv=0 ;indirekt adressiert
+GLOBAL INT O_LR_Warnung=2 ;indirekt adressiert
+GLOBAL INT O_LR_Stoe_L=6 ;indirekt adressiert
+GLOBAL INT O_LR_Sammel=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT LR_BASE_MA=2769 ;LR Indirekte Master Adressen
+;Master Eingaenge
+GLOBAL INT I_LR_C_i_Ein=16 ;2785
+GLOBAL INT I_LR_C_hoch=17 ;2786
+GLOBAL INT I_LR_Warn_L=19 ;2788
+GLOBAL INT I_LR_Stoe_L=26 ;2795
+;Master Ausgaenge
+GLOBAL INT O_LR_C_Ein=1 ;2770
+GLOBAL INT O_LR_L_hoch=2 ;2771
+GLOBAL INT O_LR_Start=3 ;2772
+GLOBAL INT O_LR_Q_Warn=26 ;2795
+;ENDFOLD
+; 
+;FOLD Timer
+GLOBAL INT Timer_LR[4]
+Timer_LR[1]=5000
+Timer_LR[2]=5000
+Timer_LR[3]=5000
+Timer_LR[4]=5000
+;ENDFOLD
+; 
+;FOLD Meldungsausgabe
+ENUM LRS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_LRS_Handle[100]
+GLOBAL INT n_LRR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

@@ -1,0 +1,3294 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SZ_Schweisszangen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEF VW_SZ_USR_R( )
+;
+;***************************************************
+;*Technologiepaket SZ Schweisszangen               *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD SZ_Interface
+GLOBAL DEF SZ_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT P[5], R[5]
+INT i, N
+INT RobTimerStart
+BOOL bRet
+;
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ; Initialisierung Zangenfunktion
+    R1AusgleichFunktion=0
+    ; INTERRUPT fuer Zangenfunktionen
+    GLOBAL INTERRUPT DECL 3 WHEN R1AusgleichFunktion>0 DO GunFunctionManual()
+    INTERRUPT ON 3
+    ;Reset Messung
+    $SoftPlcInt[301]=0
+    ;
+    FOR i=1 TO 3
+      $FLAG[F_WPS_FRG[i]]=FALSE
+      $OUT[SZ_BASE_SL[i]+O_SZ_KF_akt]=FALSE
+    ENDFOR
+    ;
+    ;Merker Init
+    ;FOR i=1 TO 3
+    ;  IF MIT_EZ[i] OR MIT_KE[i] THEN
+    ;    SZ_MERKER_INIT(i)
+    ;  ENDIF
+    ;ENDFOR
+    ;
+    IF ((MIT_EZ[1]==TRUE) OR (MIT_KE[1]==TRUE)) AND (EZ1_Dock==FALSE) THEN
+      SEL_RES=SELECT(#MAKRO,(EZ1_Konfig_Makro[1]),TRUE,,,,,FALSE)
+    ENDIF
+    IF ((MIT_EZ[2]==TRUE) OR (MIT_KE[2]==TRUE)) AND (EZ2_Dock==FALSE) THEN
+      SEL_RES=SELECT(#MAKRO,(EZ2_Konfig_Makro),TRUE,,,,,FALSE)
+    ENDIF
+    IF ((MIT_EZ[3]==TRUE) OR (MIT_KE[3]==TRUE)) AND (EZ3_Dock==FALSE) THEN
+      SEL_RES=SELECT(#MAKRO,(EZ3_Konfig_Makro),TRUE,,,,,FALSE)
+    ENDIF
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+    Offset=PAR3
+;
+    nActivePathVectormove=nActivePathDefault
+    IF (Offset>=10) AND (Offset<=30) THEN
+      nActivePathVectormove=(nActivePathVectormove-Offset)
+    ENDIF
+      SWITCH PAR1
+        CASE 10,12 ;EZ1 Schweissen, EZ1 Fraesen
+          IF (PAR1==12) THEN
+            ;Anforderung Normalfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_NF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[1]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[1]+I_SK_Stfr] AND $IN[SZ_BASE_SL[1]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR ((PAR2>=51) AND (PAR2<=54)) OR $FLAG[F_SZ_Anw_NF[1]]) 
+            ;Anforderung Startfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_SF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[1]]) OR ((PAR2>=41) AND (PAR2<=44)) OR $FLAG[F_SZ_Anw_SF[1]])
+          ENDIF
+          CONTINUE
+          IF $IN[SK_BASE_SL[1]+I_SK_o_Proz] THEN
+            $FLAG[F_o_Proz_BMS]=TRUE
+          ELSE
+            $FLAG[F_o_Proz_BMS]=FALSE
+          ENDIF
+          IF NOT Mit_KE[1] THEN
+            CONTINUE
+            SO_SZ1_Prg_Nr=PAR2
+          ENDIF
+          CONTINUE
+          SO_SK1_Pkt_Nr=PAR5
+          CONTINUE
+          SO_SPS_Proz_Nr=PAR5
+          IF Mit_KE[1] THEN
+            CONTINUE
+            IF (SO_SK1_Pkt_Nr>90) THEN   	
+              CONTINUE	
+              SO_SK1_Fzg_Typ=PAR6
+            ELSE  
+              CONTINUE
+              SO_SK1_Fzg_Typ=0  
+            ENDIF 
+          ELSE
+            CONTINUE
+            IF (SO_SZ1_Prg_Nr>90) THEN   	
+              CONTINUE	
+              SO_SZ1_Fzg_Typ=PAR6
+              CONTINUE	
+              SO_SK1_Fzg_Typ=PAR6
+              CONTINUE
+              $OUT[O_RIP_SK_Sens]=FALSE
+            ELSE  
+              CONTINUE
+              SO_SZ1_Fzg_Typ=0 
+              CONTINUE
+              SO_SK1_Fzg_Typ=0  
+              CONTINUE
+              $OUT[O_RIP_SK_Sens]=FALSE
+            ENDIF
+          ENDIF 
+          CONTINUE
+          $FLAG[F_Frg_Servo]=TRUE
+          CONTINUE          
+          WHILE USER_AKTIV
+            SZ_Msg(1,#QuitMsg) ;mehr als 1 USER-Aufruf aktiv
+          ENDWHILE
+          USER_AKTIV=TRUE
+          IF Mit_KE[1] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ1_EK_FBit)
+            CONTINUE
+            EZ1_EK_Wert=(MyCorrVal_EK*2)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ1_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO)    
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ1_EK_FBit)
+            CONTINUE
+            EZ1_EK_Wert=(GetEKVal(EZ1_EK_FBit)*2)
+          ENDIF
+          CONTINUE
+          MyCorrOFF=(Offset*0.1)
+          CONTINUE
+          WHILE ((MyCorrOFF<-10) OR (MyCorrOFF>10))
+            SZ_Msg(3,#QuitMsg) ; MyCorrOFF nicht im zulaessigen Bereich
+          ENDWHILE
+          CONTINUE
+          MyCorr=$NULLFRAME
+          CONTINUE
+          WHILE ((SO_SZ1_ZCode==0) OR (SO_SZ1_ZCode>4))
+            SZ_Msg(2,#QuitMsg) ; Zangencode ungueltig
+          ENDWHILE
+          IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN
+              MyCorr.X=-((MyCorrValue*EZ1_Z1_AHV)+MyCorrOff)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN
+              MyCorr.X=-((MyCorrValue*EZ1_Z2_AHV)+MyCorrOff)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN
+              MyCorr.X=-((MyCorrValue*EZ1_Z3_AHV)+MyCorrOff)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN
+              MyCorr.X=-((MyCorrValue*EZ1_Z4_AHV)+MyCorrOff)
+            ENDIF
+          ELSE
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN          
+              MyCorr.X=-(MyCorrValue*EZ1_Z1_AHV)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN              
+              MyCorr.X=-(MyCorrValue*EZ1_Z2_AHV)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN              
+              MyCorr.X=-(MyCorrValue*EZ1_Z3_AHV)
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN              
+              MyCorr.X=-(MyCorrValue*EZ1_Z4_AHV)
+            ENDIF
+          ENDIF      
+          CONTINUE
+          IF (VW_MPARA_ACT.BASE_NO>0) THEN
+            CONTINUE
+            SWITCH BASE_TYPE[VW_MPARA_ACT.BASE_NO]
+              CASE #TCP
+                CONTINUE
+                $BASE=$BASE:MyCorr
+              DEFAULT
+                CONTINUE
+                $TOOL=$TOOL:MyCorr
+            ENDSWITCH
+          ELSE
+            CONTINUE
+            $TOOL=$TOOL:MyCorr
+          ENDIF
+          IF ($PRO_MODE==#MSTEP) THEN
+            CONTINUE
+            $ADVANCE=0 ; Anfahren WPS-Punkt mit EK-Verschleiss in SingleStep
+          ENDIF
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=0 DELAY=0.0 DO $Flag[F_FRG_VMove]=FALSE
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=0.0 DO $Flag[F_FRG_VMove]=TRUE ;Freigabe VektorMove Schweissmakro
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=-100.0 DO T_B_Corr(MyCorr) PRIO=-1
+          IF NOT DOCK_SZ THEN
+            IF Mit_KE[1] THEN
+              CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+              CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit        
+            ELSE
+              CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrValue*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+              CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrValue*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==7) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==8) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==9) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==10) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==11) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==12) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+              ENDIF
+              CONTINUE                
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+              CONTINUE
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+          ENDIF
+          IF (EZ1_Dock==TRUE) THEN
+          IF Mit_KE[1] THEN
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN
+              CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN
+              CONTINUE
+              B_SZ1_VW_EK[2]=(((MyCorrVal_EK*2)>EZ1_Z2_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ2 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[2]=(((MyCorrVal_EK*2)>EZ1_Z2_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ2 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN
+              CONTINUE
+              B_SZ1_VW_EK[3]=(((MyCorrVal_EK*2)>EZ1_Z3_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ3 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[3]=(((MyCorrVal_EK*2)>EZ1_Z3_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ 3 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN
+              CONTINUE
+              B_SZ1_VW_EK[4]=(((MyCorrVal_EK*2)>EZ1_Z4_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ4 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[4]=(((MyCorrVal_EK*2)>EZ1_Z4_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ4 Maximale Kappenstandzeit
+            ENDIF
+          ELSE
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN
+                CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrValue*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrValue*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN
+                CONTINUE
+              B_SZ1_VW_EK[2]=(((MyCorrValue*2)>EZ1_Z2_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ2 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[2]=(((MyCorrValue*2)>EZ1_Z2_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ2 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN
+                CONTINUE
+              B_SZ1_VW_EK[3]=(((MyCorrValue*2)>EZ1_Z3_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ3 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[3]=(((MyCorrValue*2)>EZ1_Z3_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ3 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN
+                CONTINUE
+              B_SZ1_VW_EK[4]=(((MyCorrValue*2)>EZ1_Z4_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ4 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[4]=(((MyCorrValue*2)>EZ1_Z4_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ4 Maximale Kappenstandzeit
+            ENDIF
+            ENDIF
+            CONTINUE             
+            IF ($softplcint[EZ_PlcInt[1]]==7) AND (SO_SZ1_ZCode==1) THEN
+		        IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+              ENDIF
+              CONTINUE                
+	           IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+	           CONTINUE
+              IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+            CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==8) AND (SO_SZ1_ZCode==1) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==9) AND (SO_SZ1_ZCode==1) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==10) AND (SO_SZ1_ZCode==1) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==11) AND (SO_SZ1_ZCode==1) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==12) AND (SO_SZ1_ZCode==1) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==7) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==8) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==9) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==10) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==11) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==12) AND (SO_SZ1_ZCode==2) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==7) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==8) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==9) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==10) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==11) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==12) AND (SO_SZ1_ZCode==3) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==7) AND (SO_SZ1_ZCode==4) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==8) AND (SO_SZ1_ZCode==4) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==9) AND (SO_SZ1_ZCode==4) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==10) AND (SO_SZ1_ZCode==4) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[1]]==11) AND (SO_SZ1_ZCode==4) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF  
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+	         ENDIF
+          ENDIF
+          CONTINUE
+            IF ($softplcint[EZ_PlcInt[1]]==12) AND (SO_SZ1_ZCode==4) THEN
+              IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+                CONTINUE
+	             act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+              ENDIF  
+	           CONTINUE
+              IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	             CONTINUE
+                PTP act_P1
+              ENDIF
+	           CONTINUE
+              IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	             CONTINUE
+                LIN act_P1
+	           ENDIF
+            ENDIF
+          ENDIF
+;
+        CASE 11 ;EZ1 Service
+          IF Mit_KE[1] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ1_EK_FBit)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ1_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO)    
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ1_EK_FBit)
+          ENDIF  
+          IF (EZ1_Dock==TRUE) THEN
+          IF Mit_KE[1] THEN
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN
+              CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN
+              CONTINUE
+              B_SZ1_VW_EK[2]=(((MyCorrVal_EK*2)>EZ1_Z2_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ2 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[2]=(((MyCorrVal_EK*2)>EZ1_Z2_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ2 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN
+              CONTINUE
+              B_SZ1_VW_EK[3]=(((MyCorrVal_EK*2)>EZ1_Z3_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ3 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[3]=(((MyCorrVal_EK*2)>EZ1_Z3_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ3 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN
+              CONTINUE
+              B_SZ1_VW_EK[4]=(((MyCorrVal_EK*2)>EZ1_Z4_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ4 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[4]=(((MyCorrVal_EK*2)>EZ1_Z4_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ4 Maximale Kappenstandzeit
+            ENDIF
+          ELSE
+            CONTINUE
+            IF (SO_SZ1_ZCode==1) THEN
+                CONTINUE
+              B_SZ1_VW_EK[1]=(((MyCorrValue*2)>EZ1_Z1_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ1 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[1]=(((MyCorrValue*2)>EZ1_Z1_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ1 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==2) THEN
+                CONTINUE
+              B_SZ1_VW_EK[2]=(((MyCorrValue*2)>EZ1_Z2_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ2 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[2]=(((MyCorrValue*2)>EZ1_Z2_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ2 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==3) THEN
+              CONTINUE
+              B_SZ1_VW_EK[3]=(((MyCorrValue*2)>EZ1_Z3_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ3 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[3]=(((MyCorrValue*2)>EZ1_Z3_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ3 Maximale Kappenstandzeit
+            ENDIF
+            CONTINUE
+            IF (SO_SZ1_ZCode==4) THEN
+              CONTINUE
+              B_SZ1_VW_EK[4]=(((MyCorrValue*2)>EZ1_Z4_VW_EK) OR $IN[SK_BASE_MA[1]+I_SK_V_Stdm]) ;EZ1-SZ4 Vorwarnung Kappenstandzeit
+                CONTINUE
+              B_SZ1_MAX_EK[4]=(((MyCorrValue*2)>EZ1_Z4_MAX_EK) OR $IN[SZ_BASE_MA[1]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[1]+I_SK_M_Stdm]) ;EZ1-SZ4 Maximale Kappenstandzeit
+            ENDIF
+          ENDIF
+          ENDIF
+          ;Anforderung Normalfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_NF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[1]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[1]+I_SK_Stfr] AND $IN[SZ_BASE_SL[1]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR ((PAR2>=51) AND (PAR2<=54)) OR $FLAG[F_SZ_Anw_NF[1]])
+          ;Anforderung Startfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_SF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[1]]) OR ((PAR2>=41) AND (PAR2<=44)) OR $FLAG[F_SZ_Anw_SF[1]])
+;
+        CASE 20,22 ;EZ2 Schweissen, EZ2 Fraesen
+          IF (PAR1==22) THEN
+            ;Anforderung Normalfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_NF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[2]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[2]+I_SK_Stfr] AND $IN[SZ_BASE_SL[2]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[2]])
+            ;Anforderung Startfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_SF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[2]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[2]])
+          ENDIF
+          CONTINUE
+          IF $IN[SK_BASE_SL[2]+I_SK_o_Proz] THEN
+            $FLAG[F_o_Proz_BMS]=TRUE
+          ELSE
+            $FLAG[F_o_Proz_BMS]=FALSE
+          ENDIF
+          CONTINUE
+          $OUT[O_RIP_SK_Sens]=FALSE
+          IF Mit_KE[2] THEN
+            CONTINUE
+            SO_SK2_Pkt_Nr=PAR5
+            CONTINUE
+            SO_SPS_Proz_Nr=PAR5
+            CONTINUE
+            IF (SO_SK2_Pkt_Nr>90) THEN 
+              CONTINUE
+              SO_SK2_Fzg_Typ=PAR6
+            ELSE
+              CONTINUE
+              SO_SK2_Fzg_Typ=0
+            ENDIF 
+          ELSE    
+            IF NOT Mit_KE[2] THEN
+              CONTINUE
+              SO_SZ2_Prg_Nr=PAR2
+            ENDIF
+            CONTINUE
+            SO_SPS_Proz_Nr=PAR5
+            IF Mit_KE[2] THEN
+              CONTINUE
+              IF (SO_SK2_Pkt_Nr>90) THEN 
+                CONTINUE	
+                SO_SK2_Fzg_Typ=PAR6
+              ELSE
+                CONTINUE
+                SO_SK2_Fzg_Typ=0
+              ENDIF 
+            ELSE
+              CONTINUE            
+              IF (SO_SZ2_Prg_Nr>90) THEN 
+                CONTINUE	
+                SO_SZ2_Fzg_Typ=PAR6
+                IF NOT Mit_2SZ_an_SK1 THEN
+                  CONTINUE
+                  SO_SK2_Pkt_Nr=PAR5
+                  CONTINUE	
+                  SO_SK2_Fzg_Typ=PAR6
+                  CONTINUE
+                  $OUT[O_RIP_SK_Sens]=FALSE
+                ELSE
+                  CONTINUE
+                  SO_SK1_Pkt_Nr=PAR5
+                  CONTINUE
+                  SO_SK1_Fzg_Typ=PAR6
+                  CONTINUE
+                  $OUT[O_RIP_SK_Sens]=TRUE
+                ENDIF
+              ELSE
+                CONTINUE
+                SO_SZ2_Fzg_Typ=0
+                IF NOT Mit_2SZ_an_SK1 THEN
+                  CONTINUE
+                  SO_SK2_Pkt_Nr=PAR5
+                  CONTINUE
+                  SO_SK2_Fzg_Typ=0
+                  CONTINUE
+                  $OUT[O_RIP_SK_Sens]=FALSE
+                ELSE
+                  CONTINUE
+                  SO_SK1_Pkt_Nr=PAR5
+                  CONTINUE
+                  SO_SK1_Fzg_Typ=0
+                  CONTINUE
+                  $OUT[O_RIP_SK_Sens]=TRUE
+                ENDIF
+              ENDIF  
+            ENDIF 
+          ENDIF  
+          CONTINUE
+          $FLAG[F_Frg_Servo]=TRUE
+          CONTINUE
+          WHILE USER_AKTIV
+            SZ_Msg(1,#QuitMsg) ;mehr als 1 USER-Aufruf aktiv
+          ENDWHILE
+          USER_AKTIV=TRUE
+          IF Mit_KE[2] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ2_EK_FBit)
+            CONTINUE
+            EZ2_EK_Wert=(MyCorrVal_EK*2)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ2_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO)
+            CONTINUE
+            B_SZ2_VW_EK[1]=(((MyCorrVal_EK*2)>EZ2_Z1_VW_EK) OR $IN[SK_BASE_MA[2]+I_SK_V_Stdm]) ;EZ2-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ2_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ2_Z1_MAX_EK) OR $IN[SZ_BASE_MA[2]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[2]+I_SK_M_Stdm]) ;EZ2-SZ1 Maximale Kappenstandzeit
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ2_EK_FBit)
+            CONTINUE
+            EZ2_EK_Wert=(MyCorrValue*2)
+            CONTINUE
+            B_SZ2_VW_EK[1]=(((MyCorrValue*2)>EZ2_Z1_VW_EK) OR $IN[SK_BASE_MA[2]+I_SK_V_Stdm]) ;EZ2-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ2_MAX_EK[1]=(((MyCorrValue*2)>EZ2_Z1_MAX_EK) OR $IN[SZ_BASE_MA[2]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[2]+I_SK_M_Stdm]) ;EZ2-SZ1 Maximale Kappenstandzeit
+          ENDIF
+          CONTINUE
+          MyCorrOFF=(Offset*0.1)
+          CONTINUE
+          WHILE ((MyCorrOFF<-10) OR (MyCorrOFF>10))
+            SZ_Msg(3,#QuitMsg) ; MyCorrOFF nicht im zulaessigen Bereich
+          ENDWHILE
+          CONTINUE
+          MyCorr=$NULLFRAME
+          IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+            MyCorr.X=-((MyCorrValue*EZ2_Z1_AHV)+MyCorrOff)
+          ELSE	
+            MyCorr.X=-(MyCorrValue*EZ2_Z1_AHV)
+          ENDIF
+          CONTINUE
+          IF (VW_MPARA_ACT.BASE_NO>0) THEN
+            CONTINUE
+            SWITCH BASE_TYPE[VW_MPARA_ACT.BASE_NO]
+              CASE #TCP
+                CONTINUE
+                $BASE=$BASE:MyCorr
+              DEFAULT
+                CONTINUE
+                $TOOL=$TOOL:MyCorr
+            ENDSWITCH
+          ELSE
+            CONTINUE
+           $TOOL=$TOOL:MyCorr
+          ENDIF
+          IF ($PRO_MODE==#MSTEP) THEN
+            CONTINUE
+            $ADVANCE=0 ; Anfahren WPS-Punkt mit EK-Verschleiss in SingleStep
+          ENDIF
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=0 DELAY=0.0 DO $Flag[F_FRG_VMove]=FALSE
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=0.0 DO $Flag[F_FRG_VMove]=TRUE ;Freigabe VektorMove Schweissmakro
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=-100.0 DO T_B_Corr(MyCorr) PRIO=-1
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==7) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==8) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==9) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==10) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==11) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[2]]==12) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+;
+        CASE 21 ;EZ2 Service
+          IF Mit_KE[2] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ2_EK_FBit)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ2_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO) 
+            CONTINUE
+            B_SZ2_VW_EK[1]=(((MyCorrVal_EK*2)>EZ2_Z1_VW_EK) OR $IN[SK_BASE_MA[2]+I_SK_V_Stdm]) ;EZ2-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ2_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ2_Z1_MAX_EK) OR $IN[SZ_BASE_MA[2]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[2]+I_SK_M_Stdm]) ;EZ2-SZ1 Maximale Kappenstandzeit
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ2_EK_FBit)
+            CONTINUE
+            B_SZ2_VW_EK[1]=(((MyCorrValue*2)>EZ2_Z1_VW_EK) OR $IN[SK_BASE_MA[2]+I_SK_V_Stdm]) ;EZ2-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ2_MAX_EK[1]=(((MyCorrValue*2)>EZ2_Z1_MAX_EK) OR $IN[SZ_BASE_MA[2]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[2]+I_SK_M_Stdm]) ;EZ2-SZ1 Maximale Kappenstandzeit
+          ENDIF
+          ;Anforderung Normalfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_NF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[2]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[2]+I_SK_Stfr] AND $IN[SZ_BASE_SL[2]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[2]])
+          ;Anforderung Startfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_SF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[2]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[2]])        
+;
+        CASE 30,32 ;EZ3 Schweissen, EZ3 Fraesen
+          IF (PAR1==32) THEN
+            ;Anforderung Normalfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_NF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[3]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[3]+I_SK_Stfr] AND $IN[SZ_BASE_SL[3]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[3]]) 
+            ;Anforderung Startfraesen
+            CONTINUE
+            $FLAG[F_SZ_Anw_SF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[3]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[3]])
+          ENDIF
+          CONTINUE
+          IF $IN[SK_BASE_SL[3]+I_SK_o_Proz] THEN
+            $FLAG[F_o_Proz_BMS]=TRUE
+          ELSE
+            $FLAG[F_o_Proz_BMS]=FALSE
+          ENDIF
+          IF NOT Mit_KE[3] THEN
+            CONTINUE          
+            SO_SZ3_Prg_Nr=PAR2
+          ENDIF
+          CONTINUE
+          SO_SPS_Proz_Nr=PAR5
+          IF Mit_KE[3] THEN
+            CONTINUE
+            IF (SO_SK3_Pkt_Nr>90) THEN
+              CONTINUE
+              SO_SK3_Fzg_Typ=PAR6
+            ELSE
+              CONTINUE
+              SO_SK3_Fzg_Typ=0
+            ENDIF 
+          ELSE
+            CONTINUE
+            IF (SO_SZ3_Prg_Nr>90) THEN
+              CONTINUE	 
+              SO_SZ3_Fzg_Typ=PAR6
+              CONTINUE
+              SO_SK3_Pkt_Nr=PAR5
+              CONTINUE
+              SO_SK3_Fzg_Typ=PAR6
+            ELSE
+              CONTINUE
+              SO_SZ3_Fzg_Typ=0
+              CONTINUE    
+              SO_SK3_Pkt_Nr=PAR5
+              CONTINUE
+              SO_SK3_Fzg_Typ=0
+            ENDIF 
+          ENDIF  
+          CONTINUE
+          $FLAG[F_Frg_Servo]=TRUE
+          CONTINUE
+          WHILE USER_AKTIV
+            SZ_Msg(1,#QuitMsg) ;mehr als 1 USER-Aufruf aktiv
+          ENDWHILE
+          USER_AKTIV=TRUE
+          IF Mit_KE[3] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ3_EK_FBit)
+            CONTINUE
+            EZ3_EK_Wert=(MyCorrVal_EK*2)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ3_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO)
+            CONTINUE
+            B_SZ3_VW_EK[1]=(((MyCorrVal_EK*2)>EZ3_Z1_VW_EK) OR $IN[SK_BASE_MA[3]+I_SK_V_Stdm]) ;EZ3-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ3_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ3_Z1_MAX_EK) OR $IN[SZ_BASE_MA[3]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[3]+I_SK_M_Stdm]) ;EZ3-SZ1 Maximale Kappenstandzeit
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ3_EK_FBit)
+            CONTINUE
+            EZ3_EK_Wert=(MyCorrValue*2)  
+            CONTINUE
+            B_SZ3_VW_EK[1]=(((MyCorrValue*2)>EZ3_Z1_VW_EK) OR $IN[SK_BASE_MA[3]+I_SK_V_Stdm]) ;EZ3-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ3_MAX_EK[1]=(((MyCorrValue*2)>EZ3_Z1_MAX_EK) OR $IN[SZ_BASE_MA[3]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[3]+I_SK_M_Stdm]) ;EZ3-SZ1 Maximale Kappenstandzeit
+          ENDIF
+          CONTINUE
+          MyCorrOFF=(Offset*0.1)
+          CONTINUE
+          WHILE ((MyCorrOFF<-10) OR (MyCorrOFF>10))
+            SZ_Msg(3,#QuitMsg) ; MyCorrOFF nicht im zulaessigen Bereich
+          ENDWHILE
+          CONTINUE
+          MyCorr=$NULLFRAME
+	       IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+            MyCorr.X=-((MyCorrValue*EZ3_Z1_AHV)+MyCorrOff)
+          ELSE	
+            MyCorr.X=-(MyCorrValue*EZ3_Z1_AHV)
+          ENDIF
+          CONTINUE
+          IF (VW_MPARA_ACT.BASE_NO>0) THEN
+            CONTINUE
+            SWITCH BASE_TYPE[VW_MPARA_ACT.BASE_NO]
+              CASE #TCP
+                CONTINUE
+                $BASE=$BASE:MyCorr
+              DEFAULT
+                CONTINUE
+                $TOOL=$TOOL:MyCorr
+            ENDSWITCH
+          ELSE
+            CONTINUE
+            $TOOL=$TOOL:MyCorr
+          ENDIF
+          IF ($PRO_MODE==#MSTEP) THEN
+            CONTINUE
+            $ADVANCE=0 ; Anfahren WPS-Punkt mit EK-Verschleiss in SingleStep
+          ENDIF
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=0 DELAY=0.0 DO $Flag[F_FRG_VMove]=FALSE
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=0.0 DO $Flag[F_FRG_VMove]=TRUE ;Freigabe VektorMove Schweissmakro    
+          CONTINUE
+          TRIGGER  WHEN DISTANCE=1 DELAY=-100.0 DO T_B_Corr(MyCorr) PRIO=-1
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==7) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E1=(act_P1.E1-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==8) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E2=(act_P1.E2-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==9) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E3=(act_P1.E3-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==10) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E4=(act_P1.E4-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==11) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E5=(act_P1.E5-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+          CONTINUE
+          IF ($softplcint[EZ_PlcInt[3]]==12) THEN
+            IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+              CONTINUE
+	           act_P1.E6=(act_P1.E6-(MyCorrValue*2))
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PTP_MOTION) THEN
+	           CONTINUE
+              PTP act_P1
+            ENDIF
+	         CONTINUE
+            IF (VW_MPARA_ACT.MOVE_TYPE==#PATH_MOTION) THEN
+	           CONTINUE
+              LIN act_P1
+            ENDIF
+          ENDIF
+;
+        CASE 31 ;EZ3 Service
+          IF Mit_KE[3] THEN
+            CONTINUE
+            MyCorrVal_EK=GetEKVal(EZ3_EK_FBit)
+            CONTINUE
+            MyCorrVal_GEO=GetGEOVal(EZ3_GEO_FBit)
+            CONTINUE
+            MyCorrValue=(MyCorrVal_EK+MyCorrVal_GEO)
+            CONTINUE
+            B_SZ3_VW_EK[1]=(((MyCorrVal_EK*2)>EZ3_Z1_VW_EK) OR $IN[SK_BASE_MA[3]+I_SK_V_Stdm]) ;EZ3-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ3_MAX_EK[1]=(((MyCorrVal_EK*2)>EZ3_Z1_MAX_EK) OR $IN[SZ_BASE_MA[3]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[3]+I_SK_M_Stdm]) ;EZ3-SZ1 Maximale Kappenstandzeit
+          ELSE
+            CONTINUE
+            MyCorrValue=GetEKVal(EZ3_EK_FBit)
+            CONTINUE
+            B_SZ3_VW_EK[1]=(((MyCorrValue*2)>EZ3_Z1_VW_EK) OR $IN[SK_BASE_MA[3]+I_SK_V_Stdm]) ;EZ3-SZ1 Vorwarnung Kappenstandzeit
+            CONTINUE
+            B_SZ3_MAX_EK[1]=(((MyCorrValue*2)>EZ3_Z1_MAX_EK) OR $IN[SZ_BASE_MA[3]+I_SZ_F_Kapp] OR $IN[SK_BASE_MA[3]+I_SK_M_Stdm]) ;EZ3-SZ1 Maximale Kappenstandzeit
+          ENDIF
+          ;Anforderung Normalfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_NF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[3]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[3]+I_SK_Stfr] AND $IN[SZ_BASE_SL[3]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[3]])
+          ;Anforderung Startfraesen
+          CONTINUE
+          $FLAG[F_SZ_Anw_SF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[3]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[3]]) 
+;
+        CASE 13,14,15,16,23,33 ;nur Trigger
+;
+        DEFAULT
+          SZ_Msg(20,#QuitMsg) ;Falsche Auswahl
+;
+      ENDSWITCH ;von PAR1
+;
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+;
+    IF NOT $FLAG[F_Frg_Servo]==TRUE THEN
+      $FLAG[F_Frg_Servo]=TRUE
+    ENDIF
+;
+    SWITCH PAR1
+      CASE 10,12 ;EZ1 Schweissen, EZ1 Fraesen
+        IF $IN[SK_BASE_SL[1]+I_SK_o_Proz] THEN
+          $FLAG[F_o_Proz_BMS]=TRUE
+        ELSE
+          $FLAG[F_o_Proz_BMS]=FALSE
+        ENDIF
+        ;Bauteilende(Q-Auswertung)
+        $OUT[SK_BASE_MA[1]+O_SK_BTEnde]=FALSE
+        IF ($PRO_MODE==#MSTEP) THEN
+          WAIT SEC 1.0   ;Wartezeit Kontrolle Zangenoeffnung
+        ENDIF
+        IF (SO_SK1_Pkt_Nr<>PAR5) OR (SO_SK1_Fzg_Typ<>PAR6) THEN  
+          IF NOT Mit_KE[1] THEN
+            SO_SZ1_Prg_Nr=PAR2
+            SO_SZ1_Fzg_Typ=PAR6
+          ENDIF          
+          SO_SK1_Pkt_Nr=PAR5
+          SO_SK1_Fzg_Typ=PAR6   
+          SO_SPS_Proz_Nr=PAR5
+          $OUT[O_RIP_SK_Sens]=FALSE
+	       WAIT SEC 0.1
+        ENDIF
+        ;VM Armdurchbiegung verrechnen
+        IF Mit_KE[1] THEN
+          MyGunValue=(GetGunVal(EZ1_GUN_FBit)/2)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ELSE
+          MyGunValue=CalcGunVal(EZ1_FORCE_FBit)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ENDIF
+        IF $IN[SZ_BASE_SL[1]+I_SZ_o_Kra] THEN
+          SZ_Msg(47,#NotifyMsg)
+        ENDIF
+        WAIT FOR (NOT $IN[SZ_BASE_SL[1]+I_SZ_o_Kra] OR $IN[I_R_Quit_Wei])
+        $FLAG[F_KW_Wart_AUS]=FALSE
+        $FLAG[F_WA_EIN_VSP]=TRUE
+        ;Abfrage Kuehlwasser i.O.
+        ;FOLD WARTE BIS B_RIP_KW_iO[1] + E26;%{E}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS B_RIP_KW_iO[1] + E26,3:  WBOASG
+        $LOOP_MSG[]="Warte bis Kuehlwasser i.O. + E26"
+        $LOOP_CONT=TRUE
+        WAIT FOR B_RIP_KW_iO[1] OR $IN[26] OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+        $LOOP_MSG[]="                                                                                                                                "
+        ;ENDFOLD  
+        $FLAG[F_WPS_FRG[1]]=TRUE
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[1]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[1]+I_SK_Stfr] AND $IN[SZ_BASE_SL[1]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR ((PAR2>=51) AND (PAR2<=54)) OR $FLAG[F_SZ_Anw_NF[1]]) 
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[1]]) OR ((PAR2>=41) AND (PAR2<=44)) OR $FLAG[F_SZ_Anw_SF[1]]) 
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=TRUE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF   
+        IF (PAR5==32) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=TRUE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF 
+        IF (PAR5==33) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=TRUE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF 
+        IF (PAR5==34) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=TRUE
+        ENDIF
+;
+      CASE 11 ;EZ1 Service
+        IF NOT Mit_KE[1] THEN
+          SO_SZ1_Prg_Nr=PAR2
+          SO_SZ1_Fzg_Typ=0
+        ENDIF
+        SO_SK1_Pkt_Nr=PAR5
+        SO_SK1_Fzg_Typ=0   
+        WAIT SEC 0.1
+        ;
+        $OUT[SZ_BASE_MA[1]+O_SZ_MvFrae]=FALSE
+        $OUT[SZ_BASE_MA[1]+O_SZ_MnFrae]=FALSE
+        ;
+        IF $IN[SK_BASE_MA[1]+I_SK_KF_erf] THEN
+          WAIT SEC 0.1
+        ENDIF
+        ;
+        $FLAG[F_WPS_FRG[1]]=TRUE
+        ;
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[1]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[1]+I_SK_Stfr] AND $IN[SZ_BASE_SL[1]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR ((PAR2>=51) AND (PAR2<=54)) OR $FLAG[F_SZ_Anw_NF[1]])
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[1]]=(($IN[SK_BASE_MA[1]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[1]]) OR ((PAR2>=41) AND (PAR2<=44)) OR $FLAG[F_SZ_Anw_SF[1]]) 
+        ;
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=TRUE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF   
+        IF (PAR5==32) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=TRUE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF 
+        IF (PAR5==33) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=TRUE
+          $FLAG[F_SZ1_ANW_Z[4]]=FALSE
+        ENDIF 
+        IF (PAR5==34) THEN
+          $FLAG[F_SZ1_ANW_Z[1]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[2]]=FALSE 
+          $FLAG[F_SZ1_ANW_Z[3]]=FALSE
+          $FLAG[F_SZ1_ANW_Z[4]]=TRUE
+        ENDIF             
+;
+      CASE 13; EZ1/SZ1 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF1_Z_aktiv[1] AND ($COUNT_I[36]<>0) THEN
+          KF1_Z_aktiv[1]=FALSE
+          MyCorrValue=GetEKVal(EZ1_EK_FBit)
+          KF_IST_1_1=MyCorrValue
+          IF EZ1SZ1_EK_gew THEN
+            KF_ALT_1_1=KF_IST_1_1
+            EZ1SZ1_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_1_1<(KF_ALT_1_1+(KF_EK_Limit_1_1*($COUNT_I[36])))) AND ($COUNT_I[4]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_1_1=KF_COUNT_Pos_1_1+1
+          ENDIF
+          IF (KF_IST_1_1>(KF_ALT_1_1+(KF_EK_Limit_1_1*($COUNT_I[36])))) AND ($COUNT_I[4]>KF_Umd_min) THEN
+            KF_COUNT_Neg_1_1=KF_COUNT_Neg_1_1+1
+          ENDIF
+          IF (KF_COUNT_Pos_1_1>=2) THEN
+            $COUNT_I[4]=$COUNT_I[4]+1
+            KF_COUNT_Pos_1_1=0
+            KF_COUNT_Neg_1_1=0
+          ENDIF
+          IF (KF_COUNT_Neg_1_1>=2) THEN
+            $COUNT_I[4]=$COUNT_I[4]-1
+            KF_COUNT_Pos_1_1=0
+            KF_COUNT_Neg_1_1=0
+          ENDIF
+          IF ($COUNT_I[4]>KF_Umd_Limit) THEN
+            SZ_Msg(11,#NotifyMsg) ;Fraesmesser KF1 defekt
+          ENDIF
+          KF_ALT_1_1=KF_IST_1_1
+          $COUNT_I[36]=0
+        ENDIF
+;
+      CASE 14; EZ1/SZ2 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF1_Z_aktiv[2] AND ($COUNT_I[36]<>0) THEN
+          KF1_Z_aktiv[2]=FALSE
+          MyCorrValue=GetEKVal(EZ1_EK_FBit)
+          KF_IST_1_2=MyCorrValue
+          IF EZ1SZ2_EK_gew THEN
+            KF_ALT_1_2=KF_IST_1_2
+            EZ1SZ2_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_1_2<(KF_ALT_1_2+(KF_EK_Limit_1_2*($COUNT_I[36])))) AND ($COUNT_I[10]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_1_2=KF_COUNT_Pos_1_2+1
+          ENDIF
+          IF (KF_IST_1_2>(KF_ALT_1_2+(KF_EK_Limit_1_2*($COUNT_I[36])))) AND ($COUNT_I[10]>KF_Umd_min) THEN
+            KF_COUNT_Neg_1_2=KF_COUNT_Neg_1_2+1
+          ENDIF
+          IF (KF_COUNT_Pos_1_2>=2) THEN
+            $COUNT_I[10]=$COUNT_I[10]+1
+            KF_COUNT_Pos_1_2=0
+            KF_COUNT_Neg_1_2=0
+          ENDIF
+          IF (KF_COUNT_Neg_1_2>=2) THEN
+            $COUNT_I[10]=$COUNT_I[10]-1
+            KF_COUNT_Pos_1_2=0
+            KF_COUNT_Neg_1_2=0
+          ENDIF
+          IF ($COUNT_I[10]>KF_Umd_Limit) THEN
+            SZ_Msg(11,#NotifyMsg) ;Fraesmesser KF1 defekt
+          ENDIF
+          KF_ALT_1_2=KF_IST_1_2
+          $COUNT_I[36]=0
+        ENDIF
+;
+      CASE 15; EZ1/SZ3 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF1_Z_aktiv[3] AND ($COUNT_I[36]<>0) THEN
+          KF1_Z_aktiv[3]=FALSE
+          MyCorrValue=GetEKVal(EZ1_EK_FBit)
+          KF_IST_1_3=MyCorrValue
+          IF EZ1SZ3_EK_gew THEN
+            KF_ALT_1_3=KF_IST_1_3
+            EZ1SZ3_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_1_3<(KF_ALT_1_3+(KF_EK_Limit_1_3*($COUNT_I[36])))) AND ($COUNT_I[13]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_1_3=KF_COUNT_Pos_1_3+1
+          ENDIF
+          IF (KF_IST_1_3>(KF_ALT_1_3+(KF_EK_Limit_1_3*($COUNT_I[36])))) AND ($COUNT_I[13]>KF_Umd_min) THEN
+            KF_COUNT_Neg_1_3=KF_COUNT_Neg_1_3+1
+          ENDIF
+          IF (KF_COUNT_Pos_1_3>=2) THEN
+            $COUNT_I[13]=$COUNT_I[13]+1
+            KF_COUNT_Pos_1_3=0
+            KF_COUNT_Neg_1_3=0
+          ENDIF
+          IF (KF_COUNT_Neg_1_3>=2) THEN
+            $COUNT_I[13]=$COUNT_I[13]-1
+            KF_COUNT_Pos_1_3=0
+            KF_COUNT_Neg_1_3=0
+          ENDIF
+          IF ($COUNT_I[13]>KF_Umd_Limit) THEN
+            SZ_Msg(11,#NotifyMsg) ;Fraesmesser KF1 defekt
+          ENDIF
+          KF_ALT_1_3=KF_IST_1_3
+          $COUNT_I[36]=0
+        ENDIF
+;
+      CASE 16; EZ1/SZ4 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF1_Z_aktiv[4] AND ($COUNT_I[36]<>0) THEN
+          KF1_Z_aktiv[4]=FALSE
+          MyCorrValue=GetEKVal(EZ1_EK_FBit)
+          KF_IST_1_4=MyCorrValue
+          IF EZ1SZ4_EK_gew THEN
+            KF_ALT_1_4=KF_IST_1_4
+            EZ1SZ4_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_1_4<(KF_ALT_1_4+(KF_EK_Limit_1_4*($COUNT_I[36])))) AND ($COUNT_I[16]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_1_4=KF_COUNT_Pos_1_4+1
+          ENDIF
+          IF (KF_IST_1_4>(KF_ALT_1_4+(KF_EK_Limit_1_4*($COUNT_I[36])))) AND ($COUNT_I[16]>KF_Umd_min) THEN
+            KF_COUNT_Neg_1_4=KF_COUNT_Neg_1_4+1
+          ENDIF
+          IF (KF_COUNT_Pos_1_4>=2) THEN
+            $COUNT_I[16]=$COUNT_I[16]+1
+            KF_COUNT_Pos_1_4=0
+            KF_COUNT_Neg_1_4=0
+          ENDIF
+          IF (KF_COUNT_Neg_1_4>=2) THEN
+            $COUNT_I[16]=$COUNT_I[16]-1
+            KF_COUNT_Pos_1_4=0
+            KF_COUNT_Neg_1_4=0
+          ENDIF
+          IF ($COUNT_I[16]>KF_Umd_Limit) THEN
+            SZ_Msg(11,#NotifyMsg) ;Fraesmesser KF1 defekt
+          ENDIF
+          KF_ALT_1_4=KF_IST_1_4
+          $COUNT_I[36]=0
+        ENDIF
+;
+      CASE 20,22 ;EZ2 Schweissen, EZ2 Fraesen
+        IF $IN[SK_BASE_SL[2]+I_SK_o_Proz] THEN
+          $FLAG[F_o_Proz_BMS]=TRUE
+        ELSE
+          $FLAG[F_o_Proz_BMS]=FALSE
+        ENDIF
+        ;Bauteilende(Q-Auswertung)
+        $OUT[SK_BASE_MA[2]+O_SK_BTEnde]=FALSE
+        IF ($PRO_MODE==#MSTEP) THEN
+          WAIT SEC 1.0   ;Wartezeit Kontrolle Zangenoeffnung
+        ENDIF
+	     IF NOT Mit_2SZ_an_SK1 THEN
+	       IF (SO_SK2_Pkt_Nr<>PAR5) OR (SO_SK2_Fzg_Typ<>PAR6) THEN
+            IF NOT Mit_KE[2] THEN
+              SO_SZ2_Prg_Nr=PAR2
+              SO_SZ2_Fzg_Typ=PAR6
+            ENDIF
+            SO_SK2_Pkt_Nr=PAR5
+            SO_SK2_Fzg_Typ=PAR6  
+		      SO_SPS_Proz_Nr=PAR5
+            $OUT[O_RIP_SK_Sens]=FALSE
+            WAIT SEC 0.1
+	       ENDIF
+        ELSE
+          IF (SO_SK1_Pkt_Nr<>PAR5) OR (SO_SK1_Fzg_Typ<>PAR6) THEN
+	         IF NOT Mit_KE[2] THEN
+              SO_SZ2_Prg_Nr=PAR2
+              SO_SZ2_Fzg_Typ=PAR6
+            ENDIF
+            SO_SK1_Pkt_Nr=PAR5
+	         SO_SK1_Fzg_Typ=PAR6   
+		      SO_SPS_Proz_Nr=PAR5
+            $OUT[O_RIP_SK_Sens]=TRUE
+		      WAIT SEC 0.1
+          ENDIF
+        ENDIF
+        ;VM Armdurchbiegung verrechnen
+        IF Mit_KE[2] THEN
+          MyGunValue=(GetGunVal(EZ2_GUN_FBit)/2)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ELSE
+          MyGunValue=CalcGunVal(EZ2_FORCE_FBit)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ENDIF
+        IF $IN[SZ_BASE_SL[2]+I_SZ_o_Kra] THEN
+          SZ_Msg(11,#NotifyMsg)
+        ENDIF
+        WAIT FOR (NOT $IN[SZ_BASE_SL[2]+I_SZ_o_Kra] OR $IN[I_R_Quit_Wei])
+        $FLAG[F_KW_Wart_AUS]=FALSE
+        $FLAG[F_WA_EIN_VSP]=TRUE
+        ;Abfrage Kuehlwasser i.O.
+        ;FOLD WARTE BIS B_RIP_KW_iO[2] + E26;%{E}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS B_RIP_KW_iO[2] + E26,3:  WBOASG
+        $LOOP_MSG[]="Warte bis Kuehlwasser i.O. + E26"
+        $LOOP_CONT=TRUE
+        WAIT FOR B_RIP_KW_iO[2] OR $IN[26] OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+        $LOOP_MSG[]="                                                                                                                                "
+        ;ENDFOLD
+        $FLAG[F_WPS_FRG[2]]=TRUE
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[2]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[2]+I_SK_Stfr] AND $IN[SZ_BASE_SL[2]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[2]])
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[2]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[2]])        
+        ;
+        ;Vorwahl Zangen-Nr
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ2_ANW_Z1]=TRUE
+        ENDIF
+        ;
+      CASE 21 ;EZ2 Service
+	     IF NOT Mit_2SZ_an_SK1 THEN
+	       IF NOT Mit_KE[2] THEN
+            SO_SZ2_Prg_Nr=PAR2
+            SO_SZ2_Fzg_Typ=0
+          ENDIF
+          SO_SK2_Pkt_Nr=PAR5
+          SO_SK2_Fzg_Typ=0
+        ELSE
+          IF NOT Mit_KE[2] THEN
+            SO_SZ2_Prg_Nr=PAR2
+            SO_SZ2_Fzg_Typ=0
+          ENDIF
+          SO_SK1_Pkt_Nr=PAR5
+	       SO_SK1_Fzg_Typ=0  
+        ENDIF   
+        WAIT SEC 0.1
+        ;
+        $FLAG[F_WPS_FRG[2]]=TRUE
+        ;
+        $OUT[SZ_BASE_MA[2]+O_SZ_MvFrae]=FALSE
+        $OUT[SZ_BASE_MA[2]+O_SZ_MnFrae]=FALSE
+        ;
+        IF $IN[SK_BASE_MA[2]+I_SK_KF_erf] THEN
+          WAIT SEC 0.1
+        ENDIF
+        ;
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[2]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[2]+I_SK_Stfr] AND $IN[SZ_BASE_SL[2]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[2]])
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[2]]=(($IN[SK_BASE_MA[2]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[2]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[2]]) 
+        ;
+        ;Vorwahl Zangen-Nr
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ2_ANW_Z1]=TRUE
+        ENDIF        
+;
+      CASE 23 ;EZ2/SZ1 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF2_Z_aktiv AND ($COUNT_I[36]<>0) THEN
+          KF2_Z_aktiv=FALSE
+          MyCorrValue=GetEKVal(EZ2_EK_FBit)
+          KF_IST_2_1=MyCorrValue
+          IF EZ2SZ1_EK_gew THEN
+            KF_ALT_2_1=KF_IST_2_1
+            EZ2SZ1_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_2_1<(KF_ALT_2_1+(KF_EK_Limit_2_1*($COUNT_I[36])))) AND ($COUNT_I[7]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_2_1=KF_COUNT_Pos_2_1+1
+          ENDIF
+          IF (KF_IST_2_1>(KF_ALT_2_1+(KF_EK_Limit_2_1*($COUNT_I[36])))) AND ($COUNT_I[7]>KF_Umd_min) THEN
+            KF_COUNT_Neg_2_1=KF_COUNT_Neg_2_1+1
+          ENDIF
+          IF (KF_COUNT_Pos_2_1>=2) THEN
+            $COUNT_I[7]=$COUNT_I[7]+1
+            KF_COUNT_Pos_2_1=0
+            KF_COUNT_Neg_2_1=0
+          ENDIF
+          IF (KF_COUNT_Neg_2_1>=2) THEN
+            $COUNT_I[7]=$COUNT_I[7]-1
+            KF_COUNT_Pos_2_1=0
+            KF_COUNT_Neg_2_1=0
+          ENDIF
+          IF ($COUNT_I[7]>KF_Umd_Limit) THEN
+            SZ_Msg(12,#NotifyMsg) ;Fraesmesser KF2 defekt
+          ENDIF
+          KF_ALT_2_1=KF_IST_2_1
+          $COUNT_I[36]=0
+        ENDIF 
+;
+      CASE 30,32 ;EZ3 Schweissen, EZ3 Fraesen
+        IF $IN[SK_BASE_SL[3]+I_SK_o_Proz] THEN
+          $FLAG[F_o_Proz_BMS]=TRUE
+        ELSE
+          $FLAG[F_o_Proz_BMS]=FALSE
+        ENDIF
+        ;Bauteilende(Q-Auswertung)
+        $OUT[SK_BASE_MA[3]+O_SK_BTEnde]=FALSE
+        IF ($PRO_MODE==#MSTEP) THEN
+          WAIT SEC 1.0   ;Wartezeit Kontrolle Zangenoeffnung
+        ENDIF 
+        IF (SO_SK3_Pkt_Nr<>PAR5) OR (SO_SK3_Fzg_Typ<>PAR6) THEN  
+          IF NOT Mit_KE[3] THEN
+            SO_SZ3_Prg_Nr=PAR2
+            SO_SZ3_Fzg_Typ=PAR6  
+          ENDIF
+          SO_SK3_Pkt_Nr=PAR5
+          SO_SK3_Fzg_Typ=PAR6   
+          SO_SPS_Proz_Nr=PAR5
+	       WAIT SEC 0.1
+        ENDIF
+        ;VM Armdurchbiegung verrechnen
+        IF Mit_KE[3] THEN
+          MyGunValue=(GetGunVal(EZ3_GUN_FBit)/2)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ELSE
+          MyGunValue=CalcGunVal(EZ3_FORCE_FBit)
+          VISU_Gun=(MyGunValue*10)
+          HM_PROZ_EXPECTED=PARAMS_PROG.PROZ_EXPECTED
+          PARAMS_PROG.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(MyGunValue/Direction.Directioncart.X)*100)
+          VISU_PROG_PROZ=(((Direction.Directioncart.X/100)*PARAMS_PROG.PROZ_EXPECTED)*10)
+        ENDIF
+        IF $IN[SZ_BASE_SL[3]+I_SZ_o_Kra] THEN
+          SZ_Msg(11,#NotifyMsg)
+        ENDIF
+        WAIT FOR (NOT $IN[SZ_BASE_SL[3]+I_SZ_o_Kra] OR $IN[I_R_Quit_Wei])
+        $FLAG[F_KW_Wart_AUS]=FALSE
+        $FLAG[F_WA_EIN_VSP]=TRUE
+        ;Abfrage Kuehlwasser i.O.
+        ;FOLD WARTE BIS B_RIP_KW_iO[3] + E26;%{E}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS B_RIP_KW_iO[3] + E26,3:  WBOASG
+        $LOOP_MSG[]="Warte bis Kuehlwasser i.O. + E26"
+        $LOOP_CONT=TRUE
+        WAIT FOR B_RIP_KW_iO[3] OR $IN[26] OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+        $LOOP_MSG[]="                                                                                                                                "
+        ;ENDFOLD       
+        $FLAG[F_WPS_FRG[3]]=TRUE
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[3]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[3]+I_SK_Stfr] AND $IN[SZ_BASE_SL[3]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[3]]) 
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[3]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[3]])       
+        ;
+        ;Vorwahl Zangen-Nr
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ3_ANW_Z1]=TRUE
+        ENDIF
+        ;
+      CASE 31 ;EZ3 Service
+        IF NOT Mit_KE[3] THEN
+          SO_SZ3_Prg_Nr=PAR2
+          SO_SZ3_Fzg_Typ=0 
+        ENDIF
+        SO_SK3_Pkt_Nr=PAR5
+        SO_SK3_Fzg_Typ=0  
+        WAIT SEC 0.1
+        ;
+        $OUT[SZ_BASE_MA[3]+O_SZ_MvFrae]=FALSE
+        $OUT[SZ_BASE_MA[3]+O_SZ_MnFrae]=FALSE
+        ;
+        IF $IN[SK_BASE_MA[3]+I_SK_KF_erf] THEN
+          WAIT SEC 0.1
+        ENDIF
+        ;
+        $FLAG[F_WPS_FRG[3]]=TRUE
+        ;
+        ;Anforderung Normalfraesen
+        $FLAG[F_SZ_Anw_NF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Normfr] AND NOT $IN[SK_BASE_MA[3]+I_SK_Stfr]) OR (NOT $IN[SK_BASE_MA[3]+I_SK_Stfr] AND $IN[SZ_BASE_SL[3]+I_SZ_Anw_Fra]) OR $FLAG[F_SZ_o_Wiedh] OR (PAR2==51) OR $FLAG[F_SZ_Anw_NF[3]])
+        ;Anforderung Startfraesen
+        $FLAG[F_SZ_Anw_SF[3]]=(($IN[SK_BASE_MA[3]+I_SK_Stfr] AND NOT $FLAG[F_SZ_Anw_NF[3]]) OR (PAR2==41) OR $FLAG[F_SZ_Anw_SF[3]])     
+        ;
+        ;Vorwahl Zangen-Nr
+        IF (PAR5==31) THEN
+          $FLAG[F_SZ3_ANW_Z1]=TRUE
+        ENDIF  
+;
+      CASE 33 ;EZ3/SZ1 KF-Umdrehung autom. Ermitteln
+        IF MIT_Auto_KF AND KF3_Z_aktiv AND ($COUNT_I[36]<>0) THEN
+          KF3_Z_aktiv=FALSE
+          MyCorrValue=GetEKVal(EZ3_EK_FBit)
+          KF_IST_3_1=MyCorrValue
+          IF EZ3SZ1_EK_gew THEN
+            KF_ALT_3_1=KF_IST_3_1
+            EZ3SZ1_EK_gew=FALSE
+          ENDIF
+          IF (KF_IST_3_1<(KF_ALT_3_1+(KF_EK_Limit_3_1*($COUNT_I[36])))) AND ($COUNT_I[19]<=KF_Umd_Limit) THEN
+            KF_COUNT_Pos_3_1=KF_COUNT_Pos_3_1+1
+          ENDIF
+          IF (KF_IST_3_1>(KF_ALT_3_1+(KF_EK_Limit_3_1*($COUNT_I[36])))) AND ($COUNT_I[19]>KF_Umd_min) THEN
+            KF_COUNT_Neg_3_1=KF_COUNT_Neg_3_1+1
+          ENDIF
+          IF (KF_COUNT_Pos_3_1>=2) THEN
+            $COUNT_I[19]=$COUNT_I[19]+1
+            KF_COUNT_Pos_3_1=0
+            KF_COUNT_Neg_3_1=0
+          ENDIF
+          IF (KF_COUNT_Neg_3_1>=2) THEN
+            $COUNT_I[19]=$COUNT_I[19]-1
+            KF_COUNT_Pos_3_1=0
+            KF_COUNT_Neg_3_1=0
+          ENDIF
+          IF ($COUNT_I[19]>KF_Umd_Limit) THEN
+            SZ_Msg(13,#NotifyMsg) ;Fraesmesser KF3 defekt
+          ENDIF
+          KF_ALT_3_1=KF_IST_3_1
+          $COUNT_I[36]=0
+        ENDIF
+;
+      DEFAULT
+        SZ_Msg(19,#QuitMsg) ;Falsche Auswahl
+    ENDSWITCH ;von PAR1    
+;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+    VISU_Gun=0
+    VISU_PROG_PROZ=0
+    PARAMS_PROG.PROZ_EXPECTED=HM_PROZ_EXPECTED
+    $FLAG[F_o_Proz_BMS]=FALSE
+    FOR i=1 TO 3
+      $FLAG[F_WPS_FRG[i]]=FALSE
+    ENDFOR
+;
+    ;FOLD Rueckbewegung EZ1, EZ2, EZ3
+    Weg=PAR4
+    SWITCH PAR1
+      CASE 10,20,30
+        ;+X Rueckbewegung
+        IF (($PRO_MODE==#GO) OR ($MODE_OP==#EX)) THEN
+	       MyCorrWeg=$NULLFRAME
+	       MyCorrWeg.X=-(Weg*0.1)
+	       IF (Weg>9) THEN
+	         PTP $Pos_act:MyCorrWeg C_PTP
+	       ENDIF
+        ENDIF
+        ;
+        ;Bauteilende(Q-Auswertung)
+        IF (PAR7==1) THEN
+          i=(PAR1/10)
+          $OUT[SK_BASE_MA[i]+O_SK_BTEnde]=TRUE
+        ENDIF
+;
+      CASE 11,12 ;EZ1 Service
+      CASE 13,14,15,16,23,33 ;nur Trigger
+      CASE 21,22 ;EZ2 Service
+      CASE 31,32 ;EZ3 Service
+;
+      DEFAULT
+        SZ_Msg(20,#QuitMsg) ;Falsche Auswahl
+    ENDSWITCH ;von PAR1
+    ;ENDFOLD
+;
+
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+;
+    SWITCH PAR1
+      CASE 10
+        IF Mit_KE[1] THEN
+          IF (b_Stoss_akt==FALSE) AND (((SO_SK1_Pkt_Nr>30) AND (SO_SK1_Pkt_Nr<41)) OR (SO_SK1_Pkt_Nr>98)) THEN
+            SWITCH Par2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(1)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(1)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF  
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(1)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+          ENDIF  
+        ELSE
+          IF (b_Stoss_akt==FALSE) AND (((SO_SZ1_Prg_Nr>30) AND (SO_SZ1_Prg_Nr<41)) OR (SO_SZ1_Prg_Nr>98)) THEN
+            SWITCH Par2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(1)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(1)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF  
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(1)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+          ENDIF	
+        ENDIF
+;
+	   CASE 20
+        IF Mit_KE[2] THEN
+          IF (((SO_SK2_Pkt_Nr>30) AND (SO_SK2_Pkt_Nr<41)) OR (SO_SK2_Pkt_Nr>98)) THEN
+            SWITCH Par2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(2)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(2)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF              
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(2)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+	       ENDIF	
+        ELSE  
+          IF (((SO_SZ2_Prg_Nr>30) AND (SO_SZ2_Prg_Nr<41)) OR (SO_SZ2_Prg_Nr>98)) THEN
+            SWITCH Par2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(2)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(2)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF              
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(2)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+	       ENDIF	
+        ENDIF
+;
+      CASE 30
+        IF Mit_KE[3] THEN
+          IF (((SO_SK3_Pkt_Nr>30) AND (SO_SK3_Pkt_Nr<41)) OR (SO_SK3_Pkt_Nr>98)) THEN
+            SWITCH PAR2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(3)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(3)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF              
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(3)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+	       ENDIF	
+        ELSE  
+          IF (((SO_SZ3_Prg_Nr>30) AND (SO_SZ3_Prg_Nr<41)) OR (SO_SZ3_Prg_Nr>98)) THEN
+            SWITCH Par2
+              CASE 1
+                IF (varState("$VMState.active")<>#Initialized) THEN
+                  GunBalanceOnProgram(3)
+                  GunBal_Halt=FALSE
+                ELSE  
+                  IF ($VMState.active==FALSE) THEN
+                    GunBalanceOnProgram(3)
+                    GunBal_Halt=FALSE
+                  ENDIF  
+                ENDIF   
+              CASE 2
+                IF (GunBal_Halt==FALSE) THEN
+                  GunBalanceHold()
+                  GunBal_Halt=TRUE
+                ENDIF  
+              CASE 3
+                GunBalanceOff(3)
+                GunBal_Halt=FALSE
+            ENDSWITCH
+	       ENDIF
+        ENDIF
+    ENDSWITCH
+;
+    ;ENDFOLD  
+  DEFAULT
+;
+ENDSWITCH ;(USER_CMD)
+END
+;
+;ENDFOLD (S_Zangen Interface)
+;
+;***************************************************
+;FOLD VM_Interface
+GLOBAL DEF VM_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    SWITCH PAR1
+      CASE 1  ;EZ
+        ZangenAntrieb=#EZ
+        SWITCH PAR2
+          CASE 1  ;C-Zange
+            ZangenTyp=#C_Zange
+            IF (PAR3==0) THEN  ;Zeit fuer aktive Phase
+              PARAMS_PROG.TIME_EXPECTED=(EZ_C_PRG_TimeDefault*0.001)
+              PARAMS_MAN.TIME_EXPECTED=(EZ_C_MAN_TimeDefault*0.001)
+            ELSE
+              IF (PAR3>=250) AND (PAR3<=800) THEN
+                PARAMS_PROG.TIME_EXPECTED=(PAR3*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+              ELSE
+                PARAMS_PROG.TIME_EXPECTED=(EZ_C_PRG_TimeDefault*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+                IF (PAR3<>0) THEN
+                  SZ_Msg(51,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR4==0) THEN  ;Weg fuer aktive Phase
+              PARAMS_PROG.PROZ_EXPECTED=EZ_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+              PARAMS_MAN.PROZ_EXPECTED=EZ_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+            ELSE
+              IF (PAR4>=20) AND (PAR4<=100) THEN
+                PARAMS_PROG.PROZ_EXPECTED=(PAR4/10.0)*(100/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(1.0 *100/Direction.Directioncart.X)) ;1mm Biegung
+              ELSE
+                PARAMS_PROG.PROZ_EXPECTED=EZ_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=EZ_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+                IF (PAR4<>0) THEN
+                  SZ_Msg(52,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR5==0) THEN ;Armdurchbiegung in 1/10mm
+              C_ArmDurchbiegung=C_DefaultArmDurchbiegung
+            ELSE
+              IF (PAR5>0) AND (PAR5<25) THEN     
+                C_ArmDurchbiegung=PAR5
+              ELSE
+                C_ArmDurchbiegung=C_DefaultArmDurchbiegung
+                SZ_Msg(53,#QuitMsg)
+              ENDIF
+            ENDIF
+          CASE 2  ;X-Zange
+            ZangenTyp=#X_Zange
+            IF (PAR3==0) THEN  ;Zeit fuer aktive Phase
+              PARAMS_PROG.TIME_EXPECTED=(EZ_X_PRG_TimeDefault*0.001)
+              PARAMS_MAN.TIME_EXPECTED=(EZ_X_MAN_TimeDefault*0.001)
+            ELSE
+              IF (PAR3>=250) AND (PAR3<=800) THEN
+                PARAMS_PROG.TIME_EXPECTED=(PAR3*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+              ELSE
+                PARAMS_PROG.TIME_EXPECTED=(EZ_X_PRG_TimeDefault*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+                IF (PAR3<>0) THEN
+                  SZ_Msg(51,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR4==0) THEN  ;Weg fuer aktive Phase
+              PARAMS_PROG.PROZ_EXPECTED=EZ_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+              PARAMS_MAN.PROZ_EXPECTED=EZ_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+            ELSE
+              IF (PAR4>=20) AND (PAR4<=100) THEN
+                PARAMS_PROG.PROZ_EXPECTED=(PAR4/10.0)*(100/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(1.0 *100/Direction.Directioncart.X)) ;1mm Biegung
+              ELSE
+                PARAMS_PROG.PROZ_EXPECTED=EZ_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=EZ_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+                IF (PAR4<>0) THEN
+                  SZ_Msg(52,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR5==0) THEN ;Armdurchbiegung in 1/10mm
+              X_ArmDurchbiegung=X_DefaultArmDurchbiegung 
+            ELSE
+              IF (PAR5>0) AND (PAR5<25) THEN     
+                X_ArmDurchbiegung=PAR5
+              ELSE
+                X_ArmDurchbiegung=X_DefaultArmDurchbiegung
+                SZ_Msg(53,#QuitMsg)
+              ENDIF
+            ENDIF
+        ENDSWITCH
+      CASE 2  ;SP
+        ZangenAntrieb=#SP
+        SWITCH PAR2
+          CASE 1  ;C-Zange
+            ZangenTyp=#C_Zange
+            IF (PAR3==0) THEN  ;Zeit fuer aktive Phase
+              PARAMS_PROG.TIME_EXPECTED=(SP_C_PRG_TimeDefault*0.001)
+              PARAMS_MAN.TIME_EXPECTED=(SP_C_MAN_TimeDefault*0.001)
+            ELSE
+              IF (PAR3>=250) AND (PAR3<=800) THEN
+                PARAMS_PROG.TIME_EXPECTED=(PAR3*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+              ELSE
+                PARAMS_PROG.TIME_EXPECTED=(SP_C_PRG_TimeDefault*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+                IF (PAR3<>0) THEN
+                  SZ_Msg(51,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR4==0) THEN  ;Weg fuer aktive Phase
+              PARAMS_PROG.PROZ_EXPECTED=SP_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+              PARAMS_MAN.PROZ_EXPECTED=SP_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+            ELSE
+              IF (PAR4>=20) AND (PAR4<=100) THEN
+                PARAMS_PROG.PROZ_EXPECTED=(PAR4/10.0)*(100/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(1.0 *100/Direction.Directioncart.X)) ;1mm Biegung
+              ELSE
+                PARAMS_PROG.PROZ_EXPECTED=SP_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=SP_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+                IF (PAR4<>0) THEN
+                  SZ_Msg(52,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+          CASE 2  ;X-Zange
+            ZangenTyp=#X_Zange
+            IF (PAR3==0) THEN  ;Zeit fuer aktive Phase
+              PARAMS_PROG.TIME_EXPECTED=(SP_X_PRG_TimeDefault*0.001)
+              PARAMS_MAN.TIME_EXPECTED=(SP_X_MAN_TimeDefault*0.001)
+            ELSE
+              IF (PAR3>=250) AND (PAR3<=800) THEN
+                PARAMS_PROG.TIME_EXPECTED=(PAR3*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+              ELSE
+                PARAMS_PROG.TIME_EXPECTED=(SP_X_PRG_TimeDefault*0.001)
+                PARAMS_MAN.TIME_EXPECTED=PARAMS_PROG.TIME_EXPECTED
+                IF (PAR3<>0) THEN
+                  SZ_Msg(51,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+            IF (PAR4==0) THEN  ;Weg fuer aktive Phase
+              PARAMS_PROG.PROZ_EXPECTED=SP_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+              PARAMS_MAN.PROZ_EXPECTED=SP_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+            ELSE
+              IF (PAR4>=20) AND (PAR4<=100) THEN
+                PARAMS_PROG.PROZ_EXPECTED=(PAR4/10.0)*(100/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=(PARAMS_PROG.PROZ_EXPECTED+(1.0 *100/Direction.Directioncart.X)) ;1mm Biegung
+              ELSE
+                PARAMS_PROG.PROZ_EXPECTED=SP_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+                PARAMS_MAN.PROZ_EXPECTED=SP_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+                IF (PAR4<>0) THEN
+                  SZ_Msg(52,#QuitMsg) 
+                ENDIF
+              ENDIF
+            ENDIF
+        ENDSWITCH
+    ENDSWITCH
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+     SWITCH PAR1
+       CASE 1  ;EZ
+         ZangenAntrieb=#EZ
+         SWITCH PAR2
+           CASE 1  ;C-Zange
+             ZangenTyp=#C_Zange
+             PARAMS_PROG.TIME_EXPECTED=(EZ_C_PRG_TimeDefault*0.001)
+             PARAMS_MAN.TIME_EXPECTED=(EZ_C_MAN_TimeDefault*0.001)
+             PARAMS_PROG.PROZ_EXPECTED=EZ_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+             PARAMS_MAN.PROZ_EXPECTED=EZ_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+           CASE 2  ;X-Zange
+             ZangenTyp=#X_Zange
+             PARAMS_PROG.TIME_EXPECTED=(EZ_X_PRG_TimeDefault*0.001)
+             PARAMS_MAN.TIME_EXPECTED=(EZ_X_MAN_TimeDefault*0.001)
+             PARAMS_PROG.PROZ_EXPECTED=EZ_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+             PARAMS_MAN.PROZ_EXPECTED=EZ_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+         ENDSWITCH
+       CASE 2  ;SP
+         ZangenAntrieb=#SP
+         SWITCH PAR2
+           CASE 1  ;C-Zange
+             ZangenTyp=#C_Zange
+             PARAMS_PROG.TIME_EXPECTED=(SP_C_PRG_TimeDefault*0.001)
+             PARAMS_MAN.TIME_EXPECTED=(SP_C_MAN_TimeDefault*0.001)
+             PARAMS_PROG.PROZ_EXPECTED=SP_C_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+             PARAMS_MAN.PROZ_EXPECTED=SP_C_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+           CASE 2  ;X-Zange
+             ZangenTyp=#X_Zange
+             PARAMS_PROG.TIME_EXPECTED=(SP_X_PRG_TimeDefault*0.001)
+             PARAMS_MAN.TIME_EXPECTED=(SP_X_MAN_TimeDefault*0.001)
+             PARAMS_PROG.PROZ_EXPECTED=SP_X_PRG_DistanceDefault*(10.0/Direction.Directioncart.X)
+             PARAMS_MAN.PROZ_EXPECTED=SP_X_MAN_DistanceDefault*(10.0/Direction.Directioncart.X)
+         ENDSWITCH
+    ENDSWITCH 
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD MAKRO
+;
+;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+ENDSWITCH ;(USER_CMD)
+END
+;
+;ENDFOLD (S_Zangen Interface)
+;
+;***************************************************
+;FOLD Tool-Base-Corr
+GLOBAL DEF T_B_Corr(MyCorr_1 :IN)
+FRAME MyCorr_1
+IF (VW_MPARA_ACT.BASE_NO>0) THEN
+  SWITCH BASE_TYPE[VW_MPARA_ACT.BASE_NO]
+    CASE #TCP
+      CONTINUE
+      Base_Corr=$NULLFRAME
+      Base_Corr=MyCorr_1
+    DEFAULT
+      CONTINUE
+      Tool_Corr=$NULLFRAME
+      Tool_Corr=MyCorr_1
+    ENDSWITCH
+ELSE
+  CONTINUE
+  Tool_Corr=$NULLFRAME
+  Tool_Corr=MyCorr
+ENDIF
+END
+;
+;***************************************************
+;FOLD Zangenfunktion
+GLOBAL DEFFCT INT GunPosition(SZNr:IN)
+INT SZNr
+INT ActPosition
+;
+SWITCH SZNr
+  CASE 1
+    ActPosition=SI_SZ1_IstPos
+    IF $IN[SZ_BASE_MA[1]+I_SZ_Vorz] THEN
+      ActPosition=ActPosition*(-1)
+    ENDIF
+    RETURN(ActPosition)
+  CASE 2
+    ActPosition=SI_SZ2_IstPos
+    IF $IN[SZ_BASE_MA[2]+I_SZ_Vorz] THEN
+      ActPosition=ActPosition*(-1)
+    ENDIF
+    RETURN(ActPosition)
+  CASE 3
+    ActPosition=SI_SZ3_IstPos
+    IF $IN[SZ_BASE_MA[3]+I_SZ_Vorz] THEN
+      ActPosition=ActPosition*(-1)
+    ENDIF
+    RETURN(ActPosition)
+  CASE 4
+  CASE 5
+  CASE 6
+  CASE 7
+ENDSWITCH
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD SZ EK-Wert auslesen
+DEFFCT REAL GetEKVal(MyFirstBit:OUT)
+INT MyFirstBit
+INT MyValue
+INT N
+INT MyMask
+MyValue=0
+MyMask=1
+IF ((MyFirstBit==EZ1_EK_FBit) AND MIT_EK_Vorz[1]==TRUE) OR ((MyFirstBit==EZ2_EK_FBit) AND MIT_EK_Vorz[2]==TRUE) OR ((MyFirstBit==EZ3_EK_FBit) AND MIT_EK_Vorz[3]==TRUE) THEN
+  FOR N=MyFirstBit TO (MyFirstBit+6)
+    CONTINUE
+    IF $IN[N] THEN 
+      MyValue=MyValue+MyMask
+    ENDIF
+    MyMask=MyMask*2
+  ENDFOR
+  CONTINUE
+  IF $IN[MyFirstBit+7] THEN
+    RETURN(MyValue*(-0.1))
+  ELSE
+    RETURN(MyValue*(0.1))
+  ENDIF
+ELSE
+  FOR N=MyFirstBit TO (MyFirstBit+7)
+    CONTINUE
+    IF $IN[N] THEN
+      MyValue=MyValue+MyMask
+    ENDIF
+    MyMask=MyMask*2
+  ENDFOR
+  RETURN(MyValue*0.1)
+ENDIF
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD SZ Geometrie auslesen
+DEFFCT REAL GetGEOVal(MyFirstBit:OUT)
+INT MyFirstBit
+INT MyValue
+INT N
+INT MyMask
+MyValue=0
+MyMask=1
+IF ((MyFirstBit==EZ1_GEO_FBit) AND MIT_EK_Vorz[1]==TRUE) OR ((MyFirstBit==EZ2_GEO_FBit) AND MIT_EK_Vorz[2]==TRUE) OR ((MyFirstBit==EZ3_GEO_FBit) AND MIT_EK_Vorz[3]==TRUE) THEN
+  FOR N=MyFirstBit TO (MyFirstBit+2)
+    CONTINUE
+    IF $IN[N] THEN
+      MyValue=MyValue+MyMask
+    ENDIF
+    MyMask=MyMask*2
+  ENDFOR
+  CONTINUE
+  IF $IN[MyFirstBit+3] THEN
+    RETURN(MyValue*(-1.0))
+  ELSE
+    RETURN(MyValue*(1.0))
+  ENDIF
+ELSE
+  FOR N=MyFirstBit TO (MyFirstBit+2)
+    CONTINUE
+    IF $IN[N] THEN
+      MyValue=MyValue+MyMask
+    ENDIF
+    MyMask=MyMask*2
+  ENDFOR
+  CONTINUE
+  RETURN(MyValue*(1.0))
+ENDIF
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD SZ Armdurchbiegung auslesen
+DEFFCT REAL GetGunVal(MyFirstBit:OUT)
+INT MyFirstBit
+INT MyValue
+INT N
+INT MyMask
+MyValue=0
+MyMask=1
+FOR N=MyFirstBit TO (MyFirstBit+3)
+  CONTINUE
+  IF $IN[N] THEN
+    MyValue=MyValue+MyMask
+  ENDIF
+  MyMask=MyMask*2
+ENDFOR
+CONTINUE
+RETURN(MyValue)
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD SZ Armdurchbiegung berechnen
+DEFFCT REAL CalcGunVal(MyFirstBit:OUT)
+INT MyFirstBit
+INT MyValue
+INT N
+INT MyMask
+MyValue=0
+MyMask=1
+FOR N=MyFirstBit TO (MyFirstBit+7)
+  CONTINUE
+  IF $IN[N] THEN
+    MyValue=MyValue+MyMask
+  ENDIF
+  MyMask=MyMask*2
+ENDFOR
+;
+IF (ZangenTyp==#C_Zange) THEN
+  MyValue=((MyValue/10)*C_ArmDurchbiegung)
+ENDIF
+IF (ZangenTyp==#X_Zange) THEN
+  MyValue=((MyValue/10)*X_ArmDurchbiegung)
+ENDIF
+;
+RETURN(MyValue*(1.0))
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD GunFunctionManual
+GLOBAL DEF GunFunctionManual()
+INT RobTimerStart
+INT PrevLastPosition
+INT LastPosition
+INT ActPosition
+INT StartPosGun
+BOOL IsMovingBack
+BOOL IsMovingForward
+BOOL ZangeNIO
+POS StartPos
+POS ReturnPos
+POS IstPos
+INT SZNr
+;
+BRAKE
+REPEAT
+  SWITCH R1AusgleichFunktion
+    CASE 1,2,3 ;Zange1
+	   SZNr=1
+    CASE 11,12,13 ;Zange2
+	   SZNr=2
+	 CASE 21,22,23 ;Zange3
+	   SZNr=3  
+  ENDSWITCH
+  SWITCH R1AusgleichFunktion
+    CASE 1,11,21 ;teachmode ein
+      LIN $POS_ACT
+      StartPos=$Pos_Act
+      ReturnPos=$Pos_Act
+      RobTimerStart=$ROB_TIMER
+      WAIT FOR (($ASYNC_STATE==#IDLE) AND ($Brake_Sig>0)) OR (($ROB_TIMER-RobTimerStart)>2000)
+      IF (($ROB_TIMER-RobTimerStart)>2000) THEN
+        SZ_Msg(30,#QuitMsg)
+      ENDIF  
+      SZ_Msg(31,#NotifyMsg)
+      StatModeOldOV=$OV_PRO
+      $OV_PRO=100
+      $VEL.CP=$VEL_MA.cp
+      $ACC.CP=$ACC_MA.cp
+      LIN StartPos:{x +3.0, y 0, z 0, a 0, b 0, c 0}
+      $OV_PRO=StatModeOldOV
+      StatModeOldOV=-1
+      $OUT[SZ_BASE_MA[SZNr]+O_SZ_S_TPos]=TRUE
+      RobTimerStart=$ROB_TIMER
+      StartPosGun=GunPosition(SZNr)
+      REPEAT
+        ActPosition=GunPosition(SZNr)
+        IF (ActPosition>StartPosGun) THEN
+          StartPosGun=ActPosition
+        ENDIF      
+        ZangeNIO=NOT($IN[SZ_BASE_MA[SZNr]+I_SZ_bereit]) OR $IN[SZ_BASE_MA[SZNr]+I_SZ_Sammel] OR NOT ($IN[SZ_BASE_MA[SZNr]+I_SZ_Auto])
+      UNTIL ($IN[SZ_BASE_MA[SZNr]+I_SZ_zu] OR ZangeNIO OR (($ROB_TIMER-RobTimerStart)>5000) OR (R1AusgleichFunktion==0))
+	   IF (ZangeNIO OR (($ROB_TIMER-RobTimerStart)>5000))  THEN
+	     IstPos=$pos_act_mes
+        LIN IstPos
+        IF ZangeNIO THEN
+	       SZ_Msg(32,#NotifyMsg);Abbruch wegen Zangenstoerung
+	     ENDIF
+        IF (($ROB_TIMER-RobTimerStart)>5000) THEN
+          SZ_Msg(40,#NotifyMsg);teach position nicht erreicht
+        ENDIF
+	     HALT
+	   ELSE
+        StartPosGun=GunPosition(SZNr)
+        IstPos=$pos_act_mes
+        LIN IstPos      
+        REPEAT
+          ActPosition=GunPosition(SZNr)
+          ZangeNIO=NOT($IN[SZ_BASE_MA[SZNr]+I_SZ_bereit]) OR $IN[SZ_BASE_MA[SZNr]+I_SZ_Sammel] OR NOT ($IN[SZ_BASE_MA[SZNr]+I_SZ_Auto])
+        UNTIL ($IN[SZ_BASE_MA[SZNr]+I_SZ_auf] OR ZangeNIO OR (($ROB_TIMER- RobTimerStart)>5000))
+        ZangeNIO=ZangeNIO OR (($ROB_TIMER-RobTimerStart)>5000)
+        StatModeOldOV=$OV_PRO
+        $OV_PRO=100
+        $VEL.CP=$VEL_MA.cp
+        $ACC.CP=$ACC_MA.cp
+        LIN ReturnPos
+        $OV_PRO=StatModeOldOV
+        StatModeOldOV=-1
+        RobTimerStart=$ROB_TIMER
+        REPEAT
+        UNTIL (TeachPos[1] OR TeachPos[2] OR TeachPos[3] OR ZangeNIO OR (($ROB_TIMER-RobTimerStart)>5000))
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_S_TPos]=FALSE
+        IF NOT ZangeNIO AND (TeachPos[1] OR TeachPos[2] OR TeachPos[3]) THEN
+          SZ_Msg(41,#NotifyMsg);TeachMode abgeschlossen
+        ELSE  
+          SZ_Msg(35,#NotifyMsg);SZ hat TeachPos nicht gefunden 
+        ENDIF  
+        RobTimerStart=$ROB_TIMER
+	     REPEAT
+        UNTIL (NOT ($IN[SZ_BASE_MA[SZNr]+I_SZ_TPos_g]) OR (($ROB_TIMER-RobTimerStart)>5000) OR (R1AusgleichFunktion==0))
+        IF (($ROB_TIMER-RobTimerStart)>5000) THEN
+          SZ_Msg(36,#NotifyMsg);SZ TeachPos nicht zurueckgenommen 
+        ENDIF
+        R1AusgleichFunktion=0        
+        HALT
+      ENDIF
+    CASE 2,12,22 ;Zange auf
+      IF $IN[SZ_BASE_MA[SZNr]+I_SZ_auf] THEN
+        ;Zange bereits offen
+        SZ_Msg(42,#NotifyMsg)
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=FALSE
+      ELSE
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=TRUE
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu]=FALSE
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu_o_S]=FALSE
+        RobTimerStart=$ROB_TIMER
+        WAIT FOR ($IN[SZ_BASE_MA[SZNr]+I_SZ_auf] OR (($ROB_TIMER- RobTimerStart)>5000) OR (R1AusgleichFunktion==0))
+        IF NOT $IN[SZ_BASE_MA[SZNr]+I_SZ_auf] THEN
+          ;Fehler Zange oeffnen
+          $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=FALSE
+          SZ_Msg(43,#NotifyMsg)
+        ELSE
+          ;Zange ok geoeffnet
+          $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=FALSE
+          SZ_Msg(44,#NotifyMsg)
+        ENDIF
+      ENDIF
+      GunBalanceOff(SZNr)
+      SZ_Msg(37,#NotifyMsg)
+      R1AusgleichFunktion=0
+      HALT
+    CASE 3,13,23 ;Zange zu
+      GunBalanceOnManual()
+      WAIT SEC 0.25
+      $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=FALSE
+      $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu]=TRUE
+      $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu_o_S]=TRUE      
+      RobTimerStart=$ROB_TIMER
+      REPEAT
+      UNTIL ($IN[SZ_BASE_MA[SZNr]+I_SZ_zu] OR (($ROB_TIMER- RobTimerStart)>5000) OR (R1AusgleichFunktion==0))
+      IF NOT $IN[SZ_BASE_MA[SZNr]+I_SZ_zu] THEN
+        GunBalanceOff(SZNr)
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu]=FALSE 
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu_o_S]=FALSE
+        R1AusgleichFunktion=0
+        SZ_Msg(45,#NotifyMsg) ;Fehler Kraft erreicht, Zange schliessen
+        HALT
+      ELSE
+        GunBalanceHold()
+	     SZ_Msg(46,#NotifyMsg) ;Kraft erreicht, Zange schliessen
+        WAIT SEC 0.5
+	     $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=TRUE
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu]=FALSE
+        $OUT[SZ_BASE_MA[SZNr]+O_SZ_zu_o_S]=FALSE
+        RobTimerStart=$ROB_TIMER
+        WAIT FOR ($IN[SZ_BASE_MA[SZNr]+I_SZ_auf] OR (($ROB_TIMER-RobTimerStart)>5000) OR (R1AusgleichFunktion==0))
+	     $OUT[SZ_BASE_MA[SZNr]+O_SZ_auf]=FALSE
+	     GunBalanceOff(SZNr)
+        R1AusgleichFunktion=0
+        SZ_Msg(30,#NotifyMsg)
+        HALT
+      ENDIF
+      DEFAULT
+      IF R1AusgleichFunktion==0 THEN
+        SZ_Msg(38,#NotifyMsg) ;Zangenfunktion abgebrochen
+        RETURN
+      ENDIF
+    ENDSWITCH
+UNTIL (R1AusgleichFunktion==0)
+END
+;ENDFOLD (GunFunctionManual)
+;
+;***************************************************
+;FOLD Zangenausgleich
+GLOBAL DEF GunBalanceOnManual()
+;Konfigurationsaenderungen ggf. an Antrieb schicken
+CF_UPDATE_CONF()
+ERROR=VECTORMOVEON( STRATEGY,  DIRECTION, PARAMS_MAN)
+VMV_PRINT_ERROR(error)
+END
+;
+;***************************************************
+GLOBAL DEF GunBalanceOnProgram(GunCmd:IN)
+INT GunCmd
+;
+SWITCH GunCmd
+  CASE 1
+    CONTINUE
+    $softplcint[400]=SO_SK1_Pkt_Nr
+    CONTINUE
+    $softplcint[401]=SO_SK1_Fzg_Typ 
+  CASE 2
+    CONTINUE
+    IF Mit_2SZ_an_SK1 THEN
+      CONTINUE
+      $softplcint[400]=SO_SK1_Pkt_Nr
+      CONTINUE
+      $softplcint[401]=SO_SK1_Fzg_Typ
+    ELSE
+      CONTINUE
+      $softplcint[400]=SO_SK2_Pkt_Nr
+      CONTINUE
+      $softplcint[401]=SO_SK2_Fzg_Typ 
+    ENDIF  
+  CASE 3
+    CONTINUE
+    $softplcint[400]=SO_SK3_Pkt_Nr
+    CONTINUE
+    $softplcint[401]=SO_SK3_Fzg_Typ
+ENDSWITCH    
+;
+;Start Messung
+Startzeit=$ROB_TIMER
+;Konfigurationsaenderungen ggf. an Antrieb schicken
+CF_UPDATE_CONF()
+ERROR=VECTORMOVEON( STRATEGY,  DIRECTION, PARAMS_PROG)
+VMV_PRINT_ERROR(error)
+END
+;
+;***************************************************
+GLOBAL DEF GunBalanceHold()
+DECL VMSTATE LocalVMState
+REAL TimeAtKraftErreicht
+REAL PosVM, TimeVM, CorrVal,CorrVal_1,CorrVal_2
+INT PosAtKraftErreicht
+LocalVMState=$VMState
+QAusgleich=LocalVMState.currentPos
+ZeitZangeZu=$ROB_TIMER-Startzeit
+Startzeit=$ROB_TIMER
+;
+PosAtKraftErreicht=LocalVMState.currentPos
+TimeAtKraftErreicht=$ROB_TIMER
+TimeVM=0 ;ZeitDifferenz seit Kraft errreicht
+PosVM=0 ;WegDifferenz seit Kraft errreicht
+;Zeit zum Nivellieren abwarten, aber nicht mehr signifikant weiter ziehen lassen
+WHILE ((TimeVM<300) AND  (PosVM<1))
+  WAIT SEC 0.001
+  LocalVMState=$VMState
+  PosVM=LocalVMState.currentPos-PosAtKraftErreicht
+  TimeVM=$ROB_TIMER-TimeAtKraftErreicht
+ENDWHILE
+VektorMoveLogging()
+ERROR=VECTORMOVEOFF(#FIX_POSITION)
+VMV_PRINT_ERROR(error)
+;
+IF Mit_KE[1] THEN
+  IF $OUT[SZ_BASE_MA[1]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[1]+O_SZ_zu] THEN
+    CorrVal_1=GetEKVal(EZ1_EK_FBit)*10
+    CorrVal_2=GetGEOVal(EZ1_GEO_FBit)*10
+    CorrVal=(CorrVal_1+CorrVal_2)
+    QDurchbiegung=SI_SZ1_IstPos-CorrVal
+    IF $IN[SZ_BASE_MA[1]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF
+ELSE
+  IF $OUT[SZ_BASE_MA[1]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[1]+O_SZ_zu] THEN
+    QDurchbiegung=SI_SZ1_IstPos-GetEKVal(EZ1_EK_FBit)*10
+    IF $IN[SZ_BASE_MA[1]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF  
+ENDIF
+;
+IF Mit_KE[2] THEN
+  IF $OUT[SZ_BASE_MA[2]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[2]+O_SZ_zu] THEN
+    CorrVal_1=GetEKVal(EZ2_EK_FBit)*10
+    CorrVal_2=GetGEOVal(EZ2_GEO_FBit)*10
+    CorrVal=(CorrVal_1 + CorrVal_2)
+    QDurchbiegung=SI_SZ2_IstPos-CorrVal
+    IF $IN[SZ_BASE_MA[2]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF
+ELSE
+  IF $OUT[SZ_BASE_MA[2]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[2]+O_SZ_zu] THEN
+    QDurchbiegung=SI_SZ2_IstPos-GetEKVal(EZ2_EK_FBit)*10
+    IF $IN[SZ_BASE_MA[2]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF
+ENDIF
+;
+IF Mit_KE[3] THEN
+  IF $OUT[SZ_BASE_MA[3]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[3]+O_SZ_zu] THEN
+    CorrVal_1=GetEKVal(EZ3_EK_FBit)*10
+    CorrVal_2=GetGEOVal(EZ3_GEO_FBit)*10
+    CorrVal=(CorrVal_1 + CorrVal_2)
+    QDurchbiegung=SI_SZ3_IstPos-CorrVal
+    IF $IN[SZ_BASE_MA[3]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF
+ELSE  
+  IF $OUT[SZ_BASE_MA[3]+O_SZ_FRG] AND $OUT[SZ_BASE_MA[3]+O_SZ_zu] THEN
+    QDurchbiegung=SI_SZ3_IstPos-GetEKVal(EZ3_EK_FBit)*10
+    IF $IN[SZ_BASE_MA[3]+I_SZ_Vorz] THEN
+      QDurchbiegung=-QDurchbiegung
+    ENDIF
+  ENDIF
+ENDIF  
+END
+;
+;***************************************************
+GLOBAL DEF GunBalanceOff(GunCmd:IN)
+;Ende Schweissen
+INT GunCmd, SZNr
+INT ActPosition
+INT StartPosGun
+BOOL IsMovingBack
+;
+ZeitSchweissen=$ROB_TIMER-Startzeit
+Startzeit=$ROB_TIMER
+SWITCH GunCmd
+  CASE 1
+    SZNr=1
+  CASE 2
+    SZNr=2
+  CASE 3
+    SZNr=3    
+ENDSWITCH 
+StartPosGun=GunPosition(SZNr)
+REPEAT
+  ActPosition=GunPosition(SZNr)
+  IsMovingBack=((ActPosition-StartPosGun)>2)
+UNTIL  IsMovingBack OR (($ROB_TIMER- Startzeit)>500) 
+ERROR=VECTORMOVEOFF(#MOVE_BACK_COMPLETE)
+VMV_PRINT_ERROR(error)
+END
+;
+;***************************************************
+GLOBAL DEF GunBalanceImmediateOff()
+ERROR=VECTORMOVEOFF(#IMMEDIATE_OFF)
+VMV_PRINT_ERROR(error)
+END
+;
+;***************************************************
+DEF VMV_PRINT_ERROR(error:in)
+DECL VMERROR error
+;
+SWITCH error
+  CASE #VM_OK
+    ;display_string ("Returnwert: VM_OK")
+  CASE #VM_ILLEGAL_INTERPRETER
+    display_string ("Returnwert: VM_ILLEGAL_INTERPRETER")
+  CASE #VM_ROBOT_NOT_FREE
+    display_string ("Returnwert: VM_ROBOT_NOT_FREE")
+  CASE #VM_ALREADY_ACTIVE
+    display_string ("Returnwert: VM_ALREADY_ACTIVE")
+  CASE #VM_NOT_ACTIVE
+    ;display_string ("Returnwert: VM_NOT_ACTIVE")
+  CASE #VM_TOOL_INVALID
+    display_string ("Returnwert: VM_TOOL_INVALID")
+  CASE #VM_BASE_INVALID
+    display_string ("Returnwert: VM_BASE_INVALID")
+  CASE #VM_INCOMPLETE_INPUT
+    display_string ("Returnwert: VM_INCOMPLETE_INPUT")
+  CASE #VM_BRAKES_NOT_OPEN
+    display_string ("Returnwert: VM_BRAKES_NOT_OPEN")
+  CASE #VM_NOT_YET_IMPLEMENTED
+    display_string ("Returnwert: VM_NOT_YET_IMPLEMENTED")
+  CASE #VM_ILLEGAL_POS
+    display_string ("Returnwert: VM_ILLEGAL_POS")
+  CASE #VM_OTHER
+    display_string ("Returnwert: VM_OTHER")
+  DEFAULT
+  display_string ("Returnwert: <unbekannt>")
+ENDSWITCH
+END
+;
+;***************************************************
+DEF CF_UPDATE_CONF()
+BOOL ret
+;
+ret=TRUE
+IF VARSTATE("l_VelLagThresholdBegin")<>#initialized THEN
+  ret=FALSE
+ELSE
+  IF l_VelLagThresholdBegin <> _VelLagThresholdBegin THEN
+    ret=FALSE
+  ENDIF
+ENDIF
+IF VARSTATE("l_VelLagThresholdEnd")<>#initialized THEN
+  ret=FALSE
+ELSE
+  IF l_VelLagThresholdEnd <> _VelLagThresholdEnd THEN
+    ret=FALSE
+  ENDIF
+ENDIF
+IF VARSTATE("l_TrqPullTimeFactor")<>#initialized THEN
+  ret=FALSE
+ELSE
+  IF l_TrqPullTimeFactor<>_TrqPullTimeFactor THEN
+    ret=FALSE
+  ENDIF
+ENDIF
+IF VARSTATE("l_TrqPullDeltaFactor")<>#initialized THEN
+  ret=FALSE
+ELSE
+  IF l_TrqPullDeltaFactor <> _TrqPullDeltaFactor THEN
+    ret=FALSE
+  ENDIF
+ENDIF
+IF VARSTATE("l_VMVMasterDetectStart")<>#initialized THEN
+  ret=FALSE
+ELSE
+  IF l_VMVMasterDetectStart<>_VMVMasterDetectStart THEN
+    ret=FALSE
+  ENDIF
+ENDIF
+l_VelLagThresholdBegin=_VelLagThresholdBegin
+l_VelLagThresholdEnd=_VelLagThresholdEnd
+l_TrqPullTimeFactor=_TrqPullTimeFactor
+l_TrqPullDeltaFactor=_TrqPullDeltaFactor
+l_VMVMasterDetectStart=_VMVMasterDetectStart
+IF (ret==FALSE) THEN
+  display_string("Konifiguration geaendert, wird an Antrieb geschickt")
+  CF_WRITECONFIGALL()
+ENDIF
+END
+;
+;***************************************************
+GLOBAL DEF CF_WRITECONFIGALL()
+INT i
+;
+FOR i=1 to 6
+  CF_WRITECONFIG(i)
+ENDFOR
+END
+;
+;***************************************************
+DEF CF_WRITECONFIG(achse:in)
+INT achse
+CHAR achs_string[2]
+;
+SWITCH (achse)
+  CASE 1
+    achs_string[]="A1"
+  CASE 2
+    achs_string[]="A2"
+  CASE 3
+    achs_string[]="A3"
+  CASE 4
+    achs_string[]="A4" 
+  CASE 5
+    achs_string[]="A5"
+  CASE 6
+    achs_string[]="A6"
+ENDSWITCH
+SSD_DELAYED("DRIVE",achs_string[],"VMVMasterVelLagThresholdBegin",_VelLagThresholdBegin)
+SSD_DELAYED("DRIVE",achs_string[],"VMVMasterVelLagThresholdEnd",_VelLagThresholdEnd)
+SSD_DELAYED("DRIVE",achs_string[],"VMVMasterTrqPullTimeFactor",_TrqPullTimeFactor)
+SSD_DELAYED("DRIVE",achs_string[],"VMVMasterTrqPullDeltaFactor",_TrqPullDeltaFactor)
+SSD_DELAYED("DRIVE",achs_string[],"VMVMasterDetectStart",_VMVMasterDetectStart)
+END
+;
+;***************************************************
+DEF SSD(OWNER_NAME[]:IN, OWNER_AXNAME[]:IN, VAR_NAME[]:IN, VALUE:IN)
+CHAR OWNER_NAME[]
+CHAR OWNER_AXNAME[]
+CHAR VAR_NAME[]
+REAL VALUE
+INT RET_STATUS
+;
+IF VMV_Office_Sim THEN
+  RETURN
+ENDIF
+RET_STATUS=-1
+RET_STATUS=SET_SYSTEM_DATA(OWNER_NAME[], OWNER_AXNAME[], VAR_NAME[], VALUE)
+IF (RET_STATUS<>0) THEN
+  SSD_ERROR(OWNER_NAME[], OWNER_AXNAME[], VAR_NAME[], VALUE, RET_STATUS)
+ENDIF
+END
+;
+;***************************************************
+DEF SSD_DELAYED(OWNER_NAME[]:IN, OWNER_AXNAME[]:IN, VAR_NAME[]:IN, VALUE:IN)
+CHAR OWNER_NAME[]
+CHAR OWNER_AXNAME[]
+CHAR VAR_NAME[]
+REAL VALUE
+INT RET_STATUS
+;
+IF VMV_Office_Sim THEN
+  RETURN
+ENDIF
+RET_STATUS=-1
+RET_STATUS=SET_SYSTEM_DATA_DELAYED(OWNER_NAME[], OWNER_AXNAME[], VAR_NAME[], VALUE)
+IF (RET_STATUS<>0) THEN
+  SSD_ERROR(OWNER_NAME[], OWNER_AXNAME[], VAR_NAME[], VALUE, RET_STATUS)
+ENDIF
+END
+;
+;***************************************************
+DEF SSD_ERROR(OWNER_NAME[]:IN, OWNER_AXNAME[]:IN, VAR_NAME[]:IN, VALUE:IN, RET_STATUS: IN)
+CHAR OWNER_NAME[]
+CHAR OWNER_AXNAME[]
+CHAR VAR_NAME[]
+REAL VALUE
+INT RET_STATUS
+;
+SWITCH RET_STATUS
+  CASE -1
+    display_string ("Fehler VAR_NAME: RET_STATUS wurde nicht belegt")
+    display_string (VAR_NAME[])
+  CASE 0 ;Wert wurde erfolgreich gelesen/geschrieben
+  CASE 1
+    display_string ("Fehler OWNER_NAME: nicht bekannt")
+    display_string (OWNER_NAME[])
+  CASE 2
+    display_string ("Fehler OWNER_AXNAME: ungueltig")
+    display_string (OWNER_AXNAME[])
+  CASE 3
+    display_string ("Fehler VAR_NAME: nicht bekannt")
+    display_string (VAR_NAME[])
+  CASE 4
+    display_string ("Fehler VAR:  Variable schreibgeschuetzt")
+    display_string (VAR_NAME[])
+  CASE 5
+    display_string ("Fehler VAR: Wertebereichsueberschreitung")
+    display_string (VAR_NAME[])
+ENDSWITCH
+END
+;
+;***************************************************
+DEF DISPLAY_STRING(Src[]:in)
+CHAR src[]
+DECL KrlMsg_T Msg
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL CHAR next[470]
+INT nHandle, laenge, i
+BOOL fortsetzen
+;
+fortsetzen=FALSE
+laenge=StrLen(src[])
+Msg.Modul[]="DISPLAY_STRING"
+Msg.Nr=1
+IF laenge<=60 THEN
+  Msg.Msg_txt[]=src[]
+ELSE
+  ;erste 55 Zeichen ausdrucken, Rest rekursiv
+  fortsetzen=TRUE
+  FOR i=1 to 55
+    ;ersten teil ausdrucken
+    Msg.Msg_txt[i]=src[i]
+  ENDFOR
+  FOR i=56 to 60
+    ;ersten teil ausdrucken mit .....
+    Msg.Msg_txt[i]="."
+  ENDFOR
+  ;rest in next schreiben mit fortsetz-Prefix
+  FOR i=1 to 5
+    next[i]="."
+  ENDFOR
+  FOR i=56 to laenge
+    next[i-50]=src[i]
+  ENDFOR
+ENDIF
+Opt={ VL_Stop FALSE, Clear_P_Reset FALSE, Log_To_DB TRUE }
+nHandle=Set_KrlMsg (#Notify, Msg, Par[], Opt)
+;rekursiv den Rest raushauen
+IF fortsetzen THEN
+  display_string(next[])
+ENDIF
+END
+;ENDFOLD (Zangenausgleich)
+;
+;***************************************************
+;FOLD SZ_MERKER_INIT
+DEF SZ_MERKER_INIT(SZNR :IN)
+INT SZNR
+;
+SWITCH SZNR
+  CASE 1
+   ;EZ/SP/KE1 Sicherheit
+   $CYCFLAG[95]=$IN[705] AND NOT $OUT[707] AND $IN[713] AND $IN[714] AND (NOT $IN[715] AND ($IN[719] OR $FLAG[830]) OR $OUT[715]) AND NOT $IN[773] AND NOT $IN[779] AND $OUT[716]
+   ;EZ/SP/KE1 KF1 Flankenauswertung
+   $CYCFLAG[97]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[834] AND $OUT[834] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+   ;EZ/SP/KE1 KF2 Flankenauswertung
+   $CYCFLAG[98]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[994] AND $OUT[994] AND $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+   ;EZ/SP/KE1 KF3 Flankenauswertung
+   $CYCFLAG[99]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[1154] AND $OUT[1154] AND NOT $FLAG[72] AND $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+    ;KW1 Flankenauswertung
+   $CYCFLAG[100]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[858] AND $OUT[858] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+    ;KS1 Sicherheit
+    $CYCFLAG[96]=$IN[836] AND NOT $IN[838] AND NOT $IN[837] AND $IN[839] AND NOT $OUT[715] AND ($FLAG[321] OR ($OUT[875] AND $FLAG[148]) OR ($OUT[1035] AND $FLAG[184]))
+  CASE 2
+    ;EZ/SP/KE2 Sicherheiten
+   $CYCFLAG[102]=$IN[865] AND NOT $OUT[867] AND $IN[873] AND $IN[874] AND (NOT $IN[875] AND ($IN[879] OR $FLAG[831]) OR $OUT[875]) AND NOT $IN[933] AND NOT $IN[939] AND $OUT[876]
+   ;EZ/SP/KE2 KF2 Flankenauswertung
+   $CYCFLAG[104]=(($IN[878] AND ($OUT[878] OR $OUT[926])) OR $FLAG[312]) AND $IN[994] AND $OUT[994] AND $FLAG[148]
+    ;KS Sicherheiten
+    $CYCFLAG[103]=$IN[996] AND NOT $IN[998] AND NOT $IN[997] AND $IN[999] AND NOT $OUT[875] AND ($FLAG[321] OR ($OUT[715] AND $FLAG[92]) OR ($OUT[1035] AND $OUT[184]))
+  CASE 3
+   ;EZ/SP/KE3 Sicherheiten
+   $CYCFLAG[109]=$IN[1025] AND NOT $OUT[1027] AND $IN[1033] AND $IN[1034] AND (NOT $IN[1035] AND ($IN[1039] OR $FLAG[832]) OR $OUT[1035]) AND NOT $IN[1093] AND NOT $IN[1099] AND $OUT[1036]
+   ;EZ/SP/KE3 KF3 Flankenauswertung
+   $CYCFLAG[111]=(($IN[1038] AND ($OUT[1038] OR $OUT[1086])) OR $FLAG[312]) AND $IN[1154] AND $OUT[1154] AND $FLAG[184]
+    ;KS Sicherheit
+    $CYCFLAG[110]=$IN[1156] AND NOT $IN[1158] AND NOT $IN[1157] AND $IN[1159] AND NOT $OUT[1035] AND ($FLAG[321] OR ($OUT[715] AND $FLAG[92]) OR ($OUT[875] AND $FLAG[148]))
+ENDSWITCH
+END
+;
+;***************************************************
+;FOLD SZ_Meldungen
+DEF SZ_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL SZR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG={ Modul[] "SZ_R_Msg", Nr -1, Msg_txt[] " "}
+Opt={ VL_Stop TRUE, Clear_P_Reset TRUE, Log_To_DB FALSE }
+Par[1]={ Par_type #Value, Par_txt[] " " }
+;
+IF ((n_SZR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr=msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="mehr als 1 USER-Aufruf aktiv"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="Zangencode ungueltig"
+    CASE 3
+      USER_MSG.MSG_TXT[]="MyCorrOFF nicht im zulaessigen Bereich"
+    CASE 4
+      USER_MSG.MSG_TXT[]=" "
+    CASE 5
+      USER_MSG.MSG_TXT[]=" "
+    CASE 6
+      USER_MSG.MSG_TXT[]=" "
+    CASE 7
+      USER_MSG.MSG_TXT[]=" "
+    CASE 8
+      USER_MSG.MSG_TXT[]=" "
+    CASE 9
+      USER_MSG.MSG_TXT[]=" "
+    CASE 10
+      USER_MSG.MSG_TXT[]="asyptp nicht idle"
+    CASE 11
+      USER_MSG.MSG_TXT[]="Fraesmesser KF1 defekt"    
+    CASE 12
+      USER_MSG.MSG_TXT[]="Fraesmesser KF2 defekt" 
+    CASE 13
+      USER_MSG.MSG_TXT[]="Fraesmesser KF3 defekt"     
+    CASE 19
+	   USER_MSG.MSG_TXT[]="Falsche Gruppen-Auswahl"  
+    CASE 20
+	   USER_MSG.MSG_TXT[]="P1: Falsche Auswahl"
+    CASE 21
+	   USER_MSG.MSG_TXT[]="P2: Falsche Auswahl" 
+    CASE 22
+	   USER_MSG.MSG_TXT[]="P3: Falsche Auswahl"
+    CASE 30
+      USER_MSG.MSG_TXT[]="Roboter-Ausgleich abgeschaltet"
+    CASE 31
+      USER_MSG.MSG_TXT[]="Roboter-Ausgleich aktiviert"   
+    CASE 32
+      USER_MSG.MSG_TXT[]="Teachfunktion wegen Zangenstoerung abgebrochen"
+    CASE 33
+      USER_MSG.MSG_TXT[]="Fehler Roboter-Ausgleich: Zange oeffnet bevor Kraft erreicht" 
+    CASE 34
+      USER_MSG.MSG_TXT[]="Fehler Roboter-Ausgleich: Kraft erreicht waehrend der Zangenbewegung"
+    CASE 35
+      USER_MSG.MSG_TXT[]="SZ hat teach position nicht gefunden"  
+    CASE 36
+      USER_MSG.MSG_TXT[]="SZ TeachPos gefunden nicht zurueckgenommen"  
+    CASE 37
+      USER_MSG.MSG_TXT[]="Roboter-Ausgleich abgeschaltet"
+    CASE 38
+      USER_MSG.MSG_TXT[]="Zangenfunktion abgebrochen"
+    CASE 40
+      USER_MSG.MSG_TXT[]="teach position nicht erreicht SZ"
+    CASE 41
+      USER_MSG.MSG_TXT[]="Teach Funktion ok, SZ-Oeffnung optimal"
+    CASE 42
+      USER_MSG.MSG_TXT[]="SZ bereits offen"
+    CASE 43
+      USER_MSG.MSG_TXT[]="Fehler SZ oeffnen"
+    CASE 44
+      USER_MSG.MSG_TXT[]="SZ geoeffnet"
+    CASE 45
+      USER_MSG.MSG_TXT[]="Fehler Kraft erreicht bei Schliessen SZ"
+    CASE 46
+      USER_MSG.MSG_TXT[]="Kraft erreicht bei Schliessen SZ"
+    CASE 47
+      USER_MSG.MSG_TXT[]="Anwahl ohne Kraft von BMS aktiv, Anwahl deaktivieren oder Quit weiter von BMS"
+    CASE 48
+      USER_MSG.MSG_TXT[]="EZ/SP/KE1 Merker-Initialisierung durchgefuehrt: M95,M96,97,98,99"
+    CASE 49
+      USER_MSG.MSG_TXT[]="EZ/SP/KE2 Merker-Initialisierung durchgefuehrt: M102,M103,104"
+    CASE 50
+      USER_MSG.MSG_TXT[]="EZ/SP/KE3 Merker-Initialisierung durchgefuehrt: M109,M110,111"
+    CASE 51
+      USER_MSG.MSG_TXT[]="Rob-Ausgleich: Zeit fuer aktive Bewegung ungueltig[250-800 ms]"
+    CASE 52
+      USER_MSG.MSG_TXT[]="Rob-Ausgleich: Weg fuer aktive Bewegung ungueltig[20-100 1/10mm]"
+    CASE 53
+      USER_MSG.MSG_TXT[]="Rob-Ausgleich: Wert fuer Armdurchbiegung ungueltig[1-25 1/10mm]"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_SZR_Handle[msg_nr]=Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_SZR_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE (Exists_KrlMsg(n_SZR_Handle[msg_nr]))  ;Warten bis der Anwender quittiert
+        WAIT SEC 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_SZR_Handle[msg_nr]=Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_SZR_Handle[msg_nr]=Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (SZ Meldungen)

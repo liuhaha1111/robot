@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<SpaceVisualizationConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CameraLookDirection>
+    <X>54.243675366693466</X>
+    <Y>-29.16345995266423</Y>
+    <Z>-12.719659686026645</Z>
+  </CameraLookDirection>
+  <CameraPosition>
+    <X>-49.055241526693464</X>
+    <Y>39.07345995266423</Y>
+    <Z>12.719659686026645</Z>
+  </CameraPosition>
+  <FloorSize>300</FloorSize>
+  <CameraDistance>50</CameraDistance>
+  <SelectedModel xsi:type="Joint">
+    <Id>0</Id>
+    <ConsiderNumberOfAxes>0</ConsiderNumberOfAxes>
+    <CurrentPointInSpace>
+      <X>5.18843384</X>
+      <Y>9.91</Y>
+      <Z>-1.132243796721321E-32</Z>
+    </CurrentPointInSpace>
+    <IsSelected>true</IsSelected>
+  </SelectedModel>
+</SpaceVisualizationConfiguration>

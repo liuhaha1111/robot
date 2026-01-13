@@ -1,0 +1,175 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/DS_Dockingsystem
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_ds_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket DS Dockingsystem                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2014.09.11 CE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;FOLD Version Techpaket
+STRUC _Tech_DS CHAR Name[20],INT Datum
+DECL _Tech_DS Tech_DS
+;ENDFOLD
+; 
+;FOLD DS
+;FLAGS
+GLOBAL INT F_DS_Cod_iO=670
+;VARIABLEN INTEGER
+GLOBAL INT Default_DS_BASE_SL=113
+GLOBAL INT CF_DS_BASE_SL=449
+;VARIABLEN BOOL
+GLOBAL BOOL HM_DS_VST=FALSE
+GLOBAL BOOL MIT_DS=FALSE
+GLOBAL BOOL MIT_DS_Cod=FALSE
+GLOBAL BOOL MIT_DS_flex=FALSE
+GLOBAL BOOL Dock_Init=FALSE
+GLOBAL BOOL DS_setzen=FALSE
+GLOBAL BOOL DS_KONFIG_NEU=FALSE
+GLOBAL BOOL DS_KONFIG_IO=FALSE
+GLOBAL BOOL DS_HM_Done=FALSE
+GLOBAL BOOL B_DS_BHF_ausw_aktiv=FALSE
+GLOBAL BOOL AxFehler=FALSE
+GLOBAL BOOL ExtAx1Fehler1=FALSE
+GLOBAL BOOL ExtAx2Fehler1=FALSE
+GLOBAL BOOL ExtAx3Fehler1=FALSE
+GLOBAL BOOL ExtAx4Fehler1=FALSE
+GLOBAL BOOL ExtAx5Fehler1=FALSE
+GLOBAL BOOL ExtAx6Fehler1=FALSE
+GLOBAL BOOL ExtAx1Fehler2=FALSE
+GLOBAL BOOL ExtAx2Fehler2=FALSE
+GLOBAL BOOL ExtAx3Fehler2=FALSE
+GLOBAL BOOL ExtAx4Fehler2=FALSE
+GLOBAL BOOL ExtAx5Fehler2=FALSE
+GLOBAL BOOL ExtAx6Fehler2=FALSE
+GLOBAL BOOL DS_INT_Makro=FALSE
+GLOBAL BOOL HM_INT_Makro=FALSE
+GLOBAL BOOL DS_INT_ExAx=FALSE
+GLOBAL BOOL DS_Konfig_aktiv=FALSE
+;VARIABLEN INTEGER
+INT BaseResult=0
+GLOBAL INT HM_DS_Code=0
+GLOBAL INT HM_DS_BHF_Nr=0
+GLOBAL INT Anz_BHF_FREI=0
+GLOBAL INT BHF_Off=220
+GLOBAL INT Anz_BHF=0
+GLOBAL INT AntTyp=0
+GLOBAL INT myAntTyp=0
+GLOBAL INT SteuNr=0
+GLOBAL INT mySteuNr=0
+GLOBAL INT ZangenNr=0
+GLOBAL INT myZangenNr=0
+GLOBAL INT ExtAx=0
+GLOBAL INT myExtAx=0
+GLOBAL INT ExtAx1Hilf=0
+GLOBAL INT ExtAx2Hilf=0
+GLOBAL INT ExtAx3Hilf=0
+GLOBAL INT ExtAx4Hilf=0
+GLOBAL INT ExtAx5Hilf=0
+GLOBAL INT ExtAx6Hilf=0
+GLOBAL INT Hilf_DS_1=0
+GLOBAL INT Hilf_DS_2=0
+GLOBAL INT IN_BHF_belegt[36]
+IN_BHF_belegt[1]=4081
+IN_BHF_belegt[2]=4081
+IN_BHF_belegt[3]=4081
+IN_BHF_belegt[4]=4081
+IN_BHF_belegt[5]=4081
+IN_BHF_belegt[6]=4081
+IN_BHF_belegt[7]=4081
+IN_BHF_belegt[8]=4081
+IN_BHF_belegt[9]=4081
+IN_BHF_belegt[10]=4081
+IN_BHF_belegt[11]=4081
+IN_BHF_belegt[12]=4081
+IN_BHF_belegt[13]=4081
+IN_BHF_belegt[14]=4081
+IN_BHF_belegt[15]=4081
+IN_BHF_belegt[16]=4081
+IN_BHF_belegt[17]=4081
+IN_BHF_belegt[18]=4081
+IN_BHF_belegt[19]=4081
+IN_BHF_belegt[20]=4081
+IN_BHF_belegt[21]=4081
+IN_BHF_belegt[22]=4081
+IN_BHF_belegt[23]=4081
+IN_BHF_belegt[24]=4081
+IN_BHF_belegt[25]=4081
+IN_BHF_belegt[26]=4081
+IN_BHF_belegt[27]=4081
+IN_BHF_belegt[28]=4081
+IN_BHF_belegt[29]=4081
+IN_BHF_belegt[30]=4081
+IN_BHF_belegt[31]=4081
+IN_BHF_belegt[32]=4081
+IN_BHF_belegt[33]=4081
+IN_BHF_belegt[34]=4081
+IN_BHF_belegt[35]=4081
+IN_BHF_belegt[36]=4081
+GLOBAL INT DS_Konfig_MakroNr=0
+;DS SLAVE ADRESSIERUNG
+GLOBAL INT DS_BASE_SL=449 ;DS Indirekte Slave Adressen
+;DS Slave Adressen
+GLOBAL INT O_DS_Proz_akt=0
+GLOBAL INT O_DS_Verklemm=1
+GLOBAL INT O_DS_Stoerung=2
+;Master Eingaenge
+GLOBAL INT I_DS_angedockt=537
+GLOBAL INT I_DS_verriegelt=538
+GLOBAL INT I_DS_entriegelt=539
+GLOBAL INT I_DS_iO=540
+;Master Ausgaenge
+GLOBAL INT O_DB_VST1_2=545
+GLOBAL INT O_DB_VST3_4=553
+GLOBAL INT O_DB_VST5_6=561
+GLOBAL INT O_DB_VST7_8=569
+GLOBAL INT O_DS_entriegeln=539
+GLOBAL INT O_DS_Reset=540
+GLOBAL INT O_DS_BHF1_AUF=547
+GLOBAL INT O_DS_BHF1_ZU=548
+GLOBAL INT O_DS_BHF2_AUF=549
+GLOBAL INT O_DS_BHF2_ZU=550
+GLOBAL INT O_DS_BHF3_AUF=555
+GLOBAL INT O_DS_BHF3_ZU=556
+GLOBAL INT O_DS_BHF4_AUF=557
+GLOBAL INT O_DS_BHF4_ZU=558
+GLOBAL INT O_DS_BHF5_AUF=563
+GLOBAL INT O_DS_BHF5_ZU=564
+GLOBAL INT O_DS_BHF6_AUF=565
+GLOBAL INT O_DS_BHF6_ZU=566
+GLOBAL INT O_DS_BHF7_AUF=571
+GLOBAL INT O_DS_BHF7_ZU=572
+GLOBAL INT O_DS_BHF8_AUF=573
+GLOBAL INT O_DS_BHF8_ZU=574
+;DS Code
+SIGNAL SI_DS_Code $IN[541]  TO $IN[544]
+;SZ Zangencode
+SIGNAL SO_SZ1_ZCode $OUT[761]  TO $OUT[763]
+;CZS Zangencode
+SIGNAL SO_CZS1_ZCode $OUT[1401]  TO $OUT[1403]
+;NZS Zangencode
+SIGNAL SO_NZS1_ZCode $OUT[1241]  TO $OUT[1243]
+;NZH Zangencode
+SIGNAL SO_NZH1_ZCode $OUT[1213]  TO $OUT[1215]
+;RW Zangencode
+SIGNAL SO_RW1_ZCode $OUT[1289]  TO $OUT[1291]
+
+;FOLD Meldungsausgabe
+ENUM DSS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_DSS_Handle[100]
+GLOBAL INT n_DSR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

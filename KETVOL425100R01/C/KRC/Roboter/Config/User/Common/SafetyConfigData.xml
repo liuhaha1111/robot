@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<SafetyConfigData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <AxisRangeNameItems />
+  <ChangeLog>
+    <Entries>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_GlobalParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:26.1606451+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_HardwareParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:27.068684+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ReferenceAdjustmentParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:27.189691+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_AxisMonitoringParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:27.190691+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_MachineDataUpdated</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:27.7347221+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ConfigurationSaved</MessageKey>
+        <MessageParams />
+        <Timestamp>2018-07-31T01:09:27.7717243+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_HardwareParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-04-24T11:06:59.4997321+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ReferenceAdjustmentParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-04-24T11:06:59.5478588+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_AxisMonitoringParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-04-24T11:06:59.5478588+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_MachineDataUpdated</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-04-24T11:06:59.5940007+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ConfigurationSaved</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-04-24T11:06:59.6069849+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_HardwareParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-07-01T09:18:21.9355958+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ReferenceAdjustmentParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-07-01T09:18:23.1082888+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_AxisMonitoringParameterChanged</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-07-01T09:18:23.1082888+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_MachineDataUpdated</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-07-01T09:18:23.166591+08:00</Timestamp>
+      </ProtocolEntry>
+      <ProtocolEntry>
+        <MessageKey>ChangeLog_ConfigurationSaved</MessageKey>
+        <MessageParams />
+        <Timestamp>2019-07-01T09:18:23.1746086+08:00</Timestamp>
+      </ProtocolEntry>
+    </Entries>
+  </ChangeLog>
+  <OverwriteEntries>
+    <Overwrites />
+  </OverwriteEntries>
+  <DevDescrRevision>589825</DevDescrRevision>
+  <LastModified>2019-07-01T09:18:23.220147+08:00</LastModified>
+  <MachineDataLastModified>2019-07-01T09:18:23.166591+08:00</MachineDataLastModified>
+  <ProjectName>-</ProjectName>
+  <ToolNameItems />
+  <Version>2</Version>
+  <WorksheetCrc>3260261190</WorksheetCrc>
+  <MonitoringSpaceNameItems />
+  <WorkspaceNameItems />
+</SafetyConfigData>

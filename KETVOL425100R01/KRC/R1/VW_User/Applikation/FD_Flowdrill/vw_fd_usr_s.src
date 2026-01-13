@@ -1,0 +1,270 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/FD_Flowdrill
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_FD_USR_S( )
+;
+;***************************************************
+;*Technologiepaket FD Flowdrill                    *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT FD 
+GLOBAL DEF FD_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_FD.Name[]="KS26.01.001_20190612"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_FDS_Handle[i]=-1
+  n_FDR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD FD BASE ADRESSEN INITIALISIEREN
+FD_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW FD
+GLOBAL DEF FD_SAW(FDNr :IN)
+INT FDNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET FD
+GLOBAL DEF FD_RESET(FDNr :IN)
+INT FDNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL FD
+GLOBAL DEF FD_CANCEL(FDNr :IN)
+INT FDNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP FD
+GLOBAL DEF FD_LOOP(FDNr :IN)
+BOOL bRet
+INT i,FDNr
+;
+;FD BASE ADRESSEN INITIALISIEREN
+FD_BASE_INIT( )
+;
+IF (FD_BASE_SL[FDNr]==HM_BASE_SL) THEN
+  FD_Msg((FDNr+1),#StateMsg)
+ELSE
+  IF (n_FDS_Handle[FDNr+1]>-1) THEN
+    bRet=Clear_KrlMsg(n_FDS_Handle[FDNr+1])
+    n_FDS_Handle[FDNr+1]=-1
+  ENDIF
+ENDIF
+;
+IF (FDNr==1) THEN
+  FOR i=1 TO 4
+    $FLAG[F_FD1_BMS_ANW_Z[i]]=$IN[FD_BASE_SL[FDNr]+I_FD_anw_Z[i]]
+  ENDFOR
+ENDIF
+IF (FDNr==2) THEN
+  $FLAG[F_FD2_BMS_ANW_Z[1]]=$IN[FD_BASE_SL[FDNr]+I_FD_anw_Z[1]]
+ENDIF
+;
+;BA-Hand an FD setzen
+IF NOT $COULD_START_MOTION THEN
+  $OUT[FD_BASE_MA[FDNr]+O_FD_Hand]=TRUE
+  $OUT[FD_BASE_MA[FDNr]+O_FD_Auto]=FALSE
+ENDIF
+;
+;BA-AUTO an FD setzen
+B_FD_Hilf[FDNr] = $OUT[FD_BASE_MA[FDNr]+O_FD_Start] OR $OUT[FD_BASE_MA[FDNr]+O_FD_Null]
+IF (($OUT[O_R_Hand] AND $COULD_START_MOTION AND ($OUT[O_R_Proz_akt] OR B_FD_Hilf[FDNr]) AND $OUT[O_R_RK100]) OR ($OUT[O_R_Auto] AND $COULD_START_MOTION)) THEN
+  $OUT[FD_BASE_MA[FDNr]+O_FD_Hand]=FALSE
+  $OUT[FD_BASE_MA[FDNr]+O_FD_Auto]=TRUE
+ENDIF
+;Anwahl Nullabgleich
+$FLAG[F_FD_null[FDNR]]=$IN[FD_BASE_SL[FDNr]+I_FD_null]
+;
+;Vorwahl ohne Prozess
+$OUT[FD_BASE_MA[FDNr]+O_FD_o_Pro]=$IN[FD_BASE_SL[FDNr]+I_FD_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;Prozess aktiv
+$OUT[FD_BASE_SL[FDNr]+O_FD_P_akt]=$OUT[FD_BASE_MA[FDNr]+O_FD_Start] OR $OUT[FD_BASE_MA[FDNr]+O_FD_Null] 
+;
+;Ausgabe Statusmeldungen an BMS
+;
+;Schrauben n.i.O.
+$OUT[FD_BASE_SL[FDNr]+O_FD_Pr_ni]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[FD_BASE_MA[FDNr]+I_FD_Pr_ni]
+;Vorwarnung Fuellstand
+$OUT[FD_BASE_SL[FDNr]+O_FD_VW]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[FD_BASE_MA[FDNr]+I_FD_Fuell]
+;Wartungswarnung
+$OUT[FD_BASE_SL[FDNr]+O_FD_Warn]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[FD_BASE_MA[FDNr]+I_FD_Warn]
+;Zange defekt
+$OUT[FD_BASE_SL[FDNr]+O_FD_def]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_FD_Z_def[FDNr]]
+;Phasenueberwachung n.i.O.
+$OUT[FD_BASE_SL[FDNr]+O_FD_Phase]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[FD_BASE_MA[FDNr]+I_FD_Phase]
+;Startbereit fehlt
+$OUT[FD_BASE_SL[FDNr]+O_FD_SBe_f]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[FD_BASE_MA[FDNr]+I_FD_StBer] AND NOT $IN[FD_BASE_MA[FDNr]+I_FD_Samme] AND $timer_flag[TimerNr_Ein]
+;Betriebsbereit fehlt
+$OUT[FD_BASE_SL[FDNr]+O_FD_Ber_f]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[FD_BASE_MA[FDNr]+I_FD_Berei] AND $timer_flag[TimerNr_Ein]
+;Sammelstoerung
+$OUT[FD_BASE_SL[FDNr]+O_FD_Samme]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND (NOT $IN[FD_BASE_MA[FDNr]+I_FD_Samme] OR FD_LBitFeh[FDNr]) AND $timer_flag[TimerNr_Ein]
+;	
+;Lebensbit_Ueberwachung
+L_Bit_FD(FDNr)    
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD FD_BASE_INIT
+DEF FD_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;FD SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_FD_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_FD_BASE_SL[1]=HM_BASE_SL
+  FD_BASE_SL[1]=HM_BASE_SL
+ELSE
+  FD_BASE_SL[1]=CF_FD_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_FD_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_FD_BASE_SL[2]=HM_BASE_SL
+  FD_BASE_SL[2]=HM_BASE_SL
+ELSE
+  FD_BASE_SL[2]=CF_FD_BASE_SL[2]
+ENDIF
+;
+;FD MASTER ADRESSIERUNG
+FD_BASE_MA[1]=2369                            
+FD_BASE_MA[2]=2433
+;
+END
+;ENDFOLD (FD_BASE_INIT)
+;
+;***************************************************
+;FOLD Lebensbit_FD
+DEF L_Bit_FD(FDNr :IN)
+INT FDNr,RobTimer
+BOOL LBitFD,LBitFault,ErrLBit,bRet
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;
+;Setzen / Rueksetzen Lebensbit Roboter
+$OUT[FD_BASE_MA[FDNr]+O_FD_LBit]=NOT $IN[FD_BASE_MA[FDNr]+I_FD_LBit]
+RobTimer=$ROB_TIMER	
+IF $IN[FD_BASE_MA[FDNr]+I_FD_LBit]<>LBitState[FDNr] THEN
+  LBitTimeCnt[FDNr] = RobTimer
+ENDIF
+IF ((RobTimer-LBitTimeCnt[FDNr])>5000) THEN
+  ErrLBit=TRUE
+  ErrFDNr=FDNr
+  FD_LBitFeh[FDNr]=TRUE
+ENDIF
+LBitState[FDNr]=$IN[FD_BASE_MA[FDNr]+I_FD_LBit]
+IF ErrLBit THEN
+  FD_Msg(1,#StateMsg,ErrFDNr)
+ELSE
+  IF (n_FDS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_FDS_Handle[1])
+    n_FDS_Handle[1]=-1
+    ErrFDNr = -1
+  ENDIF
+  FD_LBitFeh[FDNr]=FALSE
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD FDS_Meldungen
+DEF FD_Msg(msg_nr :IN, MsgTyp :IN, FDNr :IN)
+INT msg_nr, FDNr, Answer
+DECL FD_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "FD_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("FDNr")==#initialized then
+  SWITCH FDNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_FDS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="FD%1 :keine Antwort auf Lebensbit"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="FD1: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="FD2: Slave Startadresse ungueltig"
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_FDS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_FDS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+       While ( Exists_KrlMsg(n_FDS_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_FDS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_FDS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (FD_Meldungen)

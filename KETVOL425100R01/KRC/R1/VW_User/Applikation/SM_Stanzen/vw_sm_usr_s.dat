@@ -1,0 +1,110 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/SM_Stanzen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_sm_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket SM Stanzen                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_SM CHAR Name[20],INT Datum
+DECL _Tech_SM Tech_SM
+;ENDFOLD
+; 
+;***************************************************
+;FOLD SM
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_SM[2]
+MIT_SM[1]=FALSE
+MIT_SM[2]=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT Default_SM_BASE_SL[2]
+Default_SM_BASE_SL[1]=161
+Default_SM_BASE_SL[2]=201
+GLOBAL INT CF_SM_BASE_SL[2]
+CF_SM_BASE_SL[1]=449
+CF_SM_BASE_SL[2]=449
+GLOBAL INT TimerNr_SM[2]
+TimerNr_SM[1]=10000
+TimerNr_SM[2]=10000
+;FLAGS
+GLOBAL INT F_SM_Sammel[2]
+F_SM_Sammel[1]=251
+F_SM_Sammel[2]=256
+;SLAVE ADRESSIERUNG
+GLOBAL INT SM_BASE_SL[2] ;SM Indirekte Slave Adressen
+SM_BASE_SL[1]=449
+SM_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_SM_o_Proz=0 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_SM_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_SM_Pr_niO=1 ;indirekt adressiert
+GLOBAL INT O_SM_VW=2 ;indirekt adressiert
+GLOBAL INT O_SM_Warn=3 ;indirekt adressiert
+GLOBAL INT O_SM_Mat=4 ;indirekt adressiert
+GLOBAL INT O_SM_Bereit=6 ;indirekt adressiert
+GLOBAL INT O_SM_Sammel=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT SM_BASE_MA[2] ;SM Indirekte Master Adressen
+SM_BASE_MA[1]=1793
+SM_BASE_MA[2]=1825
+;Master Eingaenge
+GLOBAL INT I_SM_Bereit=0 ;1793,1825
+GLOBAL INT I_SM_LBit=2 ;1795,1827
+GLOBAL INT I_SM_Pr_iO=7 ;1800,1832
+GLOBAL INT I_SM_FK=9 ;1802,1834
+GLOBAL INT I_SM_Mat=12 ;1805,1837
+GLOBAL INT I_SM_Warn=13 ;1806,1838
+GLOBAL INT I_SM_VW=14 ;1807,1839
+GLOBAL INT I_SM_Sammel=15 ;1808,1840
+;Master Ausgaenge
+GLOBAL INT O_SM_o_Proz=1 ;1794,1826
+GLOBAL INT O_SM_LBit=2 ;1795,1827
+GLOBAL INT O_SM_Hand=4 ;1797,1829
+GLOBAL INT O_SM_Auto=5 ;1798,1830
+GLOBAL INT O_SM_Start=8 ;1801,1833
+GLOBAL INT O_SM_St_R=10 ;1803,1835
+GLOBAL INT O_SM_St_V=11 ;1804,1836
+GLOBAL INT O_SM_PNr_LBit=16 ;1809,1824
+GLOBAL INT O_SM_PNr_HBit=31 ;1841,1856
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit SM
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL SM_LBitFeh[2]
+SM_LBitFeh[1]=FALSE
+SM_LBitFeh[2]=FALSE
+; 
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrSMNr=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM SMS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_SMS_Handle[100]
+GLOBAL INT n_SMR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

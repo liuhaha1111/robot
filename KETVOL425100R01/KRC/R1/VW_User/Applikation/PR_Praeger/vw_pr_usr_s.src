@@ -1,0 +1,174 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/PR_Praeger
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_PR_USR_S( )
+;
+;***************************************************
+;*Technologiepaket PR Praeger                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT PR 
+GLOBAL DEF PR_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_PR.Name[]="KS26.01.000_20170424"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_PRS_Handle[i]=-1
+  n_PRR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+;FOLD PR BASE ADRESSEN INITIALISIEREN
+PR_BASE_INIT( )
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW PR 
+GLOBAL DEF PR_SAW(PRNr: IN)
+INT i,PRNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET PR 
+GLOBAL DEF PR_RESET(PRNr: IN)
+INT i,PRNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL PR 
+GLOBAL DEF PR_CANCEL(PRNr: IN)
+INT i,PRNr
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP PR 
+GLOBAL DEF PR_LOOP(PRNr: IN)
+BOOL bRet
+INT i,PRNr
+;
+;PR BASE ADRESSEN INITIALISIEREN
+PR_BASE_INIT( )
+;
+IF (PR_BASE_SL==HM_BASE_SL) THEN
+  PR_Msg(1,#StateMsg)
+ELSE
+  IF (n_PRS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_PRS_Handle[1])
+    n_PRS_Handle[1]=-1
+  ENDIF
+ENDIF
+;
+;Sammelstoerung
+$OUT[PR_BASE_SL+O_PR_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_PR_Sammel]
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD PR_BASE_INIT
+DEF PR_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;PR SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_PR_BASE_SL)
+IF (BaseResult<>0) THEN
+  CF_PR_BASE_SL=HM_BASE_SL
+  PR_BASE_SL=HM_BASE_SL
+ELSE
+  PR_BASE_SL=CF_PR_BASE_SL
+ENDIF
+;
+;PR MASTER ADRESSIERUNG
+PR_BASE_MA=2153                            
+;
+END
+;ENDFOLD (PR_BASE_INIT)
+;***************************************************
+;FOLD PR_Meldungen
+DEF PR_Msg(msg_nr :IN, MsgTyp :IN, PRNr :IN)
+INT msg_nr, PRNr, Answer
+DECL PRS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "PR_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("PRNr")==#initialized then
+  SWITCH PRNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_PRS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="PR: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_PRS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_PRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_PRS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_PRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (PR Meldungen)

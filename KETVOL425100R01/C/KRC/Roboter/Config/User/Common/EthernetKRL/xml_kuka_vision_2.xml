@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    *****************************************
+    XML-File for Comunication Robot-Camera
+    XML_File for Receive from Camera
+    *****************************************
+-->
+<ETHERNETKRL>
+    <CONFIGURATION>
+        <EXTERNAL>
+            <!--IP Adress and Port of Camera-->
+            <IP>10.210.193.226</IP>
+            <PORT>3001</PORT>
+        </EXTERNAL>
+        <INTERNAL>
+            <!--Alive Flag for Connection=TRUE-->
+            <ALIVE Set_Flag="873" Ping="200"/>
+            <MESSAGES Display="disabled" Logging="debug"/>
+			<ENVIRONMENT>Program</ENVIRONMENT>
+        </INTERNAL>
+    </CONFIGURATION>
+    <RECEIVE>
+        <XML>
+            <ELEMENT Tag="VISION/TEL_ID" Type="INT" />
+            <ELEMENT Tag="VISION/STAT_ID" Type="INT" />
+            <ELEMENT Tag="VISION/ERR_ID" Type="INT" />
+            <ELEMENT Tag="VISION/ERR_TEXT" Type="STRING"/>
+            <ELEMENT Tag="VISION/POS" Type="FRAME" />
+            <ELEMENT Tag="VISION/PAR" Type="STRING" />
+            <ELEMENT Tag="VISION/T" Type="STRING" />
+            <!--Flag for Data Transfer completed-->
+            <ELEMENT Tag="VISION" Set_Flag="871" />
+        </XML>
+    </RECEIVE>
+</ETHERNETKRL>

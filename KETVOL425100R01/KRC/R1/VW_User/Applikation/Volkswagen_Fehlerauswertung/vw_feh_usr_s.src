@@ -1,0 +1,217 @@
+&ACCESS R
+&REL 10
+&COMMENT KS26 (VW)
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = VW_User/Applikation/Volkswagen_Fehlerauswertung
+DEF VW_FEH_USR_S( )
+;
+;***************************************************
+;*Technologiepaket Fehlerbaustein                  *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: LZ                                   *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 2018-11-13 LZ Zaehlernr. i33 geaendert in i29   *
+;*               Adressen Motorschutz angepasst    *
+;* 2019-03-19 BM Fehlernummern 121-140 optimiert   *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD VW_FE_INIT
+GLOBAL DEF VW_FE_INIT()
+;
+;FOLD Version Techpaket
+Tech_Feh.Name[]="KS26.02.005_20190322"
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD VWFEH_LOOP
+GLOBAL DEF VWFEH_LOOP()
+;
+VW_FEH_NR=0
+;
+IF MIT_VW_WASS or not MIT_VW_WASS OR ($FLAG[F_O_WASSER] OR OHNE_VW_WAS) AND NOT B_MIT_KW_VW THEN  
+  ;Fehlernummer 101 Rip 1 Niederdruck fehlt
+  IF (NOT $IN[I_RIP_KO_ND[1]] AND NOT B_OHNE_ND[1]) THEN
+    VW_FEH_NR=101
+  ENDIF
+  ;Fehlernummer 102 Rip 2 Niederdruck fehlt
+  IF (NOT $IN[I_RIP_KO_ND[2]] AND B_MIT_RIP[2] AND NOT B_OHNE_ND[2]) THEN
+    VW_FEH_NR=102
+  ENDIF
+  ;Fehlernummer 103 Rip 3 Niederdruck fehlt
+  IF(NOT $IN[I_RIP_KO_ND[3]] AND B_MIT_RIP[3] AND NOT B_OHNE_ND[3]) THEN
+    VW_FEH_NR=103
+  ENDIF
+  ;Hilfsmerker Medienueberwachung aktivieren
+  b_MedUebwEin=$OUT[O_R_RK100] AND $OUT[O_R_Auto] AND $IN[I_R_KW_EIN] AND $OUT[O_R_KW_EIN]
+  ;Fehlernummer 111 Rip 1 Kein Durchfluss Kuehlwasser
+  IF(b_Wmin[1] AND NOT $FLAG[F_KW_Wart_AUS] AND NOT ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS]) AND b_MedUebwEin) THEN
+    IF ($OUT[O_RIP_KW[1]] AND (($ROB_TIMER - RobTimer_Delay[1]) > K_MELD_DELAY)) THEN
+      VW_FEH_NR=111
+    ENDIF
+  ELSE
+    RobTimer_Delay[1] = 0
+    RobTimer_Delay[1] = $ROB_TIMER
+  ENDIF
+  ;Fehlernummer 112 Rip 2 Kein Durchfluss Kuehlwasser
+  IF(b_Wmin[2] AND B_MIT_RIP[2] AND b_MedUebwEin) THEN
+    IF ($OUT[O_RIP_KW[2]] AND (($ROB_TIMER - RobTimer_Delay[2]) > K_MELD_DELAY)) THEN
+      VW_FEH_NR=112
+    ENDIF
+  ELSE
+    RobTimer_Delay[2] = 0
+    RobTimer_Delay[2] = $ROB_TIMER
+  ENDIF
+  ;Fehlernummer 113 Rip 3 Kein Durchfluss Kuehlwasser
+  IF(b_Wmin[3] AND B_MIT_RIP[3] AND b_MedUebwEin) THEN
+    IF ($OUT[O_RIP_KW[3]] AND (($ROB_TIMER - RobTimer_Delay[3]) > K_MELD_DELAY)) THEN
+      VW_FEH_NR=113
+    ENDIF
+  ELSE
+    RobTimer_Delay[3] = 0
+    RobTimer_Delay[3] = $ROB_TIMER
+  ENDIF
+  ;Prior 4 Fehlernummer 106 Rip 1 Kuehlwasser maximaler Durchfluss
+  IF WASSERSTOE THEN
+    IF b_sWmax[1] THEN
+      VW_FEH_NR=106
+    ENDIF
+    ;Prior 3 Fehlernummer 107 Rip 2 Kuehlwasser maximaler Durchfluss
+    IF (b_sWmax[2] AND B_MIT_RIP[2]) THEN
+      VW_FEH_NR=107
+    ENDIF
+    ;Prior 2 Fehlernummer 108 Rip 3 Kuehlwasser maximaler Durchfluss
+    IF(b_sWmax[3] AND B_MIT_RIP[3]) THEN
+      VW_FEH_NR=108
+    ENDIF
+  ENDIF
+ENDIF
+;
+;Prio 1 Fehlernummer 20 Medien extern AUS
+IF(MED_EXT_AUS) THEN
+  VW_FEH_NR=20
+ENDIF
+;
+; Stoppventilfehler entdeckt: Ausgabe Fehler Diagnosefunktion FEH_NR 205-207 für SZ1-3 an SPS
+IF $IN[SZ_BASE_MA[1]+I_SZ_DX_ERR] AND NOT MED_EXT_AUS THEN
+  VW_FEH_NR=205
+ENDIF
+IF $IN[SZ_BASE_MA[2]+I_SZ_DX_ERR] AND NOT MED_EXT_AUS THEN
+  VW_FEH_NR=206
+ENDIF
+IF $IN[SZ_BASE_MA[3]+I_SZ_DX_ERR] AND NOT MED_EXT_AUS THEN
+  VW_FEH_NR=207
+ENDIF
+;
+;
+IF VW_FEH_NR==0 THEN 
+  ;Fehlernummer 121 Motorschutz K Fraeser 1 Zange
+  IF ($FLAG[F_FRG_KF[1]] OR $FLAG[F_FRG_KF[2]]) AND NOT $FLAG[F_m_KW[1]] AND NOT $IN[I_VW_KFMOT1]  THEN 
+    VW_FEH_NR=121
+  ENDIF
+  ;Fehlernummer 122 Motorschutz K Fraeser 2 Zange
+  IF $FLAG[F_FRG_KF[3]] AND NOT $IN[I_VW_KFMOT2] THEN
+    VW_FEH_NR=122
+  ENDIF
+  ;Fehlernummer 123 Motorschutz K Fraeser 3 Zange
+  IF $FLAG[F_FRG_KF[4]] AND NOT $IN[I_VW_KFMOT3] THEN
+    VW_FEH_NR=123
+  ENDIF
+  ;Fehlernummer 124 Motorschutz Schwenker 1
+  IF $FLAG[F_FRG_KF[2]] AND NOT $IN[I_VW_KSMOT1] THEN
+    VW_FEH_NR=124
+  ENDIF
+  ;Fehlernummer 125 Motorschutz Schwenker 2
+  IF $FLAG[F_FRG_KF[3]] AND NOT $IN[I_VW_KSMOT2] THEN
+    VW_FEH_NR=125
+  ENDIF
+  ;Fehlernummer 126 Motorschutz Schwenker 3
+  IF $FLAG[F_FRG_KF[4]] AND NOT $IN[I_VW_KSMOT3] THEN
+    VW_FEH_NR=126
+  ENDIF
+  IF ($FLAG[F_FRG_KF[1]] OR $FLAG[F_FRG_KF[2]]) THEN
+    ;Fehlernummer 127 Motorschutz Kappenwechsler 1  F_SZ1_an_KF2
+    IF NOT $FLAG[F_SZ1_an_KF2] AND NOT $FLAG[F_SZ1_an_KF3] AND $FLAG[F_m_KW[1]] AND NOT $IN[I_VW_KWMOT1]  THEN 
+      VW_FEH_NR=127
+    ENDIF
+    ;Fehlernummer 128 Motorschutz Kappenwechsler 2
+    IF $FLAG[F_SZ1_an_KF2] AND NOT $FLAG[F_SZ1_an_KF3] AND $FLAG[F_m_KW[2]] AND NOT $IN[I_VW_KWMOT2]  THEN 
+      VW_FEH_NR=128
+    ENDIF
+    ;Fehlernummer 129 Motorschutz Kappenwechsler 3
+    IF NOT $FLAG[F_SZ1_an_KF2] AND $FLAG[F_SZ1_an_KF3]  AND $FLAG[F_m_KW[3]] AND NOT $IN[I_VW_KWMOT3]  THEN 
+      VW_FEH_NR=129
+    ENDIF
+  ENDIF
+  IF ($FLAG[F_WPS_WDHFRS]==TRUE) AND (($FLAG[F_KF_mit_VE[1]]==FALSE) OR ($FLAG[F_EZ_SP1_ROB]==TRUE)) THEN ;ToDo F_EZ_SP1_ROB (F530) muss derzeit noch manuell in Makro 57 gesetzt werden!
+    ;Fehlernummer 130 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ1
+    IF ($FLAG[F_SZ_Anw_SF[1]] OR $FLAG[F_SZ_Anw_NF[1]]) AND $FLAG[F_SZ1_ANW_Z[1]] THEN
+      VW_FEH_NR=130
+    ENDIF
+    ;Fehlernummer 131 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ2
+    IF ($FLAG[F_SZ_Anw_SF[1]] OR $FLAG[F_SZ_Anw_NF[1]]) AND $FLAG[F_SZ1_ANW_Z[2]] THEN
+      VW_FEH_NR=131
+    ENDIF
+    ;Fehlernummer 132 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ3
+    IF ($FLAG[F_SZ_Anw_SF[1]] OR $FLAG[F_SZ_Anw_NF[1]]) AND $FLAG[F_SZ1_ANW_Z[3]] THEN
+      VW_FEH_NR=132
+    ENDIF
+    ;Fehlernummer 133 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ4
+    IF ($FLAG[F_SZ_Anw_SF[1]] OR $FLAG[F_SZ_Anw_NF[1]]) AND $FLAG[F_SZ1_ANW_Z[4]] THEN
+      VW_FEH_NR=133
+    ENDIF
+  ENDIF
+  ;Fehlernummer 134 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ5
+  ;Fehlernummer 135 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ6
+  ;Fehlernummer 136 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ7
+  ;Fehlernummer 137 autom. Quittierung Wiederholfraesen ROB EZ1/SP1 SZ8
+  IF ($FLAG[F_WPS_WDHFRS]==TRUE) THEN
+    ;Fehlernummer 138 autom. Quittierung Wiederholfraesen stat. EZ1/SP1
+    IF ($FLAG[F_SZ_Anw_SF[1]] OR $FLAG[F_SZ_Anw_NF[1]]) AND ($FLAG[F_KF_mit_VE[1]]==TRUE) AND ($FLAG[F_EZ_SP1_ROB]==FALSE) THEN
+      VW_FEH_NR=138
+    ENDIF
+    ;Fehlernummer 139 autom. Quittierung Wiederholfraesen stat. EZ2/SP2
+    IF ($FLAG[F_SZ_Anw_SF[2]] OR $FLAG[F_SZ_Anw_NF[2]]) AND ($FLAG[F_KF_mit_VE[2]]==TRUE) THEN
+      VW_FEH_NR=139
+    ENDIF
+    ;Fehlernummer 140 autom. Quittierung Wiederholfraesen stat. EZ3/SP3
+    IF ($FLAG[F_SZ_Anw_SF[3]] OR $FLAG[F_SZ_Anw_NF[3]]) AND ($FLAG[F_KF_mit_VE[3]]==TRUE) THEN
+      VW_FEH_NR=140
+    ENDIF
+  ENDIF
+  ;Fehlernummer 141 Greifer-Ventilinsel 1 Niederdruck fehlt
+  IF (NOT $IN[I_G_ND_Vorh[1]] AND MIT_ND_Abfr_V[1] AND NOT $FLAG[F_KW_Wart_AUS] AND NOT ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS])) THEN
+    VW_FEH_NR=141
+  ENDIF
+  ;Fehlernummer 142 Greifer-Ventilinsel 2 Niederdruck fehlt
+  IF (NOT $IN[I_G_ND_Vorh[2]] AND MIT_ND_Abfr_V[2] AND NOT $FLAG[F_KW_Wart_AUS] AND NOT ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS])) THEN
+    VW_FEH_NR=142
+  ENDIF
+  ;Fehlernummer 143 Greifer-Ventilinsel 3 Niederdruck fehlt
+  IF (NOT $IN[I_G_ND_Vorh[3]] AND MIT_ND_Abfr_V[3] AND NOT $FLAG[F_KW_Wart_AUS] AND NOT ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS])) THEN
+    VW_FEH_NR=143
+  ENDIF
+ENDIF
+;Fehlerausgabe
+IF VW_FEH_NR==0 THEN 
+  IF ($count_i[I_ERR_Nr] > 0) AND ($count_i[I_ERR_Nr] < 256) THEN 
+     VW_FEH_BIN_A=$count_i[I_ERR_Nr]
+  ELSE 
+    VW_FEH_BIN_A=0   
+  ENDIF
+ELSE   
+  VW_FEH_BIN_A=VW_FEH_NR
+ENDIF  
+;
+END
+;
+;ENDFOLD (FEHLERANZEIGE)
+;
+;***************************************************

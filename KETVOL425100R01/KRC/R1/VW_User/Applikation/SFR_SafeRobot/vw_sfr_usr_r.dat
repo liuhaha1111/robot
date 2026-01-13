@@ -1,0 +1,40 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/SFR_SafeRobot
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_SFR_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket SFR SafeRobot                   *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD SafeRobot
+;User Breaktest variables
+INT U_UpNo_ToBrkTestPath=-1    ;Number of UP for brake test
+INT U_UpNo_ToBrkTestPark=-1    ;Number of UP for parkposition (braketest)
+INT U_FlagNo_RunBrkTest=990
+INT U_FlagNo_GoToPark=991
+;User mastering reference variables
+INT U_nLapsedTimeout=30
+INT U_FlagNo_GoToMasRefTest=989
+INT U_UpNo_ToMasRefPath=-1     ;Number of UP for mastering reference switch 1
+INT U_UpNo_ToMasRefPath2=-1    ;Number of UP for mastering reference switch 2
+INT U_UpNo_ToMasRefPath3=-1    ;Number of UP for mastering reference switch 3
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM SFRR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

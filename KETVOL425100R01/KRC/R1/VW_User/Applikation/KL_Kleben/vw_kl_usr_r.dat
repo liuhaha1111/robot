@@ -1,0 +1,54 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/KL_Kleben
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_KL_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket KL Kleben                       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI I/PG-C61         *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;*                                                 *
+;***************************************************
+;
+;FOLD KL
+;
+GLOBAL INT KL_Time=0
+;KL Programmnummer
+SIGNAL SI_KL1_Prg_Nr $IN[1505] TO $IN[1512]
+SIGNAL SI_KL2_Prg_Nr $IN[1569] TO $IN[1576]
+SIGNAL SI_KL3_Prg_Nr $IN[1633] TO $IN[1640]
+;KL Parametertafel
+SIGNAL SI_KL1_Para_Nr $IN[1513] TO $IN[1520]
+SIGNAL SI_KL2_Para_Nr $IN[1577] TO $IN[1584]
+SIGNAL SI_KL3_Para_Nr $IN[1641] TO $IN[1648]
+;KL Pistolennummer
+SIGNAL SI_KL1_Pistolen_Nr $IN[1521] TO $IN[1523]
+SIGNAL SI_KL2_Pistolen_Nr $IN[1585] TO $IN[1587]
+SIGNAL SI_KL3_Pistolen_Nr $IN[1649] TO $IN[1651]
+;KL Programmnummer
+SIGNAL SO_KL1_Prg_Nr $OUT[1505] TO $OUT[1512]
+SIGNAL SO_KL2_Prg_Nr $OUT[1569] TO $OUT[1576]
+SIGNAL SO_KL3_Prg_Nr $OUT[1633] TO $OUT[1640]
+;KL Parametertafel
+SIGNAL SO_KL1_Para_Nr $OUT[1513] TO $OUT[1520]
+SIGNAL SO_KL2_Para_Nr $OUT[1577] TO $OUT[1584]
+SIGNAL SO_KL3_Para_Nr $OUT[1641] TO $OUT[1648]
+;KL Pistolennummer
+SIGNAL SO_KL1_Pistolen_Nr $OUT[1521] TO $OUT[1523]
+SIGNAL SO_KL2_Pistolen_Nr $OUT[1585] TO $OUT[1587]
+SIGNAL SO_KL3_Pistolen_Nr $OUT[1649] TO $OUT[1651]
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM KLR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

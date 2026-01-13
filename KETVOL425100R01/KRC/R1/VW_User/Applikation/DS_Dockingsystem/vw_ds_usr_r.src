@@ -1,0 +1,691 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/DS_Dockingsystem
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_DS_USR_R( )
+;
+;***************************************************
+;*Technologiepaket DS Dockingsystem                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD DS Interface
+GLOBAL DEF DS_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i,ret, RobTimerStart
+BOOL bRet
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    SEL_RES=SELECT(#MAKRO,39,TRUE,,,,,FALSE)
+    ;Merker Init
+    ;DS_MERKER_INIT( )
+    ;
+    ;Hilfsmerker fuer Interrupt 29
+    IF (DS_INT_Makro==TRUE) THEN
+      HM_INT_Makro=TRUE
+      DS_INT_Makro=FALSE
+    ENDIF
+    ;
+    ;Start Konfig Makro
+    INTERRUPT OFF 29
+    GLOBAL INTERRUPT DECL 29 WHEN DS_INT_Makro DO DS_Konfig_Makro()
+    INTERRUPT ON 29
+    INTERRUPT OFF 30
+    GLOBAL INTERRUPT DECL 30 WHEN DS_INT_ExAx DO DS_ExAx_SoftEnd()
+    INTERRUPT ON 30
+    ;
+    ;Hilfsmerker fuer Interrupt 29
+    IF (HM_INT_Makro==TRUE) THEN
+      WAIT SEC 0.1
+      HM_INT_Makro=FALSE
+      DS_INT_Makro=TRUE
+    ENDIF
+    ;
+    IF (ExAx_Docking<>0) AND NOT $IN[I_DS_angedockt] AND (Anz_BHF_FREI==0) THEN
+      DS_ExAx_SoftEnd()
+    ENDIF
+    ;
+    IF (DOCK_CZ==TRUE) AND MIT_CZS[1] THEN
+      SWITCH ANZ_CZ
+        CASE 1
+          IF $IN[IN_BHF_belegt[BHF_CZ_Serv_Z1]] THEN
+            $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+            $OUT[CZS_BASE_MA[1]+O_CZS_Re_aus]=TRUE
+          ENDIF
+        CASE 2
+          IF $IN[IN_BHF_belegt[BHF_CZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z2]] THEN
+            $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+            $OUT[CZS_BASE_MA[1]+O_CZS_Re_aus]=TRUE
+          ENDIF
+        CASE 3
+          IF $IN[IN_BHF_belegt[BHF_CZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z3]] THEN
+            $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+            $OUT[CZS_BASE_MA[1]+O_CZS_Re_aus]=TRUE
+          ENDIF
+        CASE 4
+          IF $IN[IN_BHF_belegt[BHF_CZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z3]] AND $IN[IN_BHF_belegt[BHF_CZ_Serv_Z4]] THEN
+            $OUT[CZS_BASE_MA[1]+O_CZS_FRG]=TRUE
+            $OUT[CZS_BASE_MA[1]+O_CZS_Re_aus]=TRUE
+          ENDIF
+      ENDSWITCH
+    ENDIF    
+    IF (DOCK_NZ==TRUE) AND MIT_NZS[1] THEN
+      SWITCH ANZ_NZ
+        CASE 1
+          IF $IN[IN_BHF_belegt[BHF_NZ_Serv_Z1]] THEN
+            $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+            $OUT[NZS_BASE_MA[1]+O_NZS_Re_aus]=TRUE
+          ENDIF
+        CASE 2
+          IF $IN[IN_BHF_belegt[BHF_NZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z2]] THEN
+            $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+            $OUT[NZS_BASE_MA[1]+O_NZS_Re_aus]=TRUE
+          ENDIF
+        CASE 3
+          IF $IN[IN_BHF_belegt[BHF_NZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z3]] THEN
+            $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+            $OUT[NZS_BASE_MA[1]+O_NZS_Re_aus]=TRUE
+          ENDIF
+        CASE 4
+          IF $IN[IN_BHF_belegt[BHF_NZ_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z3]] AND $IN[IN_BHF_belegt[BHF_NZ_Serv_Z4]] THEN
+            $OUT[NZS_BASE_MA[1]+O_NZS_FRG]=TRUE
+            $OUT[NZS_BASE_MA[1]+O_NZS_Re_aus]=TRUE
+          ENDIF
+      ENDSWITCH
+    ENDIF
+    IF (DOCK_RW==TRUE) AND MIT_RW[1] THEN
+    SWITCH ANZ_RW
+      CASE 1
+        IF $IN[IN_BHF_belegt[BHF_RW_Serv_Z1]] THEN
+          $OUT[RW_BASE_MA[1]+O_RW_FRG]=TRUE
+          $OUT[RW_BASE_MA[1]+O_RW_Re_aus]=TRUE
+        ENDIF
+      CASE 2
+        IF $IN[IN_BHF_belegt[BHF_RW_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z2]] THEN
+          $OUT[RW_BASE_MA[1]+O_RW_FRG]=TRUE
+          $OUT[RW_BASE_MA[1]+O_RW_Re_aus]=TRUE
+        ENDIF
+      CASE 3
+        IF $IN[IN_BHF_belegt[BHF_RW_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z3]] THEN
+          $OUT[RW_BASE_MA[1]+O_RW_FRG]=TRUE
+          $OUT[RW_BASE_MA[1]+O_RW_Re_aus]=TRUE
+        ENDIF
+      CASE 4
+        IF $IN[IN_BHF_belegt[BHF_RW_Serv_Z1]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z2]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z3]] AND $IN[IN_BHF_belegt[BHF_RW_Serv_Z4]] THEN
+          $OUT[RW_BASE_MA[1]+O_RW_FRG]=TRUE
+          $OUT[RW_BASE_MA[1]+O_RW_Re_aus]=TRUE
+        ENDIF
+    ENDSWITCH
+  ENDIF
+  IF (DOCK_SZ==TRUE) AND (MIT_EZ[1] OR MIT_KE[1]) THEN
+    SWITCH ANZ_EZ
+      CASE 1
+        IF $IN[IN_BHF_belegt[BHF_EZ_Z1]] THEN
+          $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+          $OUT[SZ_BASE_MA[1]+O_SZ_Re_aus]=TRUE
+        ENDIF
+      CASE 2
+        IF $IN[IN_BHF_belegt[BHF_EZ_Z1]] AND $IN[IN_BHF_belegt[BHF_EZ_Z2]] THEN
+          $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+          $OUT[SZ_BASE_MA[1]+O_SZ_Re_aus]=TRUE
+        ENDIF
+      CASE 3
+        IF $IN[IN_BHF_belegt[BHF_EZ_Z1]] AND $IN[IN_BHF_belegt[BHF_EZ_Z2]] AND $IN[IN_BHF_belegt[BHF_EZ_Z3]] THEN
+          $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+          $OUT[SZ_BASE_MA[1]+O_SZ_Re_aus]=TRUE
+        ENDIF
+      CASE 4
+        IF $IN[IN_BHF_belegt[BHF_EZ_Z1]] AND $IN[IN_BHF_belegt[BHF_EZ_Z2]] AND $IN[IN_BHF_belegt[BHF_EZ_Z3]] AND $IN[IN_BHF_belegt[BHF_EZ_Z4]] THEN
+          $OUT[SZ_BASE_MA[1]+O_SZ_FRG]=TRUE
+          $OUT[SZ_BASE_MA[1]+O_SZ_Re_aus]=TRUE
+        ENDIF
+    ENDSWITCH
+  ENDIF
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;FOLD Docking bei Profinet
+    SWITCH PAR2
+      CASE 50
+        bRet=Clear_KrlMsg(-99)
+      CASE 60
+        bRet=Clear_KrlMsg(-99)
+      DEFAULT
+    ENDSWITCH
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    ;FOLD Docking Konfiguration
+    ;
+    IF (MIT_DS==TRUE) THEN
+      IF (PAR1==1) THEN
+        Dock_Init=TRUE
+      ELSE
+        Dock_Init=FALSE
+      ENDIF
+      ;
+      IF Dock_Init THEN
+        ;
+        Dock_Init=FALSE
+        WAIT FOR (B_DS_BHF_ausw_aktiv==FALSE)
+        DS_HM_Done=FALSE
+        DS_KONFIG_IO=FALSE
+        ;
+        DOCK_SZ=FALSE
+        DOCK_NZ=FALSE
+        DOCK_NZ_hyd=FALSE
+        DOCK_CZ=FALSE
+        DOCK_RW=FALSE
+        ;
+        Anz_BHF=0
+        ANZ_EZ=0
+        ANZ_NZ=0
+        ANZ_NZ_hyd=0
+        ANZ_CZ=0
+        ANZ_RW=0
+        ;
+        AntTyp=0
+        ZangenNr=0
+        ExtAx=0
+        ;
+        EZ_DockAxZ1=0
+        EZ_DockAxZ2=0
+        EZ_DockAxZ3=0
+        EZ_DockAxZ4=0
+        ;
+        NZ_DockAxZ1=0
+        NZ_DockAxZ2=0
+        NZ_DockAxZ3=0
+        NZ_DockAxZ4=0
+        ;
+        CZ_DockAxZ1=0
+        CZ_DockAxZ2=0
+        CZ_DockAxZ3=0
+        CZ_DockAxZ4=0
+        ;
+        RW_DockAxZ1=0
+        RW_DockAxZ2=0
+        RW_DockAxZ3=0
+        RW_DockAxZ4=0
+        ;
+        ExtAx1Hilf=0
+        ExtAx2Hilf=0
+        ExtAx3Hilf=0
+        ExtAx4Hilf=0
+        ExtAx5Hilf=0
+        ExtAx6Hilf=0
+        ;
+        AxFehler=FALSE
+        ;
+        ExtAx1Fehler1=FALSE
+        ExtAx2Fehler1=FALSE
+        ExtAx3Fehler1=FALSE
+        ExtAx4Fehler1=FALSE
+        ExtAx5Fehler1=FALSE
+        ExtAx6Fehler1=FALSE
+        ;
+        ExtAx1Fehler2=FALSE
+        ExtAx2Fehler2=FALSE
+        ExtAx3Fehler2=FALSE
+        ExtAx4Fehler2=FALSE
+        ExtAx5Fehler2=FALSE
+        ExtAx6Fehler2=FALSE
+        ;
+        BHF_EZ_Z1=0
+        BHF_EZ_Z2=0
+        BHF_EZ_Z3=0
+        BHF_EZ_Z4=0
+        ;
+        BHF_NZ_Serv_Z1=0
+        BHF_NZ_Serv_Z2=0
+        BHF_NZ_Serv_Z3=0
+        BHF_NZ_Serv_Z4=0
+        ;
+        BHF_NZ_hyd_Z1=0
+        BHF_NZ_hyd_Z2=0
+        BHF_NZ_hyd_Z3=0
+        BHF_NZ_hyd_Z4=0
+        ;
+        BHF_CZ_Serv_Z1=0
+        BHF_CZ_Serv_Z2=0
+        BHF_CZ_Serv_Z3=0
+        BHF_CZ_Serv_Z4=0
+        ;
+        BHF_RW_Serv_Z1=0
+        BHF_RW_Serv_Z2=0
+        BHF_RW_Serv_Z3=0
+        BHF_RW_Serv_Z4=0
+        ;
+        PROCPAR[BHF_Off]=0
+        ;
+        FOR i=1 TO 36
+          PROCPAR[BHF_Off+i]=0
+          IN_BHF_belegt[i]=4081
+        ENDFOR
+      ENDIF
+      ;
+      SWITCH PAR4
+        CASE 1100 ;EZ1
+          AntTyp=1000
+          SteuNr=100
+          DOCK_SZ=TRUE
+        CASE 1200 ;EZ2
+          AntTyp=1000
+          SteuNr=200
+          DOCK_SZ=TRUE
+        CASE 1300 ;EZ3
+          AntTyp=1000
+          SteuNr=300
+          DOCK_SZ=TRUE
+        CASE 2100 ;NZ1-Servo
+          AntTyp=2000
+          SteuNr=100
+          DOCK_NZ=TRUE
+        CASE 2200 ;NZ2-Servo
+          AntTyp=2000
+          SteuNr=200
+          DOCK_NZ=TRUE  
+        CASE 3100 ;CZ1-Servo
+          AntTyp=3000
+          SteuNr=100
+          DOCK_CZ=TRUE
+        CASE 3200 ;CZ2-Servo
+          AntTyp=3000
+          SteuNr=200
+          DOCK_CZ=TRUE
+        CASE 4100 ;NZ1-hydraulisch
+          AntTyp=4000
+          SteuNr=100
+          DOCK_NZ_hyd=TRUE
+        CASE 4200 ;NZ2-hydraulisch
+          AntTyp=4000
+          SteuNr=100
+          DOCK_NZ_hyd=TRUE
+        CASE 5100 ;Greifer/sonstige
+          AntTyp=5000
+          SteuNr=100
+        CASE 6100 ;RW1
+          AntTyp=6000
+          SteuNr=100
+          DOCK_RW=TRUE
+        CASE 6200 ;RW1
+          AntTyp=6000
+          SteuNr=100
+          DOCK_RW=TRUE
+      ENDSWITCH
+      ;
+      SWITCH PAR5
+        CASE 0 ;ZangenNr0
+          ZangenNr=0
+        CASE 1 ;ZangenNr1
+          ZangenNr=10
+        CASE 2 ;ZangenNr2
+          ZangenNr=20
+        CASE 3 ;ZangenNr3
+          ZangenNr=30
+        CASE 4 ;ZangenNr4
+          ZangenNr=40
+      ENDSWITCH
+      ;
+      Anz_BHF=Anz_BHF+1
+      ;
+      IF (Anz_BHF<>PAR2) OR (PROCPAR[BHF_Off+PAR2]<>0) THEN
+        WHILE (PROCPAR[BHF_Off+PAR2]<>0)
+          DS_Msg(2,#QuitMsg) ;BHF Doppeldeklaration
+        ENDWHILE
+        WHILE (Anz_BHF<PAR2)
+          DS_Msg(1,#QuitMsg) ;BHF Reihenfolge falsch
+        ENDWHILE
+      ELSE
+        IF ((AntTyp==1000) OR (AntTyp==2000) OR (AntTyp==3000) OR (AntTyp==4000) OR (AntTyp==6000)) AND ((SteuNr==0) OR (ZangenNr==0)) THEN
+          IF (SteuNr==0) THEN
+            DS_Msg((30+(AntTyp/1000)),#QuitMsg)
+          ENDIF
+          IF (ZangenNr==0) THEN     
+            DS_Msg((40+(AntTyp/1000)),#QuitMsg)
+          ENDIF  
+        ELSE
+        PROCPAR[BHF_Off+PAR2]=(AntTyp+SteuNr+ZangenNr)
+        IN_BHF_belegt[PAR2]=PAR3
+        AntTyp=0
+        SteuNr=0
+        ZangenNr=0
+      ENDIF
+      ENDIF
+      IF (PAR1==2) THEN
+        DS_setzen=TRUE
+      ENDIF
+      ;
+      IF (DS_setzen==TRUE) THEN
+        WAIT FOR (DS_KONFIG_IO==TRUE)
+        DS_setzen=FALSE
+        DS_HM_Done=FALSE
+        PROCPAR[BHF_Off]=1
+      ENDIF
+    ELSE
+      DS_Msg(3,#QuitMsg)
+    ENDIF      
+    ;
+    ;ENDFOLD
+    ;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (DS Interface)
+;
+;***************************************************
+;FOLD DS PN Interface
+GLOBAL DEF DS_PN_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT I,ret
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    ;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    ;Docking bei Profinet
+    ret=99
+    SWITCH PAR2
+      CASE 1
+        IF (PAR3==1) THEN
+          Ret=ioctl("PNIO-CTRL",50,PAR1)
+        ENDIF
+        IF (PAR3==2) THEN
+          Ret=ioctl("PNIO-CTRL",1050,PAR1)
+        ENDIF
+      CASE 2
+        IF (PAR3==1) THEN
+          Ret=ioctl("PNIO-CTRL",60,PAR1)
+        ENDIF
+        IF (PAR3==2) THEN
+          Ret=ioctl("PNIO-CTRL",1060,PAR1)
+        ENDIF
+      DEFAULT
+        DS_Msg(24,#QuitMsg) ;P2 falscher Wert
+    ENDSWITCH
+    SWITCH ret
+      CASE 0  ; ioctl OK
+        IF (PAR2==1) THEN
+          IF $OUT[O_R_Hand] THEN
+            DS_Msg(20,#NotifyMsg)
+	       ENDIF
+        ENDIF        
+        IF (PAR2==2) THEN
+          IF $OUT[O_R_Hand] THEN
+            DS_Msg(21,#NotifyMsg)
+          ENDIF
+        ENDIF
+      CASE 1  ;ioctl Timeout
+        DS_Msg(22,#QuitMsg)
+      CASE 2  ;ioctl falscher Parameter
+        DS_Msg(23,#QuitMsg)
+      DEFAULT
+    ENDSWITCH	
+    ;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+    ;
+    ;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  CASE #USR_MAKRO
+    ;FOLD Makro
+    ;
+    ;Docking bei Profinet
+    ret=99
+    IF (B_Anlauf==FALSE) THEN
+      SWITCH PAR2
+        CASE 1
+          IF (PAR3==1) THEN
+            Ret=ioctl("PNIO-CTRL",50,PAR1)
+          ENDIF
+          IF (PAR3==2) THEN
+            Ret=ioctl("PNIO-CTRL",1050,PAR1)
+          ENDIF
+        CASE 2
+          IF (PAR3==1) THEN
+            Ret=ioctl("PNIO-CTRL",60,PAR1)
+          ENDIF
+          IF (PAR3==2) THEN
+            Ret=ioctl("PNIO-CTRL",1060,PAR1)
+          ENDIF
+        DEFAULT
+          DS_Msg(24,#QuitMsg) ;P2 falscher Wert
+      ENDSWITCH
+      SWITCH ret
+        CASE 0  ; ioctl OK
+          IF (PAR2==1) THEN
+            IF $OUT[O_R_Hand] THEN
+              DS_Msg(20,#NotifyMsg)
+	         ENDIF
+          ENDIF        
+          IF (PAR2==2) THEN
+            IF $OUT[O_R_Hand] THEN
+              DS_Msg(21,#NotifyMsg)
+            ENDIF
+          ENDIF
+        CASE 1  ;ioctl Timeout
+          DS_Msg(22,#QuitMsg)
+        CASE 2  ;ioctl falscher Parameter
+          DS_Msg(23,#QuitMsg)
+        DEFAULT
+      ENDSWITCH
+    ENDIF
+    ;
+    ;ENDFOLD (Makro)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (DS PN Interface)
+;
+;***************************************************
+;FOLD DS_MERKER_INIT
+DEF DS_MERKER_INIT( )
+INT i,CYCFLAG_Offset
+CYCFLAG_Offset=81
+;
+;Dockingkupplung angedockt
+$CYCFLAG[81]=$IN[537] AND $IN[538] AND NOT $IN[539] AND $FLAG[F_DS_Cod_iO]
+END
+;
+;***************************************************
+;FOLD DS_Konfig_Makro
+DEF DS_Konfig_Makro()
+;
+INTERRUPT OFF 29
+SEL_RES=SELECT(#MAKRO,DS_Konfig_MakroNr,TRUE,,,,,FALSE)
+SZConfig() ;CE
+WAIT SEC 0.1
+DS_INT_Makro=FALSE
+DS_Konfig_aktiv=TRUE
+INTERRUPT ON 29
+END
+;
+;***************************************************
+DEF DS_ExAx_SoftEnd()
+;
+INTERRUPT OFF 30
+;
+$SOFTP_END[ExAx_Docking]=500
+$SOFTN_END[ExAx_Docking]=-20
+;
+SZConfig()
+;
+INTERRUPT ON 30
+END
+;
+;***************************************************
+;FOLD DS Meldungen
+;
+DEF DS_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL DSR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "DS (R_Msg)", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_DSR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="DS: Reihenfolge der BHF nicht aufsteigend"
+    CASE 2
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration von BHF"
+    CASE 3
+      USER_MSG.MSG_TXT[]="DS: DS: Docking im Makro57 nicht aktiviert"
+    CASE 4
+      USER_MSG.MSG_TXT[]="DS: Docking Konfiguration wurde gesetzt"
+    CASE 5
+      USER_MSG.MSG_TXT[]=" "
+    CASE 6
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 7
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 1"
+    CASE 8
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 2"
+    CASE 9
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 3"
+    CASE 10
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 4"
+    CASE 11
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 5"
+    CASE 12
+      USER_MSG.MSG_TXT[]="DS: Doppeldeklaration virtuelle Achse 6"
+    CASE 13
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 1 ist zu hoch"
+    CASE 14
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 2 ist zu hoch"
+    CASE 15
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 3 ist zu hoch"
+    CASE 16
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 4 ist zu hoch"
+    CASE 17
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 5 ist zu hoch"
+    CASE 18
+      USER_MSG.MSG_TXT[]="DS: Nr der virtuellen Achse 6 ist zu hoch"
+    CASE 19
+      USER_MSG.MSG_TXT[]="DS: Fuer virtuelle Achse fehlt die Achsnummer"
+    CASE 20
+      USER_MSG.MSG_TXT[]="DS: Docking-PNIO: PNIO Teilnehmer angedockt"
+    CASE 21
+      USER_MSG.MSG_TXT[]="DS: Docking-PNIO: PNIO Teilnehmer abgedockt"
+    CASE 22
+      USER_MSG.MSG_TXT[]="DS: Docking-PNIO: Timeout beim Koppeln"
+    CASE 23
+      USER_MSG.MSG_TXT[]="DS: Docking-PNIO: IOCTL falscher Parameter"
+    CASE 24
+      USER_MSG.MSG_TXT[]="DS: Docking-PNIO: P2 falscher Wert"
+    CASE 30
+	   USER_MSG.MSG_TXT[]="DS: Fehler beim setzen der Docking-Konfiguration"
+    CASE 31
+      USER_MSG.MSG_TXT[]="DS: EZ/SP/KE Konfiguration Steuerungs-Nr ungueltig"
+    CASE 32
+      USER_MSG.MSG_TXT[]="DS: NZ-Servo Konfiguration Steuerungs-Nr ungueltig"
+    CASE 33
+      USER_MSG.MSG_TXT[]="DS: CZ-Servo Konfiguration Steuerungs-Nr ungueltig"
+    CASE 34
+      USER_MSG.MSG_TXT[]="DS: NZ-Hydr./Elektr. Konfiguration Steuerungs-Nr ungueltig"
+    CASE 36
+      USER_MSG.MSG_TXT[]="DS: RW-Servo Konfiguration Steuerungs-Nr ungueltig"
+    CASE 41
+      USER_MSG.MSG_TXT[]="DS: EZ/SP/KE Konfiguration Zangen-Nr ungueltig"
+    CASE 42
+      USER_MSG.MSG_TXT[]="DS: NZ-Servo Konfiguration Zangen-Nr ungueltig"
+    CASE 43
+      USER_MSG.MSG_TXT[]="DS: CZ-Servo Konfiguration Zangen-Nr ungueltig"
+    CASE 44
+      USER_MSG.MSG_TXT[]="DS: NZ-Hydr./Elektr. Konfiguration Zangen-Nr ungueltig"
+    CASE 46
+      USER_MSG.MSG_TXT[]="DS: RW-Servo Konfiguration Zangen-Nr ungueltig"
+    DEFAULT
+      USER_MSG.MSG_TXT[]="DS: unbekannte Meldung"   
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_DSR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_DSR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_DSR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_DSR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_DSR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (DS Meldungen)
+

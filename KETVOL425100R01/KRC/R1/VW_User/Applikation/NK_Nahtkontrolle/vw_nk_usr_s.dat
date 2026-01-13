@@ -1,0 +1,75 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/NK_Nahtkontrolle
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_nk_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket NK Nahtkontrolle                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.17 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_NK CHAR Name[20],INT Datum
+DECL _Tech_NK Tech_NK
+;ENDFOLD
+;***************************************************
+;FOLD NK
+;VARIABLEN INTEGER
+GLOBAL INT Default_NK_BASE_SL=193
+GLOBAL INT CF_NK_BASE_SL=449
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_NK=FALSE
+;SLAVE ADRESSIERUNG
+GLOBAL INT NK_BASE_SL=449 ;NK Indirekte Slave Adressen
+;Slave Eingaenge
+GLOBAL INT I_NK_o_Proz=0
+;Slave Ausgaenge
+GLOBAL INT O_NK_P_Akt=0
+GLOBAL INT O_NK_Af_Asf=3
+GLOBAL INT O_NK_Feh_ST=4
+GLOBAL INT O_NK_Sammel=7
+;SLAVE ADRESSIERUNG
+GLOBAL INT NK_BASE_MA=2577 ;NK Indirekte Master Adressen
+;Master Eingaenge
+GLOBAL INT I_NK_LBit=2 ;2579
+GLOBAL INT I_NK_Ein=8 ;2585
+GLOBAL INT I_NK_ST_iO=14 ;2591
+GLOBAL INT I_NK_ST_NiO=15 ;2592
+GLOBAL INT I_NK_StoKli=29 ;2606
+GLOBAL INT I_NK_Sto24V=30 ;2607
+GLOBAL INT I_NK_Sammel=31 ;2608
+;Master Ausgaenge
+GLOBAL INT O_NK_o_Pro=1 ;2578
+GLOBAL INT O_NK_LBit=2 ;2579
+GLOBAL INT O_NK_ST_Akt=14 ;2591
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit NK
+;VARIABLEN BOOL
+BOOL LBitState=FALSE
+BOOL NK_LBitFeh=FALSE
+;VARIABLEN INTEGER
+INT LBitTimeCnt=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM NKS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_NKS_Handle[100]
+GLOBAL INT n_NKR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

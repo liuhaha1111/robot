@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ConnectionChain xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Roboter/Config/System/Common/Schemes/connectionchain.xsd">
+   <Version Label="">
+		<Info Version="KUKA V8.3"/>
+		<Schema Version="1"/>
+	</Version>
+   <!-- name = Robotername aus knet.xml chain=16bitCRC|SafetyId1|SafetyId2|SafetyId3 (alles als Hex, mit führenden Nullen wenn nötig, ohne Trennzeichen)-->
+   <!-- Connection name="Roboter2" chain="0002"/ -->
+</ConnectionChain>

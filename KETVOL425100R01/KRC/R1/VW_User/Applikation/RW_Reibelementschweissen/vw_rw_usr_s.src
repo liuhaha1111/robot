@@ -1,0 +1,417 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/RW_Reibelementschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_RW_USR_S( )
+;
+;***************************************************
+;*Technologiepaket RW Reibelementschweissen        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT RW 
+GLOBAL DEF RW_INIT( )
+INT i
+;
+;Version Techpaket
+Tech_RW.Name[]="KS26.01.002_20190612"
+;
+;Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_RWS_Handle[i]=-1
+  n_RWR_Handle[i]=-1
+ENDFOR
+;
+;RW BASE ADRESSEN INITIALISIEREN
+RW_BASE_INIT( )
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW RW
+GLOBAL DEF RW_SAW(RWNr :IN)
+INT RWNr
+;
+$OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_ref]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_t_auf]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_t_zu]=FALSE
+$OUT[O_RW_D_Teach]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+$OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=FALSE
+B_RW_AUF_ZU[RWNr]=FALSE
+B_RW_TEACH_REF[RWNr]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RWET RW
+GLOBAL DEF RW_RESET(RWNr :IN)
+INT RWNr
+;
+IF NOT $OUT[RW_BASE_MA[RWNr]+O_RW_Re_aus] THEN
+  $FLAG[F_Frg_Servo]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_ref]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu]=FALSE
+  $OUT[O_RW_D_Teach]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=FALSE
+  B_RW_AUF_ZU[RWNr]=FALSE
+  B_RW_TEACH_REF[RWNr]=FALSE
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL RW 
+GLOBAL DEF RW_CANCEL(RWNr :IN)
+INT RWNr
+;
+IF NOT $OUT[RW_BASE_MA[RWNr]+O_RW_Re_aus] THEN
+  $FLAG[F_Frg_Servo]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_ref]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu]=FALSE
+  $OUT[O_RW_D_Teach]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=FALSE
+  B_RW_AUF_ZU[RWNr]=FALSE
+  B_RW_TEACH_REF[RWNr]=FALSE
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP RW
+GLOBAL DEF RW_LOOP(RWNr :IN)
+BOOL bRet
+INT RWNr
+;
+;RW BASE ADRESSEN INITIALISIEREN
+RW_BASE_INIT( )
+;
+IF (RW_BASE_SL[RWNr]==HM_BASE_SL) THEN
+  RW_Msg((RWNr+3),#StateMsg)
+ELSE
+  IF (n_RWS_Handle[RWNr+3]>-1) THEN
+    bRet=Clear_KrlMsg(n_RWS_Handle[RWNr+3])
+    n_RWS_Handle[RWNr+3]=-1
+  ENDIF
+ENDIF
+;
+;Vorwahl ohne Prozess
+$OUT[RW_BASE_MA[RWNr]+O_RW_o_Fue]=$IN[RW_BASE_SL[RWNr]+I_RW_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;
+;Betriebsarten
+;BA-Hand setzen
+IF $OUT[O_R_Hand] AND (NOT $COULD_START_MOTION OR B_RW_AUF_ZU[RWNr])  THEN
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=TRUE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=FALSE
+ENDIF
+;
+;BA-AUTO an RW setzen
+IF $OUT[O_R_Hand] AND NOT B_RW_AUF_ZU[RWNr] AND ($OUT[O_R_Proz_akt] OR $OUT[O_R_bewegt] OR B_RW_Tastend[RWNr] OR B_RW_TEACH_REF[RWNr]) OR $OUT[O_R_Auto] THEN
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=TRUE
+ENDIF  
+
+;
+;Quittierung Stoerung
+$OUT[RW_BASE_SL[RWNr]+O_RW_Fe_Res]=$IN[RW_BASE_MA[RWNr]+I_RW_Sammel] AND ($IN[I_R_Quit_Wei] OR $IN[I_R_Quit_St])  
+;
+;Ausgabe Statusmeldungen an BMS
+;
+;Reiben n.i.O.
+$OUT[RW_BASE_SL[RWNr]+O_RW_nio]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_RW_nio[RWNr]]
+;Vorwarnung Antrieb 
+$OUT[RW_BASE_SL[RWNr]+O_RW_W_SZ]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_W_SZ]
+;Warnung Standzeit Werkzeug
+$OUT[RW_BASE_SL[RWNr]+O_RW_W_Schm]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_W_Schm]
+;Fuellstandskontrolle
+$OUT[RW_BASE_SL[RWNr]+O_RW_FKontr]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_FKontr]
+;Fehler Vakuum
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_Vak]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_Vak]
+;Fehler Wegmessung
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_Weg]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_Weg]
+;Prozessabbruch
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_PrzAb]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_PrzAb]
+;Fehler Vereinzelung
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_VEinz]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_VEinz]
+;Fehler Zufuehrschlauch
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_Zuf]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_Zuf]
+;Fehler Bremse
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_Brems]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_Brems]
+;Fehler Prozesssteuerung
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_PrzSt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_PrzSt]
+;Fehler Ablaufsteuerung
+$OUT[RW_BASE_SL[RWNr]+O_RW_F_AblSt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[RW_BASE_MA[RWNr]+I_RW_F_AblSt]
+;Sammelstoerung
+B_Hilfsmerk=($FLAG[F_RW_Sammel[RWNr]] OR $IN[RW_BASE_MA[RWNr]+I_RW_FKontr] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_Vak] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_Weg] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_PrzAb] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_VEinz] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_Zuf] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_Brems]OR $IN[RW_BASE_MA[RWNr]+I_RW_F_PrzSt] OR $IN[RW_BASE_MA[RWNr]+I_RW_F_AblSt] OR RW_LBitFeh[RWNr])
+$OUT[RW_BASE_SL[RWNr]+O_RW_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND B_Hilfsmerk AND $timer_flag[TimerNr_Ein]
+;
+IF (RWNr==1) AND NOT RW1_DOCK THEN
+  SO_RW1_ZCode=1
+ENDIF
+IF (RWNr==2) THEN
+  SO_RW2_ZCode=1
+ENDIF
+;
+;Sollwert Vorgabe und Sollposition gueltig
+IF (SO_RW_SollPos>0) AND NOT B_RW_Tastend[RWNr] THEN
+  $OUT[RW_BASE_MA[RWNr]+O_RW_SPos_g]=TRUE
+ELSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_SPos_g]=FALSE
+ENDIF
+;
+;Tastend ruecksetzen
+IF $OUT[O_R_Hand] AND B_RW_Tastend[RWNr] AND NOT $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf] AND NOT $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu] THEN
+  B_RW_Tastend[RWNr]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_SPos_g]=FALSE
+  WAIT SEC 0.12
+  $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+  schleppfehler=TRUE
+  sf_prog_status=#user_act
+ENDIF
+;
+;INIT Zangenfunktion
+IF $OUT[O_R_Hand] AND NOT $OUT[O_R_Auto] AND $OUT[O_R_PERI_RDY] AND (NOT $OUT[O_R_Proz_akt] AND NOT $OUT[O_R_bewegt]) THEN
+  IF ($OUT[O_RW_D_Teach] OR $OUT[O_RW_D_Ref] OR $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf] OR $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu]) THEN 
+    RW_Z_Funkt(RWNr)
+  ENDIF
+ENDIF
+;
+IF ($OUT[O_R_Hand] AND ($PRO_MODE1==#BSTEP)) OR ($OUT[O_R_Hand] AND NOT $FLAG[F_Frg_Servo] AND $OUT[O_R_bewegt] AND (R1AusgleichFunktion==0)) OR ($OUT[O_R_Hand] AND NOT $COULD_START_MOTION AND B_RW_AUF_ZU[RWNr]) THEN
+  IF NOT $OUT[RW_BASE_MA[RWNr]+O_RW_Re_aus] THEN
+    $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_ref]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu]=FALSE
+    $OUT[O_RW_D_Teach]=FALSE
+    $OUT[O_RW_D_Ref]=FALSE
+  ENDIF
+  B_RW_AUF_ZU[RWNr]=FALSE
+ENDIF
+;
+;Lebensbit-Ueberwachung  
+L_Bit_RW(RWNr)
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RW_BASE_INIT
+DEF RW_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;RW SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_RW_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_RW_BASE_SL[1]=HM_BASE_SL
+  RW_BASE_SL[1]=HM_BASE_SL
+ELSE
+  RW_BASE_SL[1]=CF_RW_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_RW_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_RW_BASE_SL[2]=HM_BASE_SL
+  RW_BASE_SL[2]=HM_BASE_SL
+ELSE
+  RW_BASE_SL[2]=CF_RW_BASE_SL[2]
+ENDIF
+;
+;RW MASTER ADRESSIERUNG
+RW_BASE_MA[1]=1265                             
+RW_BASE_MA[2]=1185
+;
+END
+;ENDFOLD (RW_BASE_INIT)
+;
+;***************************************************
+DEF RW_Z_Funkt(RWNr :IN)
+INT RWNr
+;
+;RW Fahrt auf Teachposition ausloesen
+IF $OUT[O_RW_D_Teach] THEN
+  $OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=FALSE
+  B_RW_TEACH_REF[RWNr]=TRUE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=TRUE 
+  WAIT SEC 0.4
+  $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=TRUE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=TRUE
+  WAIT SEC 0.4
+  IF $IN[RW_BASE_MA[RWNr]+I_RW_TPos_g] THEN
+    $OUT[RW_BASE_MA[RWNr]+O_RW_S_TPos]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=TRUE
+    $OUT[O_RW_D_Teach]=FALSE
+    sf_prog_status=#user_act
+    $OUT[RW_BASE_MA[RWNr]+O_RW_SPos_g]=FALSE
+    schleppfehler=TRUE
+    WAIT SEC 0.2
+    $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_TPos_u]=FALSE
+    B_RW_TEACH_REF[RWNr]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=TRUE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=FALSE
+    $OUT[O_RW_D_Teach]=FALSE
+  ENDIF
+ENDIF
+;RW Referenzieren 
+IF $OUT[O_RW_D_Ref] THEN
+  B_RW_TEACH_REF[RWNr]=TRUE	
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=FALSE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=TRUE 
+  WAIT SEC 0.2
+  $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=TRUE
+  $OUT[RW_BASE_MA[RWNr]+O_RW_ref]=TRUE
+  WAIT SEC 0.8
+  IF $IN[RW_BASE_MA[RWNr]+I_RW_ref] AND $IN[RW_BASE_MA[RWNr]+I_RW_IPos_g] THEN
+    $OUT[RW_BASE_MA[RWNr]+O_RW_ref]=FALSE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=FALSE
+    $OUT[O_RW_D_Ref]=FALSE
+    B_RW_TEACH_REF[RWNr]=FALSE
+    RW_Msg(2,#NotifyMsg)
+    $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand]=TRUE
+    $OUT[RW_BASE_MA[RWNr]+O_RW_R_Auto]=FALSE 
+    $OUT[O_RW_D_Ref]=FALSE
+  ENDIF
+ENDIF
+;RW Tastend Auf 
+IF $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf] THEN	
+  B_RW_Tastend[RWNr]=TRUE
+  IF $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand] AND $OUT[RW_BASE_MA[RWNr]+O_RW_t_auf] THEN	
+    $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=TRUE
+  ENDIF
+ENDIF
+;RW Tastend Zu 
+IF $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu] THEN	
+  B_RW_Tastend[RWNr]=TRUE
+  IF $OUT[RW_BASE_MA[RWNr]+O_RW_R_Hand] AND $OUT[RW_BASE_MA[RWNr]+O_RW_t_zu] THEN	
+    $OUT[RW_BASE_MA[RWNr]+O_RW_FRG]=TRUE
+  ENDIF
+ENDIF
+END
+;ENDFOLD (Zangenfunktion)
+;
+;***************************************************
+;FOLD Lebensbit_RW
+DEF L_Bit_RW(RWNr :IN)
+INT RWNr
+BOOL LBitRW,LBitFault
+INT RobTimer
+BOOL ErrLBit,bRet
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;
+;Setzen - Rucksetzen  des Lebensbit an Zangensteuerung
+$OUT[RW_BASE_MA[RWNr]+O_RW_LBit]=NOT $IN[RW_BASE_MA[RWNr]+I_RW_LBit]
+RobTimer=$ROB_TIMER	
+IF $IN[RW_BASE_MA[RWNr]+I_RW_LBit]<>LBitState[RWNr] THEN
+  LBitTimeCnt[RWNr]=RobTimer
+ENDIF
+IF (RobTimer- LBitTimeCnt[RWNr])>5000 THEN
+  ErrLBit=TRUE
+  ErrRWNr=RWNr
+  RW_LBitFeh[RWNr]=TRUE
+ENDIF
+LBitState[RWNr]=$IN[RW_BASE_MA[RWNr]+I_RW_LBit]
+IF ErrLBit THEN
+  RW_Msg(1,#StateMsg,ErrRWNr)
+ELSE
+  IF (n_RWS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_RWS_Handle[1])
+    n_RWS_Handle[1]=-1
+    ErrRWNr=-1
+  ENDIF
+  RW_LBitFeh[RWNr]=FALSE
+ENDIF
+;  
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RW_Meldungen
+DEF RW_Msg(msg_nr :IN, MsgTyp :IN, RWNr :IN)
+INT msg_nr, RWNr, Answer
+DECL RWS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "RW_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("RWNr")==#initialized then
+  SWITCH RWNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_RWS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="RW%1: Keine Antwort auf Lebensbit"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="RW1: Zange ist referenziert"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="RW2: Zange ist referenziert"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="RW1: Slave Startadresse ungueltig"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="RW2: Slave Startadresse ungueltig" 
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+    n_RWS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+    n_RWS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+    n_RWS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+    n_RWS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (RW Meldungen)

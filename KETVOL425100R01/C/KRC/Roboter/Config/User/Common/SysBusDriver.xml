@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SysBusDriver xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="/Roboter/Config/System/Common/Schemes/SysBusDriver.xsd">
+	<Version Label="">
+		<Info Version="KUKA V8.3"/>
+		<Schema Version="1"/>
+	</Version>
+	<BusInstance Name="SysBusSlave" isServer="true">
+                <!-- Bus used for communication to our slaves. -->
+		<Inputs>
+                    <!-- Offsets read by hnf -->
+                    <Host Name="SKCPMaster" Offset="0" Size="19"/>
+                    <Host Name="SKCPSlave0" Offset="19" Size="19"/>
+                    <Host Name="SKCPSlave1" Offset="38" Size="19"/>
+                    <Host Name="SKCPSlave2" Offset="57" Size="19"/>
+                    <Host Name="SKCPSlave3" Offset="76" Size="19"/>
+                    <Host Name="SKCPSlave4" Offset="95" Size="19"/>
+                    <Host Name="SKCPSlave5" Offset="114" Size="19"/>
+                    <Host Name="SKCPSlave6" Offset="133" Size="19"/>
+                    <Host Name="SKCPSlave7" Offset="152" Size="19"/>
+                    <Host Name="SKCPSlave8" Offset="171" Size="19"/>
+                    <Host Name="SKCPSlave9" Offset="190" Size="19"/>
+                    <Host Name="SKCPSlave10" Offset="209" Size="19"/>
+                    <Host Name="SKCPSlave11" Offset="228" Size="19"/>
+                    <Host Name="SKCPSlave12" Offset="247" Size="19"/>
+                    <Host Name="SKCPSlave13" Offset="266" Size="19"/>
+                    <Host Name="SKCPSlave14" Offset="285" Size="19"/>
+		</Inputs>
+		<Outputs>
+                    <!-- Offsets written by hnf -->
+                    <Host Name="SKCPMaster" Offset="304" Size="19"/>
+                    <Host Name="SKCPSlave0" Offset="323" Size="19"/>
+                    <Host Name="SKCPSlave1" Offset="342" Size="19"/>
+                    <Host Name="SKCPSlave2" Offset="361" Size="19"/>
+                    <Host Name="SKCPSlave3" Offset="380" Size="19"/>
+                    <Host Name="SKCPSlave4" Offset="399" Size="19"/>
+                    <Host Name="SKCPSlave5" Offset="418" Size="19"/>
+                    <Host Name="SKCPSlave6" Offset="437" Size="19"/>
+                    <Host Name="SKCPSlave7" Offset="456" Size="19"/>
+                    <Host Name="SKCPSlave8" Offset="475" Size="19"/>
+                    <Host Name="SKCPSlave9" Offset="494" Size="19"/>
+                    <Host Name="SKCPSlave10" Offset="513" Size="19"/>
+                    <Host Name="SKCPSlave11" Offset="532" Size="19"/>
+                    <Host Name="SKCPSlave12" Offset="551" Size="19"/>
+                    <Host Name="SKCPSlave13" Offset="570" Size="19"/>
+                    <Host Name="SKCPSlave14" Offset="589" Size="19"/>
+		</Outputs>
+	</BusInstance>
+</SysBusDriver>

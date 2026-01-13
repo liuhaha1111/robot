@@ -1,0 +1,213 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/RW_Reibelementschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_RW_USR_R( )
+;
+;***************************************************
+;*Technologiepaket RW Reibelementschweissen        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD Reibelement_Interface
+GLOBAL DEF RW_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+;
+    ;FOLD Vorbesetzung Meldungsausgabe
+    ;
+    ;Merker Init
+    ;FOR i=1 TO 2
+    ;  IF MIT_RW[i] THEN
+    ;    RW_MERKER_INIT(i)
+    ;  ENDIF
+    ;ENDFOR
+    ;
+    IF (MIT_RW[1]==TRUE) AND (RW1_Dock==FALSE) THEN
+      SEL_RES=SELECT(#MAKRO,(RW1_Konfig_Makro[1]),TRUE,,,,,FALSE)
+    ENDIF
+    IF (MIT_RW[2]==TRUE) THEN
+      SEL_RES=SELECT(#MAKRO,(RW2_Konfig_Makro),TRUE,,,,,FALSE)
+    ENDIF
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+;
+    IF (PAR2==1) THEN
+      IF $IN[RW_BASE_SL[1]+I_RW_o_Proz] THEN
+        CONTINUE
+        $FLAG[F_o_Proz_BMS]=TRUE
+      ELSE
+        CONTINUE
+        $FLAG[F_o_Proz_BMS]=FALSE
+      ENDIF
+      CONTINUE
+      SO_RW1_Prg_Nr=PAR3
+      CONTINUE
+      SO_SPS_Proz_Nr=PAR6
+      $FLAG[F_Frg_Servo]=TRUE
+    ENDIF 
+    IF (PAR2==2) THEN
+      IF $IN[RW_BASE_SL[2]+I_RW_o_Proz] THEN
+        CONTINUE
+        $FLAG[F_o_Proz_BMS]=TRUE
+      ELSE
+        CONTINUE
+        $FLAG[F_o_Proz_BMS]=FALSE
+      ENDIF
+      CONTINUE
+      SO_RW2_Prg_Nr=PAR3
+      CONTINUE
+      SO_SPS_Proz_Nr=PAR6
+      $FLAG[F_Frg_Servo]=TRUE
+    ENDIF
+;    
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    IF NOT $FLAG[F_Frg_Servo]==TRUE THEN
+      $FLAG[F_Frg_Servo]=TRUE
+    ENDIF
+    ;
+    IF (PAR2==1)THEN
+      IF $IN[RW_BASE_SL[1]+I_RW_o_Proz] THEN
+        $FLAG[F_o_Proz_BMS]=TRUE
+      ELSE
+        $FLAG[F_o_Proz_BMS]=FALSE
+      ENDIF
+      SO_RW1_SollPos=(PAR1*10) ;Ausgabe Zangenposition
+    ENDIF
+    IF (PAR2==2)THEN
+      IF $IN[RW_BASE_SL[2]+I_RW_o_Proz] THEN
+        $FLAG[F_o_Proz_BMS]=TRUE
+      ELSE
+        $FLAG[F_o_Proz_BMS]=FALSE
+      ENDIF
+      SO_RW2_SollPos=(PAR1*10) ;Ausgabe Zangenposition
+    ENDIF
+;
+    ;ENDFOLD (TRIG)    
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+    $FLAG[F_o_Proz_BMS]=FALSE
+;
+    IF (PAR2==1) THEN
+      SO_RW1_SollPos=(PAR1*10) ;Ausgabe Zangenposition
+      MyPos=ABS(SO_RW1_IstPos/10)
+      MyPos1=ABS(PAR1)
+      MyPos2=(MyPos - MyPos1)
+      WHILE (MyPos2 < -5.0) OR (MyPos2 > 5.0)
+        RW_Msg(1,#QuitMsg) ;Falsche Position  
+      ENDWHILE
+    ENDIF
+    IF (PAR2==2) THEN
+      SO_RW2_SollPos=(PAR1*10) ;Ausgabe Zangenposition
+      MyPos=ABS(SO_RW2_IstPos/10)
+      MyPos1=ABS(PAR1)
+      MyPos2=(MyPos - MyPos1)
+      WHILE (MyPos2 < -5.0) OR (MyPos2 > 5.0)
+        RW_Msg(2,#QuitMsg) ;Falsche Position  
+      ENDWHILE
+    ENDIF
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;
+  ENDSWITCH
+END
+;
+;ENDFOLD (RW_Interface)
+;
+;***************************************************
+;FOLD RW_MERKER_INIT
+DEF RW_MERKER_INIT(RWNR :IN)
+INT RWNR
+;
+SWITCH RWNR
+  CASE 1
+    ;Sicherheiten RW1
+    $CYCFLAG[131]=$IN[1265] AND $IN[1274] AND $IN[1279]
+  CASE 2
+    ;Sicherheit RW2
+    $CYCFLAG[134]=$IN[1185] AND $IN[1194] AND $IN[1199]
+ENDSWITCH
+END
+;
+;***************************************************
+;FOLD RW_Meldungen
+DEF RW_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL RWR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "RW_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_RWR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="RW 1: falsche Position"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="RW 2: falsche Position"
+    CASE 3
+      USER_MSG.MSG_TXT[]=" "
+    CASE 19
+	   USER_MSG.MSG_TXT[]="Falsche Gruppen-Auswahl"  
+    CASE 20
+	   USER_MSG.MSG_TXT[]="P1: Falsche Auswahl"
+    CASE 21
+	   USER_MSG.MSG_TXT[]="P2: Falsche Auswahl" 
+    CASE 22
+	   USER_MSG.MSG_TXT[]="P3: Falsche Auswahl"    
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_RWR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_RWR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE ( Exists_KrlMsg(n_RWR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_RWR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_RWR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (RW_Meldungen)
+

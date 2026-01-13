@@ -1,0 +1,2412 @@
+&ACCESS  R
+&COMMENT KS_26_01_0083 VW (Tech_Basic)
+&PARAM DISKPATH = VW_User
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM EDITMASK = vw_usr_r
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vw_usr_rv
+&PARAM SUPPRESS = LoosOfPrecision UnswitchedEnum UnusedFunctionParamete
+&REL 437
+DEF VW_USR_R(USER_CMD :IN,CMD_SEL:IN,PARA1:IN,PARA2:IN,PARA3:IN,PARA4:IN,PARA5:IN,PARA6:IN,PARA7:IN,PARA8:IN,PARA9:IN,PARA10:IN )
+;
+;FOLD ;%{H}%MKUKATPVW
+;VW_USER Call
+DECL VW_USER_CMD USER_CMD
+REAL PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9
+BOOL PARA10
+INT CMD_SEL
+SWITCH  USER_CMD
+CASE #USR_INIT
+USER_INIT ()
+CASE #USR_ADV
+USER_ADV (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_TRIG
+USER_TRIG (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAIN
+USER_MAIN (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO
+USER_MAKRO (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+DEFAULT
+ENDSWITCH
+END
+;XENDFOLD hidden fold ueber ganzen user MUE 18.2
+;***************************************************
+;FOLD USER_INIT
+DEF  USER_INIT ()
+;Aufruf am Programmanfang
+;
+;***************************************************
+;* Basis-Technologiepaket                          *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 2018.11.08 KL Merker angepasst                  *
+;*                                                 *
+;***************************************************
+;
+INT I
+BOOL bRet
+;
+;FOLD Folgenummer spiegeln in Hand
+IF ($MODE_OP<>#EX) THEN
+  PRG_NR_REFL=P_SELECT
+ENDIF
+;ENDFOLD
+;
+;FOLD Arbeitspunktzaehler ruecksetzen
+IF ($COUNT_I[I_Arbpkt_Nr]<>0) THEN
+  $COUNT_I[I_Arbpkt_Nr]=0
+ENDIF 
+;ENDFOLD
+;
+;FOLD Merker und Timer Initialisierung
+SEL_RES=SELECT(#MAKRO,50,TRUE,,,,,FALSE)
+SEL_RES=SELECT(#MAKRO,57,TRUE,,,,,FALSE)
+IF (B_Anlauf==TRUE) THEN
+  $TIMER_STOP[12]=TRUE
+  $TIMER[12]=0
+  $TIMER_STOP[12]=FALSE
+  WAIT SEC 0.5
+  B_Anlauf=FALSE
+ENDIF   
+;ENDFOLD
+;
+;FOLD Vorbesetzung POT Timer
+IF (B_Anlauf==TRUE) THEN
+  $TIMER_STOP[12]=TRUE
+  $TIMER[12]=0
+  $TIMER_STOP[12]=FALSE
+ENDIF
+;ENDFOLD
+;
+;FOLD Abfrage Tool_Corr und Base_Corr vorhanden
+IF Varstate("TOOL_CORR")<>#Initialized THEN
+  USR_Msg(2,#QuitMsg) ; Tool_Corr nicht vorhanden
+ENDIF
+IF Varstate("BASE_CORR")<>#Initialized THEN
+  USR_Msg(3,#QuitMsg) ; BASE_Corr nicht vorhanden
+ENDIF
+Tool_Corr=$NULLFRAME
+Base_Corr=$NULLFRAME
+;ENDFOLD
+;
+;Externe Achsen asynchron schalten
+IF MIT_1ExtAchse THEN
+  $ASYNC_AXIS= 'B0001'
+ENDIF
+IF MIT_2ExtAchse THEN
+  $ASYNC_AXIS= 'B0011'
+ENDIF
+IF MIT_2ExtAchse_A7 THEN
+  $ASYNC_AXIS= 'B0110'
+ENDIF
+;
+;Merker-Init (Workarround)
+INTERRUPT OFF 28
+GLOBAL INTERRUPT DECL 28 WHEN B_Merker_Init DO Merker_Init_R()
+INTERRUPT ON 28
+;
+Merker_Init_R()
+;
+;***************************************************
+;
+;USER_INIT Module
+;BM
+IF MIT_BM[1] OR MIT_BM[2] OR MIT_BM[3] THEN
+  BM_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;BU
+IF MIT_BU THEN
+  BU_M_Interface(#USR_INIT,,,,,,,)
+  BU_ACF_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;BZ
+IF MIT_BZ[1] OR MIT_BZ[2] THEN
+  BZ_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;LR
+IF MIT_LR THEN
+  LR_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;CZ
+IF MIT_CZS[1] OR MIT_CZS[2] OR MIT_CZP[1] OR MIT_CZP[2] OR MIT_CZF[1] THEN
+  CZ_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;DS
+IF MIT_DS THEN
+  DS_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;EKI
+IF MIT_EKI THEN
+  EKI_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;Kamerasystemschnittstelle
+IF B_MIT_VIS THEN
+  VIS_Intrface(#USR_INIT,,,,,,,)
+ENDIF
+;FD
+IF MIT_FD[1] OR MIT_FD[2] THEN
+  FD_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;G
+G_Interface(#USR_INIT,,,,,,,)
+;G
+G_Koll_Interface(#USR_INIT,,,,,,,)
+;Zeiss
+IF B_MIT_ZAI THEN
+  ZAI_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;ScanGun
+IF B_MIT_ScanGun THEN
+ScanGun_Interface(#USR_INIT,,,,,,,,,,)
+ENDIF
+;TechBase
+IF B_MIT_TechBase THEN
+TechBase_Interface(#USR_INIT,,,,,,,,,,)
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  INOS_ResetSignals()
+  INOS_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;ISRA INIT
+IF B_MIT_ISR THEN
+  ISRA_PG_INIT()
+ENDIF
+;KL
+IF MIT_KL[1] OR MIT_KL[2] OR MIT_KL[3] THEN
+  KL_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;MS
+IF MIT_MS[1] OR MIT_MS[2] THEN
+  MS_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;NK
+IF MIT_NK THEN
+  NK_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;NZ
+IF MIT_NZS[1] OR MIT_NZS[2] OR MIT_NZH[1] OR MIT_NZH[2] THEN
+  NZ_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;OE
+IF MIT_OE[1] OR MIT_OE[2] THEN
+  OE_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;PGR
+PGR_Interface(#USR_INIT,,,,,,,)
+;POT
+POT_Interface(#USR_INIT,,,,,,,)
+;PRC
+IF B_MIT_PRC THEN
+  PRC_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;RE
+IF MIT_RE THEN
+  RE_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;RW
+IF MIT_RW[1] OR MIT_RW[2] THEN
+  RW_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;SRF
+IF $SR_SAFEMON_ACTIVE THEN 
+  SFR_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;SM
+IF MIT_SM[1] OR MIT_SM[2] THEN
+  SM_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;SR
+IF MIT_SR THEN
+  SR_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;STP
+IF MIT_STP THEN
+  STP_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;SZ+VM
+IF MIT_EZ[1] OR MIT_EZ[2] OR MIT_EZ[3] OR MIT_KE[1] OR MIT_KE[2] OR MIT_KE[3] THEN
+  SZ_Interface(#USR_INIT,,,,,,,)
+  VM_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;VMT
+IF B_MIT_VMT THEN
+  VMT_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;VA+IPO
+IF MIT_VA THEN
+  VA_Interface(#USR_INIT,,,,,,,)
+  IPO_Interface(#USR_INIT,,,,,,,)
+ENDIF
+;Projekt-Modul
+MOD1_Interface(#USR_INIT,,,,,,,)
+MOD2_Interface(#USR_INIT,,,,,,,)
+MOD3_Interface(#USR_INIT,,,,,,,)
+;Conveyor
+IF B_MIT_CONV THEN
+  vw_conv_usr_r(#USR_INIT,,,,,,,)
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD USER_ADV
+;
+DEF  USER_ADV (CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN,PAR10:IN)
+;Aufruf im Vorlauf
+;
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10, bRet
+;
+IF (PAR10==FALSE) THEN
+  RETURN
+ENDIF  
+;
+SWITCH CMD_SEL
+  CASE 101 ; Hauptgruppe 1, Untergruppe 1
+    ;FOLD EZSP
+    ;Meldungsausgabe, falls mit WZ 0 geteacht wurde
+    CONTINUE
+    IF (VW_MPARA_ACT.TOOL_NO<1) THEN
+      USR_Msg(1,#QuitMsg)
+    ENDIF
+    SZ_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD    
+;
+;***************************************************
+  CASE 102 ; Hauptgruppe 1, Untergruppe 2 
+    ;FOLD Roboter-Ausgleich
+    VM_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 103 ; Hauptgruppe 1, Untergruppe 3
+    ;FOLD CZ
+    CZ_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)    
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 104 ; Hauptgruppe 1, Untergruppe 4
+    ;FOLD  MIG/MAG
+    MS_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 105 ; Hauptgruppe 1, Untergruppe 5
+    ;FOLD Baseverschiebung
+    SWITCH PAR1
+      CASE 1
+        CONTINUE
+        Base_Data[31]=BASE_DATA[VW_MPARA_ACT.BASE_NO]
+      CASE 11
+        CONTINUE
+        WHILE ($CYCFLAG[PAR6]==TRUE)
+          USR_Msg(7,#QuitMsg) ;Suchlauf Nahsensor defekt
+        ENDWHILE
+      DEFAULT
+      USR_Msg(20,#QuitMsg) ;P1 Falschr Wert
+    ENDSWITCH ;von PAR1
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 106 ; Hauptgruppe 1, Untergruppe 6
+    ;FOLD SFR
+    SFR_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 107 ; Hauptgruppe 1, Untergruppe 7
+    ;FOLD Teile-Speicher
+    IF (PAR5>0) THEN
+      IF NOT $IN[PAR5] THEN
+        CONTINUE
+        $OUT[PAR5]=TRUE
+        CONTINUE
+        WHILE NOT $IN[PAR5]
+          IF (n_USRR_Handle[8]<0) THEN
+            USR_Msg(8,#StateMsg) ;Teilespeicher-Nr. von SPS fehlt
+          ENDIF  
+        ENDWHILE 
+        bRet=Clear_KrlMsg(n_USRR_Handle[8])
+        n_USRR_Handle[8]=-1   ;Zustandsmeldung zuruecknehmen
+      ENDIF
+    ENDIF  
+    CONTINUE
+    $COUNT_I[i_T_SpeicherNr]=$B_IN[BI_T_SpeicherNr]
+    CONTINUE
+    WHILE ($COUNT_I[i_T_SpeicherNr]<1) OR ($COUNT_I[i_T_SpeicherNr]>254)
+      USR_Msg(9,#QuitMsg) ;SPS Speicherposition ungueltig
+      CONTINUE
+	   $COUNT_I[i_T_SpeicherNr]=$B_IN[BI_T_SpeicherNr]
+    ENDWHILE
+    CONTINUE
+    $B_OUT[BO_T_SpeicherNr]=$B_IN[BI_T_SpeicherNr]
+    ;Teile-Speicher-Position 1-254 setzen
+    CONTINUE
+    IF (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      CONTINUE
+      WHILE (T_Speicher[$COUNT_I[i_T_SpeicherNr]].Z==0.0)
+        USR_Msg(10,#QuitMsg) ;Koordinaten fuer Speicherposition ungueltig
+      ENDWHILE
+	   SWITCH Par1
+	     CASE 1
+          CONTINUE
+          BASE_DATA[31]=T_Speicher[$COUNT_I[i_T_SpeicherNr]]
+	     CASE 2
+          CONTINUE
+          BASE_DATA[31]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:T_Speicher[$COUNT_I[i_T_SpeicherNr]]
+	     DEFAULT
+          USR_Msg(20,#QuitMsg) ;P1 Falschr Wert
+	   ENDSWITCH
+    ELSE
+      USR_Msg(11,#QuitMsg) ;Base-Type ungueltig
+    ENDIF
+  ;ENDFOLD
+;
+;***************************************************
+  CASE 108 ; Hauptgruppe 1, Untergruppe 8
+;
+;***************************************************
+  CASE 109 ; Hauptgruppe 1, Untergruppe 9
+;
+;***************************************************
+  CASE 110 ; Hauptgruppe 1, Untergruppe 10
+    ;FOLD SR
+    SR_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 201 ; Hauptgruppe 2, Untergruppe 1
+;
+;***************************************************
+  CASE 202 ; Hauptgruppe 2, Untergruppe 2
+    ;FOLD BZ
+    BZ_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 203 ; Hauptgruppe 2, Untergruppe 3  
+    ;FOLD NZ
+    NZ_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 204 ; Hauptgruppe 2, Untergruppe 4
+    ;FOLD Kollisionsueberwachung
+      G_Koll_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 205 ; Hauptgruppe 2, Untergruppe 5
+    ;FOLD MIG/MAG
+    MS_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 206 ; Hauptgruppe 2, Untergruppe 6
+    ;FOLD SM
+    SM_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 207 ; Hauptgruppe 2, Untergruppe 7
+    ;FOLD RE
+    RE_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 208 ; Hauptgruppe 2, Untergruppe 8
+    ;FOLD STP
+    STP_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 209 ; Hauptgruppe 2, Untergruppe 9
+    ;FOLD BM
+    BM_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 210 ; Hauptgruppe 2, Untergruppe 10 
+    ;FOLD RW
+    RW_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 301 ; Hauptgruppe 3, Untergruppe 1
+    ;FOLD PN-Teilnehmer
+    DS_PN_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 302 ; Hauptgruppe 3, Untergruppe 2 
+;
+;***************************************************
+  CASE 303 ; Hauptgruppe 3, Untergruppe 3 
+    ;FOLD KL
+    KL_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 304 ; Hauptgruppe 3, Untergruppe 4 
+    ;FOLD FD
+    FD_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 305 ; Hauptgruppe 3, Untergruppe 5 
+    ;FOLD BU  
+    BU_M_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD 
+;
+;***************************************************
+  CASE 306 ; Hauptgruppe 3, Untergruppe 6
+    ;FOLD ACF  
+    BU_ACF_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 307 ; Hauptgruppe 3, Untergruppe 7
+;
+;***************************************************
+  CASE 308 ; Hauptgruppe 3, Untergruppe 8
+;
+;***************************************************
+  CASE 309 ; Hauptgruppe 3, Untergruppe 9
+;
+;***************************************************
+  CASE 310 ; Hauptgruppe 3, Untergruppe 10
+    ;FOLD MS Naht
+    MS_Naht_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 401 ; Hauptgruppe 4, Untergruppe 1
+    ;FOLD LR
+    LR_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 402 ; Hauptgruppe 4, Untergruppe 2
+    ;FOLD NK
+    NK_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 403 ; Hauptgruppe 4, Untergruppe 3
+;
+;***************************************************
+  CASE 404 ; Hauptgruppe 4, Untergruppe 4
+    ;FOLD OE
+    OE_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 405 ; Hauptgruppe 4, Untergruppe 5
+    ;FOLD Dehnfugensensor
+    CONTINUE
+    WHILE (VW_MPARA_ACT.BASE_NO<1)
+      USR_Msg(15,#QuitMsg) ; Base-Nr falsch
+    ENDWHILE
+    ;Sensor 1
+    CONTINUE
+    WHILE (($ANIN[8]*10)<1.0)
+      USR_Msg(5,#QuitMsg) ;Sensor 1 defekt
+    ENDWHILE
+    CONTINUE
+    WHILE (($ANIN[8]*10)>9.5)
+      USR_Msg(5,#QuitMsg) ;Sensor 1 defekt
+    ENDWHILE
+    ;Sensor 2
+    CONTINUE
+    WHILE (($ANIN[7]*10)<1.0)
+      USR_Msg(6,#QuitMsg) ;Sensor 2 defekt
+    ENDWHILE
+    CONTINUE
+    WHILE (($ANIN[7]*10)>9.5)
+      USR_Msg(6,#QuitMsg) ;Sensor 2 defekt
+    ENDWHILE
+    ;Initialisierung
+    Dehnfuge=$NULLFRAME
+    IF (PAR3>0) THEN
+      HM_DF_Steigung=PAR3
+      HM_DF_Offset=PAR4
+      HM_DF1_Wert=(($ANIN[8]*10)*(HM_DF_Steigung/100)-(HM_DF_Offset/10))
+      HM_DF2_Wert=(($ANIN[7]*10)*(HM_DF_Steigung/100)-(HM_DF_Offset/10))
+    ELSE
+      HM_DF1_Wert=(($ANIN[8]*10)-(HM_DF_Offset/10))
+      HM_DF2_Wert=(($ANIN[7]*10)-(HM_DF_Offset/10))
+    ENDIF
+    ;Korrektur Sensor 1
+    IF (PAR1==1) THEN
+      IF (PAR2==1) THEN
+        Dehnfuge.X=-HM_DF1_Wert
+      ENDIF
+      IF (PAR2==2) THEN
+        Dehnfuge.Y=-HM_DF1_Wert
+      ENDIF
+      IF (PAR2==3) THEN
+        Dehnfuge.Z=-HM_DF1_Wert
+      ENDIF
+      IF (PAR2==11) THEN
+        Dehnfuge.X=HM_DF1_Wert
+      ENDIF
+      IF (PAR2==12) THEN
+        Dehnfuge.Y=HM_DF1_Wert
+      ENDIF
+      IF (PAR2==13) THEN
+        Dehnfuge.Z=HM_DF1_Wert
+      ENDIF
+    ENDIF
+    ;Korrektur Sensor 2
+    IF (PAR1==2) THEN
+      IF (PAR2==1) THEN
+        Dehnfuge.X=-HM_DF2_Wert
+      ENDIF
+      IF (PAR2==2) THEN
+        Dehnfuge.Y=-HM_DF2_Wert
+      ENDIF
+      IF (PAR2==3) THEN
+        Dehnfuge.Z=-HM_DF2_Wert
+      ENDIF
+      IF (PAR2==11) THEN
+        Dehnfuge.X=HM_DF2_Wert
+      ENDIF
+      IF (PAR2==12) THEN
+        Dehnfuge.Y=HM_DF2_Wert
+      ENDIF
+      IF (PAR2==13) THEN
+        Dehnfuge.Z=HM_DF2_Wert
+      ENDIF
+    ENDIF
+      CONTINUE
+      BASE_DATA[31]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:Dehnfuge
+    ;ENDFOLD
+;
+;***************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CASE 410 ; Hauptgruppe 4, Untergruppe 10
+    ;FOLD TR
+    TR_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 501 ; Hauptgruppe 5, Untergruppe 1
+    ;FOLD MOD1
+    MOD1_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 502 ; Hauptgruppe 5, Untergruppe 2
+    ;FOLD MOD2
+    MOD2_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 503 ; Hauptgruppe 5, Untergruppe 3
+    ;FOLD MOD3
+    MOD3_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 504 ; Hauptgruppe 5, Untergruppe 4
+    ;FOLD CONV
+    vw_conv_usr_r(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+   CASE 601 ; Hauptgruppe 6, Untergruppe 1
+   
+
+;***************************************************
+  CASE 701 ; Hauptgruppe 7, Untergruppe 1
+    ;FOLD VMT   
+    VMT_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 702 ; Hauptgruppe 7, Untergruppe 2
+  ;FOLD VMT  
+  VMT_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+  ;ENDFOLD
+;
+;***************************************************
+  CASE 703 ; Hauptgruppe 7, Untergruppe 3
+  ;FOLD VMT  
+  VMT_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+  ;ENDFOLD
+;
+;***************************************************
+  CASE 704 ; Hauptgruppe 7, Untergruppe 4
+  ;FOLD VMT   
+  VMT_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+  ;ENDFOLD
+;
+;***************************************************
+  CASE 801 ; Hauptgruppe 8, Untergruppe 1
+    ;FOLD KG-XML
+    VIS_Intrface(#USR_ADV, CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) ;EKI KUKA--COGNEX
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 806 ; Hauptgruppe 8, Untergruppe 6
+    ;FOLD INOS
+    INOS_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 807 ; Hauptgruppe 8, Untergruppe 7
+    ;FOLD INOS
+    INOS_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 901,902,903,906,907,908,909,910 ;Hauptgruppe 9, Untergruppe 1-10 
+    ;FOLD ZAI
+    IF (PAR10==TRUE) THEN
+      ZAI_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 904 ;Hauptgruppe 9, Untergruppe 4 
+    ;FOLD ScanGun
+    IF (PAR10==TRUE) THEN
+      ScanGun_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 905 ;Hauptgruppe 9, Untergruppe 5 
+    ;FOLD TechBase
+    IF (PAR10==TRUE) THEN
+      TechBase_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 1001 ; Hauptgruppe 10, Untergruppe 1
+    ;FOLD Perceptron
+    PRC_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 1002 ; Hauptgruppe 10, Untergruppe 2
+    ;FOLD Perceptron
+    PRC_AutoGuideInterface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)     
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 1003 ; Hauptgruppe 10, Untergruppe 3
+    ;FOLD Perceptron
+    PRC_AutoGaugeInterface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 1006 ; Hauptgruppe 10, Untergruppe 6
+    ;FOLD ISRA
+    ISRA_IMT_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 1007 ; Hauptgruppe 10, Untergruppe 7
+    ;FOLD ISRA
+    ISRA_RF_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  DEFAULT    ;SWITCH CMD_SEL
+    USR_Msg(19,#QuitMsg)   ;fehlerhafte Gruppennummer uebergeben
+ENDSWITCH  ;SWITCH CMD_SEL
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD USER_TRIG
+;
+DEF  USER_TRIG (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf im Trigger der Punkt-SPS
+;
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+INT ret, i
+;
+IF (PAR10==FALSE) THEN
+  RETURN
+ENDIF  
+;
+SWITCH CMD_SEL
+;
+;***************************************************
+  CASE 101 ; Hauptgruppe 1, Untergruppe 1
+    ;FOLD EZSP
+      SZ_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 102 ; Hauptgruppe 1, Untergruppe 2 
+    ;FOLD Roboter-Ausgleich
+    VM_Interface(#USR_ADV,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 103 ; Hauptgruppe 1, Untergruppe 3  
+    ;FOLD CZ
+    CZ_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 104 ; Hauptgruppe 1, Untergruppe 4
+    ;FOLD  MIG/MAG
+    MS_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 105 ; Hauptgruppe 1, Untergruppe 5
+;
+;***************************************************
+  CASE 106 ; Hauptgruppe 1, Untergruppe 6
+    ;FOLD SafeRobot
+    SFR_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 108 ; Hauptgruppe 1, Untergruppe 8
+    ;FOLD Momentenbetrieb
+    IF (PAR1>0) THEN
+      TRQ_MomentenbetriebEin(PAR1)
+    ENDIF
+    IF (PAR1==0) THEN
+      LIN $POS_RET
+    ENDIF
+    ;ENDFOLD Momentenbetrieb
+;
+;***************************************************
+  CASE 110 ; Hauptgruppe 1, Untergruppe 10
+    ;FOLD Schrauben
+    SR_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 202 ; Hauptgruppe 2, Untergruppe 2
+    ;FOLD Bolzenschweissen
+    BZ_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 203 ; Hauptgruppe 2, Untergruppe 3  
+    ;FOLD Nieten 
+    NZ_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 204 ; Hauptgruppe 2, Untergruppe 4    
+    ;FOLD Kollisionsueberwachung
+      G_Koll_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 206 ; Hauptgruppe 2, Untergruppe 6
+    ;FOLD StanzMutter
+    SM_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)    
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 207 ; Hauptgruppe 2, Untergruppe 7
+    ;FOLD Wischkopf
+    RE_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 208 ; Hauptgruppe 2, Untergruppe 8
+    ;FOLD STP
+    STP_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 209 ; Hauptgruppe 2, Untergruppe 9
+;
+;***************************************************
+  CASE 210 ; Hauptgruppe 2, Untergruppe 10
+    ;FOLD Reibelement
+    RW_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 301 ; Hauptgruppe 3, Untergruppe 1
+    ;FOLD PN-Teilnehmer
+    DS_PN_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 302 ; Hauptgruppe 3, Untergruppe 2
+    ;FOLD Audi_EKI-Schnittstelle
+    EKI_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 303 ; Hauptgruppe 3, Untergruppe 3
+    ;FOLD Kleben
+    KL_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 304 ; Hauptgruppe 3, Untergruppe 4
+    ;FOLD FD
+    FD_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 305 ; Hauptgruppe 3, Untergruppe 5
+    ;FOLD Buersten  
+    BU_M_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 306 ; Hauptgruppe 3, Untergruppe 6
+    ;FOLD ACF Kontaktflansch
+    BU_ACF_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 307 ; Hauptgruppe 3, Untergruppe 7
+    ;FOLD Roboter
+    IF (PAR1==1) THEN
+      $OUT[O_R_PF0]=TRUE
+      SEL_RES=SELECT(#MAKRO,0,TRUE,,,,,FALSE)
+    ENDIF
+    IF (PAR1==2) THEN
+      $TIMER_STOP[1]=TRUE
+      $TIMER[2]= $TIMER[1]
+      $TIMER_STOP[2]=TRUE
+    ENDIF
+    IF (PAR1==3) THEN
+      $TIMER_STOP[3]=TRUE
+      $TIMER[3]=0
+      $TIMER_STOP[3]=FALSE
+    ENDIF
+    IF (PAR1==4) THEN
+      $TIMER_STOP[3]=TRUE
+      $TIMER[4]=$TIMER[3]
+      $TIMER_STOP[4]=TRUE
+    ENDIF
+    ;ENDFOLD
+;
+;***************************************************
+   CASE 308 ; Hauptgruppe 3, Untergruppe 8
+;
+;***************************************************
+  CASE 309 ; Hauptgruppe 3, Untergruppe 9
+;
+;***************************************************
+  CASE 310 ; Hauptgruppe 3, Untergruppe 10
+    ;FOLD MS Naht
+    MS_Naht_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 401 ; Hauptgruppe 4, Untergruppe 1
+    ;FOLD LR
+    LR_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 402 ; Hauptgruppe 4, Untergruppe 2
+    ;FOLD NK
+    NK_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 403 ; Hauptgruppe 4, Untergruppe 3
+    ;FOLD PGR
+    PGR_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 404 ; Hauptgruppe 4, Untergruppe 4
+    ;FOLD OE
+    OE_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 405 ; Hauptgruppe 4, Untergruppe 5
+;
+;***************************************************
+  CASE 406 ; Hauptgruppe 4, Untergruppe 6
+    ;FOLD Spreizmagnet
+    WHILE ((PAR1<0) OR (PAR1>80))
+      USR_Msg(14,#QuitMsg) ; Spreizmagnete Stromwert zu hoch, Soll 0-80 
+    ENDWHILE
+    r_SPM_S_Vorg=(PAR1*0.1)
+    $ANOUT[12]=r_SPM_S_Vorg ;Stromvorgabe fuer Spreizmagnet
+    r_SPM_Z_Vorg=(PAR2*0.1) ;Pulszeitvorgabe
+    ;ENDFOLD
+;
+;***************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CASE 410 ; Hauptgruppe 4, Untergruppe 10
+    ;FOLD TR
+    TR_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 501 ; Hauptgruppe 5, Untergruppe 1
+    ;FOLD MOD1
+    MOD1_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 502 ; Hauptgruppe 5, Untergruppe 2
+    ;FOLD MOD2
+    MOD2_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 503 ; Hauptgruppe 5, Untergruppe 3
+    ;FOLD MOD3
+    MOD3_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 504 ; Hauptgruppe 5, Untergruppe 4
+    ;FOLD Conveyor
+    vw_conv_usr_r(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 701 ; Hauptgruppe 7, Untergruppe 1
+    ;FOLD VMT
+    VMT_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD (VMT BK TRIG)
+;
+;***************************************************
+  CASE 702 ; Hauptgruppe 7, Untergruppe 2
+    ;FOLD VMT  
+    VMT_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+   ;ENDFOLD (VMT Toolbox TRIG)
+;
+;***************************************************
+  CASE 703 ; Hauptgruppe 7, Untergruppe 3
+    ;FOLD VMT  
+    VMT_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)    
+    ;ENDFOLD (VMT 3D TRIG)
+;
+;***************************************************
+  CASE 704 ; Hauptgruppe 7, Untergruppe 4
+    ;FOLD VMT  
+    VMT_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD (VMT GlueBead TRIG)
+;
+;***************************************************
+  CASE 801 ; Hauptgruppe 8, Untergruppe 1
+    ;FOLD KG-XML
+    VIS_Intrface(#USR_TRIG, CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) ;EKI KUKA--COGNEX
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 806 ; Hauptgruppe 8, Untergruppe 6
+    ;FOLD INOS
+    INOS_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 807 ; Hauptgruppe 8, Untergruppe 7
+    ;FOLD INOS
+    INOS_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 901,902,903,906,907,908,909,910 ;Hauptgruppe 9, Untergruppe 1-10 
+    ;FOLD ZAI
+    IF (PAR10==TRUE) THEN
+      ZAI_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD   
+
+;
+;***************************************************
+  CASE 904 ;Hauptgruppe 9, Untergruppe 4 
+    ;FOLD ScanGun
+    IF (PAR10==TRUE) THEN
+      ScanGun_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 905 ;Hauptgruppe 9, Untergruppe 5 
+    ;FOLD TechBase
+    IF (PAR10==TRUE) THEN
+      TechBase_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 1001 ; Hauptgruppe 10, Untergruppe 1
+    ;FOLD Perceptron
+    PRC_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 1002 ; Hauptgruppe 10, Untergruppe 2
+    ;FOLD Perceptron
+    PRC_AutoGuideInterface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 1003 ; Hauptgruppe 10, Untergruppe 3
+    ;FOLD Perceptron
+    PRC_AutoGaugeInterface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD Perceptron
+;
+;***************************************************
+  CASE 1006 ; Hauptgruppe 10, Untergruppe 6
+    ;FOLD ISRA
+    ISRA_IMT_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 1007 ; Hauptgruppe 10, Untergruppe 7
+    ;FOLD ISRA
+    ISRA_RF_Interface(#USR_TRIG,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+ENDSWITCH  ;SWITCH CMD_SEL
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD USER_MAIN
+;
+DEF  USER_MAIN (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf im Hauptlauf
+;
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+INT P[5], R[5]
+INT I, N, ret,IntArray[5]
+REAL RealArray[1]
+;
+$FLAG[F_Frg_Servo]=FALSE
+USER_AKTIV=FALSE
+;
+;FOLD Tool_corr + Base_corr ruecksetzen
+Tool_Corr=$NULLFRAME 
+Base_Corr=$NULLFRAME
+;ENDFOLD
+;
+IF (PAR10==FALSE) THEN
+  RETURN
+ENDIF  
+;
+SWITCH CMD_SEL
+;
+;***************************************************
+  CASE 101 ; Hauptgruppe 1, Untergruppe 1
+    ;FOLD EZSP
+    SZ_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)    
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 102 ; Hauptgruppe 1, Untergruppe 2 
+    ;FOLD Roboter-Ausgleich
+    VM_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 103 ; Hauptgruppe 1, Untergruppe 3
+    ;FOLD CZ
+    CZ_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD   
+;
+;***************************************************
+  CASE 104 ; Hauptgruppe 1, Untergruppe 4
+    ;FOLD  MIG/MAG
+    MS_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 105 ; Hauptgruppe 1, Untergruppe 5
+    ;FOLD Baseverschiebung 
+    SWITCH PAR1
+      CASE 1; Nur ADV
+      CASE 11; Suchlauf Base setzen
+        CONTINUE
+        WHILE (VW_MPARA_ACT.BASE_NO<1)
+          USR_Msg(15,#QuitMsg) ; Base-Nr falsch
+        ENDWHILE
+        IF $FLAG[Fehler_Suchlauf]==TRUE THEN
+          USR_Msg(16,#QuitMsg) ; Suchlauf fehlerhaft
+        ENDIF
+        ;Base 31 setzen
+        IF (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+          IF MIT_erw_B_Ve THEN
+            CONTINUE
+            BASE_DATA[31]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+            $BASE=BASE_DATA[31]
+          ELSE
+            CONTINUE
+	         $BASE=$pos_act
+            BASE_DATA[31]=$BASE
+          ENDIF
+          IF NOT $EXT THEN
+	         USR_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+	         HALT
+	       ENDIF
+        ENDIF
+        DEFAULT
+        USR_Msg(20,#QuitMsg) ;P1 Falscher Wert
+      ENDSWITCH ;von PAR1
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 106 ; Hauptgruppe 1, Untergruppe 6
+    ;FOLD SFR
+    SFR_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 107 ; Hauptgruppe 1, Untergruppe 7
+;
+;***************************************************
+  CASE 108 ; Hauptgruppe 1, Untergruppe 8
+    ;FOLD Momentenbetrieb
+    IF (PAR1==0) THEN ;Momentenbetrieb ausschalten
+      FOR I=1 TO 6
+        Reset_Torque_Limits(I)
+      ENDFOR
+      trqoff_Axis=$AXIS_ACT
+      trqoff_Pos=$POS_ACT
+;
+      trq_startFrame.X=trqon_Pos.X
+      trq_startFrame.Y=trqon_Pos.Y
+      trq_startFrame.Z=trqon_Pos.Z
+      trq_startFrame.A=trqon_Pos.A
+      trq_startFrame.B=trqon_Pos.B
+      trq_startFrame.C=trqon_Pos.C
+;
+      trq_stopFrame.X=trqoff_Pos.X
+      trq_stopFrame.Y=trqoff_Pos.Y
+      trq_stopFrame.Z=trqoff_Pos.Z
+      trq_stopFrame.A=trqoff_Pos.A
+      trq_stopFrame.B=trqoff_Pos.B
+      trq_stopFrame.C=trqoff_Pos.C    
+;
+      trq_dist=DIST_FRAME(trq_startFrame, trq_stopFrame)
+      vw_logging("trq_axis", trqon_Axis.A1, trqon_Axis.A2, trqon_Axis.A3, trqon_Axis.A4, trqon_Axis.A5,trqon_Axis.A6,,,trqoff_Axis.A1, trqoff_Axis.A2, trqoff_Axis.A3, trqoff_Axis.A4, trqoff_Axis.A5, trqoff_Axis.A6)
+      vw_logging("trq_pos", trqon_Pos.X, trqon_Pos.Y, trqon_Pos.Z, trqon_Pos.A, trqon_Pos.B,trqon_Pos.C,trqoff_Pos.X, trqoff_Pos.Y, trqoff_Pos.Z, trqoff_Pos.A, trqoff_Pos.B, trqoff_Pos.C,,trq_dist)
+      IF NOT $EXT OR trq_debugMsg THEN
+        MsgNotify("Momentenbetrieb ausgeschaltet, Abweichung=%1 *0,1mm", "TORQ",(trq_dist*10),,110)
+      ENDIF 
+    ENDIF  
+    ;ENDFOLD Momentenbetrieb
+;
+;***************************************************
+  CASE 109 ; Hauptgruppe 1, Untergruppe 9
+    ;FOLD Relativ-Bewegung
+    P_REL.X=(PAR1*0.1)
+    P_REL.Y=(PAR2*0.1)
+    P_REL.Z=(PAR3*0.1)
+    P_REL.A=(PAR4*0.1)
+    P_REL.B=(PAR5*0.1)
+    P_REL.C=(PAR6*0.1)
+    LIN_REL P_REL C_VEL
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 110 ; Hauptgruppe 1, Untergruppe 10
+    ;FOLD SR
+    SR_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 201 ; Hauptgruppe 2, Untergruppe 1
+    ;FOLD Ext-Achsen synchron- asynchron schalten
+    SWITCH PAR1
+      CASE 7
+        SWITCH PAR2
+          CASE 1
+            $ASYNC_AXIS= 'B0000'
+          CASE 2
+            $ASYNC_AXIS= 'B0001'
+          DEFAULT
+          USR_Msg(21,#QuitMsg) ;P2 Falscher Wert
+        ENDSWITCH ;von PAR2
+;
+      CASE 8
+        SWITCH PAR2
+          CASE 1
+            $ASYNC_AXIS= 'B0000'
+          CASE 2
+            $ASYNC_AXIS= 'B0010'
+          DEFAULT
+          USR_Msg(21,#QuitMsg) ;P2 Falscher Wert
+        ENDSWITCH ;von PAR2
+;
+      CASE 9
+        SWITCH PAR2
+          CASE 1
+            $ASYNC_AXIS= 'B0000'
+          CASE 2
+            $ASYNC_AXIS= 'B0100'
+          DEFAULT
+          USR_Msg(21,#QuitMsg) ;P2 Falscher Wert
+        ENDSWITCH ;von PAR2
+;
+      CASE 78
+        SWITCH PAR2
+          CASE 1
+            $ASYNC_AXIS= 'B0000'
+          CASE 2
+            $ASYNC_AXIS= 'B0011'
+          DEFAULT
+          USR_Msg(21,#QuitMsg) ;P2 Falscher Wert
+        ENDSWITCH ;von PAR2
+;
+      CASE 89
+        SWITCH PAR2
+          CASE 1
+            $ASYNC_AXIS= 'B0000'
+          CASE 2
+            $ASYNC_AXIS= 'B0110'
+          DEFAULT
+          USR_Msg(21,#QuitMsg) ;P2 Falscher Wert
+        ENDSWITCH ;von PAR2
+;
+        DEFAULT
+        USR_Msg(20,#QuitMsg) ;P1 Falscher Wert
+      ENDSWITCH ;von PAR1
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 202 ; Hauptgruppe 2, Untergruppe 2
+    ;FOLD BZ
+    BZ_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 203 ; Hauptgruppe 2, Untergruppe 3
+    ;FOLD NZ
+    NZ_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD   
+;
+;***************************************************
+  CASE 204 ; Hauptgruppe 2, Untergruppe 4
+    ;FOLD Kollisionsueberwachung
+      G_Koll_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 205 ; Hauptgruppe 2, Untergruppe 5
+    ;FOLD MS
+    MS_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 206 ; Hauptgruppe 2, Untergruppe 6
+    ;FOLD SM
+    SM_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 207 ; Hauptgruppe 2, Untergruppe 7
+    ;FOLD RE
+    RE_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 208 ; Hauptgruppe 2, Untergruppe 8
+    ;FOLD STP
+    STP_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 209 ; Hauptgruppe 2, Untergruppe 9
+;
+;***************************************************
+  CASE 210 ; Hauptgruppe 2, Untergruppe 10
+    ;FOLD RW
+    RW_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 301 ; Hauptgruppe 3, Untergruppe 1
+    ;FOLD PN-Teilnehmer
+    DS_PN_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 302 ; Hauptgruppe 3, Untergruppe 2 nur im TRIG
+    ;FOLD EKI-Schnittstelle
+    EKI_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 303 ; Hauptgruppe 3, Untergruppe 3
+    ;FOLD KL
+    KL_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 304 ; Hauptgruppe 3, Untergruppe 4 
+    ;FOLD FD
+    FD_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 305 ; Hauptgruppe 3, Untergruppe 5
+    ;FOLD BU_M
+    BU_M_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 306 ; Hauptgruppe 3, Untergruppe 6
+    ;FOLD BU_ACF 
+    BU_ACF_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 307 ; Hauptgruppe 3, Untergruppe 7
+;
+;***************************************************
+  CASE 308 ; Hauptgruppe 3, Untergruppe 8
+    ;FOLD TraceCollector
+    xStartPos=$AXIS_ACT
+    xStartPosSave=xStartPos
+    PTP xStartPos
+    IF tcoTraceCollectionActive THEN
+      $TRACE.MODE=#T_STOP
+      WAIT FOR ($TRACE.STATE==#T_END)
+      IF ($OV_PRO<>100) THEN
+        MsgNotify("Trace wird nicht ausgefuhert: Override <> 100%","VW TraceCollector",,,5)
+      ELSE
+        IF ($MODE_OP<>#EX) THEN
+          MsgNotify("Trace wird nicht ausgefuhert: $MODE_OP <> #EX","VW TraceCollector",,,5)
+        ELSE
+          $TRACE.NAME[]=TcoTraceFileName[]
+          $TRACE.CONFIG[]=TcoTraceConfigName[]
+          $TRACE.MODE=#T_START
+          vw_logging("TrCollOn", $MOT_TEMP[1], $MOT_TEMP[2], $MOT_TEMP[3], $MOT_TEMP[4], $MOT_TEMP[5], $MOT_TEMP[6], , , , , , , , )
+          MsgNotify("Traceaufzeichnung gestartet!","VW TraceCollector",,,5)
+        ENDIF   
+      ENDIF
+    ENDIF
+    NumberOfAxis=0
+    NumberOfAxis=PAR1
+    $OUT[O_R_Analyse_aktiv]=TRUE
+    FOR i=1 TO NumberOfAxis
+      SWITCH i
+        CASE 1
+          xStartPos.a1=xStartPosSave.a1-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement 
+          xStartPos.a1=xStartPosSave.a1+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        CASE 2
+          xStartPos.a2=xStartPosSave.a2-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos.a2=xStartPosSave.a2+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        CASE 3
+          xStartPos.a3=xStartPosSave.a3-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos.a3=xStartPosSave.a3+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        CASE 4     
+          xStartPos.a4=xStartPosSave.a4-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos.a4=xStartPosSave.a4+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        CASE 5
+          xStartPos.a5=xStartPosSave.a5-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos.a5=xStartPosSave.a5+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement 
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        CASE 6
+          xStartPos.a6=xStartPosSave.a6-MyAxMove[NumberOfAxis].NegMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos.a6=xStartPosSave.a6+MyAxMove[NumberOfAxis].PosMove
+          PTP xStartPos
+          WAIT SEC WaitBetweenMovement
+          xStartPos=xStartPosSave
+          PTP xStartPos ;Rueckpositionieren auf Ausgangsposition
+          WAIT SEC WaitBetweenMovement
+        ENDSWITCH          
+      ENDFOR
+      IF ($TRACE.MODE<>#T_STOP) THEN
+        $TRACE.MODE=#T_STOP
+        WAIT FOR ($TRACE.STATE==#T_END)
+        vw_logging("TrCollOff", $MOT_TEMP[1], $MOT_TEMP[2], $MOT_TEMP[3], $MOT_TEMP[4], $MOT_TEMP[5], $MOT_TEMP[6], , , , , , , , )
+        MsgNotify("Traceaufzeichnung beendet!","VW TraceCollector",,,5)
+        WAIT SEC 10
+      ENDIF 
+      $OUT[O_R_Analyse_aktiv]=FALSE ;Start Archivierung
+   ;ENDFOLD
+;
+;***************************************************
+  CASE 309 ; Hauptgruppe 3, Untergruppe 9
+    ;FOLD Totzeitermittlung
+    Ipo_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 310 ; Hauptgruppe 3, Untergruppe 10
+    ;FOLD MS Naht
+    MS_Naht_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 401 ; Hauptgruppe 4, Untergruppe 1
+;
+;***************************************************
+  CASE 402 ; Hauptgruppe 4, Untergruppe 2
+    ;FOLD NK
+    NK_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 403 ; Hauptgruppe 4, Untergruppe 3
+  ;FOLD PGR
+  PGR_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+  ;ENDFOLD
+;
+;***************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CASE 410 ; Hauptgruppe 4, Untergruppe 10
+    ;FOLD TR
+    TR_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 501 ; Hauptgruppe 5, Untergruppe 1
+    ;FOLD MOD1
+    MOD1_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 502 ; Hauptgruppe 5, Untergruppe 2
+    ;FOLD MOD2
+    MOD2_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 503 ; Hauptgruppe 5, Untergruppe 3
+    ;FOLD MOD3
+    MOD3_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 504 ; Hauptgruppe 5, Untergruppe 4
+    ;FOLD Conveyor
+    vw_conv_usr_r(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+   CASE 601 ; Hauptgruppe 6, Untergruppe 1
+      ;FOLD CGX
+        CGX_Intrface(#USR_MAIN, CMD_SEL, PAR1, PAR2, PAR3, PAR4, PAR5, PAR6) ;EKI KUKA--COGNEX
+      IF $Flag[788]==TRUE THEN
+          BASE_DATA[31]=$BASE
+          BASE_DATA[32]=$BASE
+      ENDIF
+     ;ENDFOLD
+;***************************************************
+  CASE 701 ; Hauptgruppe 7, Untergruppe 1
+    ;FOLD VMT
+    VMT_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 702 ; Hauptgruppe7, Untergruppe 2
+    ;FOLD VMT
+    VMT_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 703 ; Hauptgruppe 7, Untergruppe 3
+    ;FOLD VMT
+    VMT_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 704 ; Hauptgruppe 7, Untergruppe 4
+    ;FOLD VMT
+    VMT_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD 
+;
+;***************************************************
+  CASE 801 ; Hauptgruppe 8, Untergruppe 1
+    ;FOLD KG-XML
+    VIS_Intrface(#USR_MAIN, CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) ;EKI KUKA--COGNEX
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 806 ; Hauptgruppe 8, Untergruppe 6
+    ;FOLD INOS
+    INOS_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 807 ; Hauptgruppe 8, Untergruppe 7
+    ;FOLD INOS
+    INOS_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 901,902,903,906,907,908,909,910 ;Hauptgruppe 9, Untergruppe 1-10 
+    ;FOLD ZAI
+    IF (PAR10==TRUE) THEN
+      ZAI_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 904 ;Hauptgruppe 9, Untergruppe 4 
+    ;FOLD ScanGun
+    IF (PAR10==TRUE) THEN
+      ScanGun_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 905 ;Hauptgruppe 9, Untergruppe 5 
+    ;FOLD TechBase
+    IF (PAR10==TRUE) THEN
+      TechBase_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 1001 ; Hauptgruppe 10, Untergruppe 1
+    ;FOLD Perceptron
+    PRC_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 1002 ; Hauptgruppe 10, Untergruppe 2
+    ;FOLD Perceptron
+    PRC_AutoGuideInterface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 1003 ; Hauptgruppe 10, Untergruppe 3
+    ;FOLD Perceptron
+    PRC_AutoGaugeInterface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;***************************************************
+  CASE 1006 ; Hauptgruppe 10, Untergruppe 6 
+  ;FOLD ISRA
+  ISRA_IMT_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+  ;ENDFOLD
+;
+;***************************************************
+  CASE 1007 ; Hauptgruppe 10, Untergruppe 7
+    ;FOLD ISRA RF
+    ISRA_RF_Interface(#USR_MAIN,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+  ;ENDFOLD
+;
+;***************************************************
+  DEFAULT    ;SWITCH CMD_SEL
+    USR_Msg(19,#QuitMsg)   ;fehlerhafte Gruppennummer uebergeben
+ENDSWITCH  ;SWITCH CMD_SEL
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD USER_MAKRO
+DEF  USER_MAKRO (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf im Vorlauf
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+INT ret
+;
+IF (PAR10==FALSE) THEN
+  RETURN
+ENDIF  
+;
+SWITCH CMD_SEL
+;
+;***************************************************
+  CASE 101 ; Hauptgruppe 1, Untergruppe 1
+    ;FOLD Zangenausgleich
+    SZ_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 102 ; Hauptgruppe 1, Untergruppe 2
+    ;FOLD PN-Teilnehmer
+     DS_PN_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD  
+;
+;***************************************************
+  CASE 103 ; Hauptgruppe 1, Untergruppe 3
+    ;FOLD Konfiguration-Docking
+    DS_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 104 ; Hauptgruppe 1, Untergruppe 4
+    ;FOLD Totzeitermittlung
+    Ipo_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)   
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 105 ; Hauptgruppe 1, Untergruppe 5
+    ;FOLD POT
+    POT_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9) 
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 108 ; Hauptgruppe 1, Untergruppe 8
+    ;FOLD KL
+    KL_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 201 ; Hauptgruppe 2, Untergruppe 1
+    ;FOLD PGR Alle
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 202 ; Hauptgruppe 2, Untergruppe 2
+    ;FOLD PGR KL
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 203 ; Hauptgruppe 2, Untergruppe 3
+    ;FOLD PGR EZ/SP/KE
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 204 ; Hauptgruppe 2, Untergruppe 4
+    ;FOLD PGR KF
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 205 ; Hauptgruppe 2, Untergruppe 5
+    ;FOLD PGR STP
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 206 ; Hauptgruppe 2, Untergruppe 6
+    ;FOLD PGR NZ
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 207 ; Hauptgruppe 2, Untergruppe 7
+    ;FOLD PGR CZ
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 208 ; Hauptgruppe 2, Untergruppe 8
+    ;FOLD PGR RW
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 209 ; Hauptgruppe 2, Untergruppe 9
+    ;FOLD PGR BZ
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 301 ; Hauptgruppe 3, Untergruppe 1
+    ;FOLD PGR MS
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 302 ; Hauptgruppe 3, Untergruppe 2
+    ;FOLD PGR SM
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 303 ; Hauptgruppe 3, Untergruppe 3
+    ;FOLD PGR BM
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 304 ; Hauptgruppe 3, Untergruppe 4
+    ;FOLD PGR FD
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 305 ; Hauptgruppe 3, Untergruppe 5
+    ;FOLD PGR BU
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 306 ; Hauptgruppe 3, Untergruppe 6
+    ;FOLD PGR SR
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 307 ; Hauptgruppe 3, Untergruppe 7
+    ;FOLD PGR LR
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 308 ; Hauptgruppe 3, Untergruppe 8
+    ;FOLD PGR RE
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 309 ; Hauptgruppe 3, Untergruppe 9
+    ;FOLD PGR OE
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 401 ; Hauptgruppe 4, Untergruppe 1
+    ;FOLD PGR NK
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 402 ; Hauptgruppe 4, Untergruppe 2
+    ;FOLD PGR DS
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 403 ; Hauptgruppe 4, Untergruppe 3
+    ;FOLD PGR LM
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 404 ; Hauptgruppe 4, Untergruppe 4
+    ;FOLD PGR Ventilinsel
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 405 ; Hauptgruppe 4, Untergruppe 5
+    ;FOLD PGR Spreizmagnet
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 406 ; Hauptgruppe 4, Untergruppe 6
+    ;FOLD PGR Praeger
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 407 ; Hauptgruppe 4, Untergruppe 7
+    ;FOLD PGR RIP
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 408 ; Hauptgruppe 4, Untergruppe 8
+    ;FOLD PGR Roboter
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 409 ; Hauptgruppe 4, Untergruppe 9
+    ;FOLD PGR RZ
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 501 ; Hauptgruppe 5, Untergruppe 1
+    ;FOLD PGR CONV
+    PGR_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 606 ; Hauptgruppe 6, Untergruppe 6
+    ;FOLD DZ
+    DZ_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 701 ; Hauptgruppe 7, Untergruppe 4
+    ;FOLD Parameter virtuelle-Achse
+    VA_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)  
+    ;ENDFOLD
+;
+;***************************************************
+  CASE 901,902,903; Hauptgruppe 9, Untergruppe 1-3
+    ;FOLD ZAI
+    ZAI_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+
+;
+;***************************************************
+  CASE 904 ;Hauptgruppe 9, Untergruppe 4 
+    ;FOLD ScanGun
+    IF (PAR10==TRUE) THEN
+      ScanGun_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+;
+;***************************************************
+  CASE 905 ;Hauptgruppe 9, Untergruppe 5 
+    ;FOLD TechBase
+    IF (PAR10==TRUE) THEN
+      TechBase_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ENDIF
+    ;ENDFOLD 
+
+
+;
+;***************************************************
+  CASE 1001,1002,1003,1004,1005; Hauptgruppe 10, Untergruppe 1-5
+    ;FOLD Perceptron
+    PRC_Interface(#USR_MAKRO,CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9)
+    ;ENDFOLD
+;
+;***************************************************
+  DEFAULT    ;SWITCH CMD_SEL
+    USR_Msg(19,#QuitMsg)   ;fehlerhafte Gruppennummer uebergeben
+ENDSWITCH  ;SWITCH CMD_SEL
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Merker_Init_R
+DEF Merker_Init_R()
+;
+INTERRUPT OFF 28
+;
+B_Merker_Init_aktiv=TRUE
+$FLAG[F_Merker_Init]=B_Merker_Init_aktiv
+;
+SEL_RES=SELECT(#MAKRO,50,TRUE,,,,,FALSE)
+IF MIT_LR THEN
+  ;LR Sicherheiten
+  $CYCFLAG[152]=$IN[2786] AND $IN[2787] AND NOT $IN[2788] AND NOT $IN[2789] AND NOT $IN[2791] AND NOT $IN[2792] AND $IN[2797] OR $OUT[11] AND NOT $IN[13] OR $IN[15]
+ENDIF
+IF MIT_DS THEN
+  ;Dockingkupplung angedockt
+  $CYCFLAG[81]=$IN[537] AND $IN[538] AND NOT $IN[539] AND $FLAG[670]
+ENDIF
+IF MIT_STP THEN
+  ;STP Sicherheit
+  $CYCFLAG[95]=$IN[705] AND NOT $OUT[707] AND $IN[713] AND $IN[714] AND (NOT $IN[715] AND ($IN[719] OR $FLAG[830]) OR $OUT[715]) AND NOT $IN[773] AND NOT $IN[779] AND $OUT[716]
+  ;STP KF1 Flankenauswertung
+  $CYCFLAG[97]=(($IN[718] AND $OUT[718]) OR $FLAG[312]) AND $IN[834] AND $OUT[834] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+  ;KW1 Flankenauswertung
+  $CYCFLAG[100]=(($IN[718] AND $OUT[718]) OR $FLAG[312]) AND $IN[858] AND $OUT[858] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+ENDIF
+IF MIT_EZ[1] OR MIT_KE[1] THEN
+  ;EZ/SP/KE1 Sicherheit
+  $CYCFLAG[95]=$IN[705] AND NOT $OUT[707] AND $IN[713] AND $IN[714] AND (NOT $IN[715] AND ($IN[719] OR $FLAG[830]) OR $OUT[715]) AND NOT $IN[773] AND NOT $IN[779] AND $OUT[716]
+  ;EZ/SP/KE1 KF1 Flankenauswertung
+  $CYCFLAG[97]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[834] AND $OUT[834] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+  ;EZ/SP/KE1 KF2 Flankenauswertung
+  $CYCFLAG[98]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[994] AND $OUT[994] AND $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+  ;EZ/SP/KE1 KF3 Flankenauswertung
+  $CYCFLAG[99]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[1154] AND $OUT[1154] AND NOT $FLAG[72] AND $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+  ;KW1 Flankenauswertung
+  $CYCFLAG[100]=(($IN[718] AND ($OUT[718] OR $OUT[766])) OR $FLAG[312]) AND $IN[858] AND $OUT[858] AND NOT $FLAG[72] AND NOT $FLAG[73] AND ($FLAG[90] OR $FLAG[92])
+  ;KS1 Sicherheit
+  $CYCFLAG[96]=$IN[836] AND NOT $IN[838] AND NOT $IN[837] AND $IN[839] AND NOT $OUT[715] AND ($FLAG[321] OR ($OUT[875] AND $FLAG[148]) OR ($OUT[1035] AND $FLAG[184]))
+ENDIF
+IF MIT_EZ[2] OR MIT_KE[2] THEN
+  ;EZ/SP/KE2 Sicherheiten
+  $CYCFLAG[102]=$IN[865] AND NOT $OUT[867] AND $IN[873] AND $IN[874] AND (NOT $IN[875] AND ($IN[879] OR $FLAG[831]) OR $OUT[875]) AND NOT $IN[933] AND NOT $IN[939] AND $OUT[876]
+  ;EZ/SP/KE2 KF2 Flankenauswertung
+  $CYCFLAG[104]=(($IN[878] AND ($OUT[878] OR $OUT[926])) OR $FLAG[312]) AND $IN[994] AND $OUT[994] AND $FLAG[148]
+  ;KS Sicherheiten
+  $CYCFLAG[103]=$IN[996] AND NOT $IN[998] AND NOT $IN[997] AND $IN[999] AND NOT $OUT[875] AND ($FLAG[321] OR ($OUT[715] AND $FLAG[92]) OR ($OUT[1035] AND $OUT[184]))
+ENDIF
+IF MIT_EZ[3] OR MIT_KE[3] THEN
+  ;EZ/SP/KE3 Sicherheiten
+  $CYCFLAG[109]=$IN[1025] AND NOT $OUT[1027] AND $IN[1033] AND $IN[1034] AND (NOT $IN[1035] AND ($IN[1039] OR $FLAG[832]) OR $OUT[1035]) AND NOT $IN[1093] AND NOT $IN[1099] AND $OUT[1036]
+  ;EZ/SP/KE3 KF3 Flankenauswertung
+  $CYCFLAG[111]=(($IN[1038] AND ($OUT[1038] OR $OUT[1086])) OR $FLAG[312]) AND $IN[1154] AND $OUT[1154] AND $FLAG[184]
+  ;KS Sicherheit
+  $CYCFLAG[110]=$IN[1156] AND NOT $IN[1158] AND NOT $IN[1157] AND $IN[1159] AND NOT $OUT[1035] AND ($FLAG[321] OR ($OUT[715] AND $FLAG[92]) OR ($OUT[875] AND $FLAG[148]))
+ENDIF
+IF MIT_NZS[1] THEN
+  ;Sicherheiten NZ1 Servo
+  $CYCFLAG[122]=$IN[1185] AND NOT $OUT[1187] AND $IN[1193] AND $IN[1194] AND (NOT $IN[1195] OR $OUT[1195]) AND NOT $IN[1253] AND NOT $IN[1259] AND $OUT[1196]
+ENDIF
+IF MIT_NZS[2] THEN
+  ;Sicherheiten NZ2 Servo
+  $CYCFLAG[125]=$IN[1265] AND NOT $OUT[1267] AND $IN[1273] AND $IN[1274] AND (NOT $IN[1275] OR $OUT[1275]) AND NOT $IN[1333] AND NOT $IN[1339] AND $OUT[1276]
+ENDIF
+IF MIT_NZH[1] THEN
+  ;Sicherheiten NZ1 Hydr.
+  $CYCFLAG[123]=$IN[1185] AND NOT $IN[1188] AND $IN[1190] AND ($IN[1197] OR $IN[1198]) AND $IN[1202] AND (NOT $OUT[1194] AND $IN[1194] OR $OUT[1194] AND $IN[1195])
+ENDIF
+IF MIT_NZH[2] THEN
+  ;Sicherheiten NZ2 Hydr.
+  $CYCFLAG[126]=$IN[1265] AND NOT $IN[1268] AND $IN[1270] AND ($IN[1277] OR $IN[1278]) AND $IN[1282] AND (NOT $OUT[1274] AND $IN[1274] OR $OUT[1274] AND $IN[1275])
+ENDIF
+IF MIT_CZS[1] THEN
+  ;Sicherheit CZ1 Servo
+  $CYCFLAG[116]=$IN[1345] AND NOT $OUT[1347] AND $IN[1353] AND $IN[1354] AND (NOT $IN[1355] OR $OUT[1355]) AND NOT $IN[1413] AND NOT $IN[1419] AND $OUT[1356]
+ENDIF
+IF MIT_CZS[2] THEN
+  ;Sicherheit CZ2 Servo
+  $CYCFLAG[119]=$IN[1425] AND NOT $OUT[1427] AND $IN[1433] AND $IN[1434] AND (NOT $IN[1435] OR $OUT[1435]) AND NOT $IN[1493] AND NOT $IN[1499] AND $OUT[1436]
+ENDIF
+IF MIT_CZP[1] THEN
+  ;Sicherheit CZ1 Pneumo.
+  $CYCFLAG[117]=$IN[1345] AND NOT $IN[1348] AND $IN[1350] AND $IN[1353]
+ENDIF
+IF MIT_CZS[2] THEN
+  ;Sicherheit CZ2 Pneumo.
+  $CYCFLAG[120]=$IN[1425] AND NOT $IN[1428] AND $IN[1430] AND $IN[1433]
+ENDIF
+IF MIT_FD[1] THEN
+  ;Sicherheiten FD1
+  $CYCFLAG[140]=$IN[2369] AND NOT $IN[2370] AND $IN[2374] AND $IN[2376]
+ENDIF
+IF MIT_FD[2] THEN
+  ;Sicherheiten FD2
+  $CYCFLAG[142]=$IN[2433] AND NOT $IN[2434] AND $IN[2438] AND $IN[2440]
+ENDIF
+IF MIT_KL[1] THEN
+  ;KL1 Bereit/Materialdruck
+  $CYCFLAG[146]=$IN[1529] OR $IN[1530] OR $IN[15]
+ENDIF
+IF MIT_KL[2] THEN
+  ;KL2 Bereit/Materialdruck
+  $CYCFLAG[148]=$IN[1593] OR $IN[1594] OR $IN[15]
+ENDIF
+IF MIT_KL[3] THEN
+  ;KL1 Bereit/Materialdruck
+  $CYCFLAG[150]=$IN[1657] OR $IN[1658] OR $IN[15]
+ENDIF
+IF MIT_RW[1] THEN
+  ;Sicherheiten RW1
+  $CYCFLAG[131]=$IN[1265] AND $IN[1274] AND $IN[1279]
+ENDIF
+IF MIT_RW[2] THEN 
+  ;Sicherheit RW2
+  $CYCFLAG[134]=$IN[1185] AND $IN[1194] AND $IN[1199]
+ENDIF
+;
+B_Merker_Init=FALSE
+INTERRUPT ON 28
+WAIT SEC 0.024
+B_Merker_Init_aktiv=FALSE
+$FLAG[F_Merker_Init]=B_Merker_Init_aktiv
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Momentenbetrieb
+DEF TRQ_MomentenbetriebEin(param1:IN)
+BOOL TypA, TypB
+INT param1, axnum, modeOp
+REAL max_vel, max_lag
+DECL torqlimitparam torqlim
+;
+WHILE ($LOAD.M <=0)
+  MsgQuit("Lastdaten ungueltig", "TORQ",,,110)
+ENDWHILE
+;
+WAIT FOR NOT $PRO_MOVE
+;
+SWITCH $MODE_OP
+CASE #T1
+   modeOp=1
+CASE #T2
+   modeOp=2
+CASE #AUT
+   modeOp=3
+CASE #EX
+   modeOp=4
+DEFAULT
+   modeOp=-1
+ENDSWITCH
+;
+vw_logging("trq_on", $TORQUE_AXIS_ACT[1], $TORQUE_AXIS_ACT[2], $TORQUE_AXIS_ACT[3], $TORQUE_AXIS_ACT[4], $TORQUE_AXIS_ACT[5],$TORQUE_AXIS_ACT[6], $HOLDING_TORQUE[1], $HOLDING_TORQUE[2], $HOLDING_TORQUE[3], $HOLDING_TORQUE[4], $HOLDING_TORQUE[5], $HOLDING_TORQUE[6],VW_MPARA_ACT.TOOL_NO,modeOp)
+trqon_Axis = $AXIS_ACT
+trqoff_Axis={A1 0.0,A2 0.0,A3 0.0,A4 0.0,A5 0.0,A6 0.0}
+trqon_Pos = $POS_ACT
+trqoff_Pos={X 0.0, Y 0.0, Z 0.0, A 0.0, B 0.0, C 0.0} 
+;
+TypA=StrComp($TRAFONAME[], "#KR500_3 C4 FLR ZH500_3", #NOT_CASE_SENS)
+TypB=StrComp($TRAFONAME[], "#KR500_2 H C4 FLR ZH500", #NOT_CASE_SENS) 
+FOR axnum = 1 to 6
+  IF TRQ_AxisIsSelected(param1, axnum) THEN
+    IF (($LOAD.M >= 240) and ((TypA==TRUE) or (TypB==TRUE))) THEN       ;Abfrage Last und Robotertyp! 
+      IF axnum == 2  THEN
+        $Holding_torque_mand[2] = false
+        torqlim.lower = ($Torque_axis_act[2]*1.1)-10
+        torqlim.upper = ($Torque_axis_act[2]*1.1)+10
+        torqlim.max_lag = 0.5
+        torqlim.max_vel = 10  
+        torqlim.monitor = #off
+        SET_TORQUE_LIMITS(2, torqlim)             
+      ELSE          
+        torqlim.lower = $holding_torque[axnum]-10
+        torqlim.upper = $holding_torque[axnum]+10
+        torqlim.max_lag = 0.5
+        torqlim.max_vel = 10  
+        torqlim.monitor = #off
+        SET_TORQUE_LIMITS(axnum, torqlim)
+      ENDIF
+    ELSE
+      IF axnum == 2  THEN
+        $Holding_torque_mand[2] = false
+        torqlim.lower = $Torque_axis_act[2]-10
+        torqlim.upper = $Torque_axis_act[2]+10
+        torqlim.max_lag = 0.5
+        torqlim.max_vel = 10  
+        torqlim.monitor = #off
+        SET_TORQUE_LIMITS(2, torqlim)               
+      ELSE          
+        torqlim.lower = $holding_torque[axnum]-10
+        torqlim.upper = $holding_torque[axnum]+10
+        torqlim.max_lag = 0.5
+        torqlim.max_vel = 10  
+        torqlim.monitor = #off
+        SET_TORQUE_LIMITS(axnum, torqlim)
+      ENDIF
+    ENDIF
+  ENDIF
+ENDFOR
+; einmaliges Aktivieren der Momentenbegrenzung
+PTP $AXIS_ACT
+;
+IF NOT $EXT OR trq_debugMsg THEN 
+  MsgNotify("Momentenbetrieb eingeschaltet", "TORQ",,,110)
+ENDIF
+END
+;
+;***************************************************
+DEFFCT BOOL TRQ_AxisIsSelected(param1:IN, axisnum:IN)
+INT i,param1, axisnum, axval
+BOOL axisSelected
+;
+axval=1
+for i=1 TO (axisnum-1)
+  axval = axval * 2
+endfor
+;
+IF (param1 B_AND axval > 0) THEN
+  axisSelected=TRUE
+ELSE 
+  axisSelected=FALSE
+ENDIF
+;
+RETURN(axisSelected)
+ENDFCT
+;
+;***************************************************
+DEF vw_logging(sSender[]:IN, _r1:IN, _r2:IN, _r3:IN, _r4:IN, _r5:IN, _r6:IN, _r7:IN, _r8:IN, _r9:IN, _r10:IN, _r11:IN, _r12:IN, _r13:IN, _r14:IN)
+DECL CHAR sSender[]
+DECL REAL _r1,_r2,_r3,_r4,_r5,_r6,_r7,_r8,_r9,_r10,_r11,_r12,_r13,_r14
+DECL INT len, count
+;
+IF ((co < 1) OR (co > 99)) THEN
+  co=1
+ELSE
+  co = co + 1
+ENDIF
+logdata[co]={time {date 0,time 0},name[] " ", r1 0.0, r2 0.0, r3 0.0, r4 0.0, r5 0.0, r6 0.0, r7 0.0, r8 0.0, r9 0.0, r10 0.0, r11 0.0, r12 0.0, r13 0.0, r14 0.0}
+logdata[co].time.date=logDate()
+logdata[co].time.time=logTime()
+;
+Err_Clear($Err)
+On_Error_Proceed
+len=Strlen(sSender[])
+IF $Err.Number==0 THEN
+  IF len>0 THEN
+    IF len>8 THEN
+      len=8
+    ENDIF
+    FOR count = 1 to len
+      logdata[co].name[count] =sSender[count]
+    ENDFOR
+  ENDIF   
+ELSE
+  logdata[co].name[]="unknown"
+ENDIF
+;
+On_Error_Proceed
+logdata[co].r1 = _r1
+On_Error_Proceed
+logdata[co].r2 = _r2
+On_Error_Proceed
+logdata[co].r3 = _r3
+On_Error_Proceed
+logdata[co].r4 = _r4
+On_Error_Proceed
+logdata[co].r5 = _r5
+On_Error_Proceed
+logdata[co].r6 = _r6
+On_Error_Proceed
+logdata[co].r7 = _r7
+On_Error_Proceed
+logdata[co].r8 = _r8
+On_Error_Proceed
+logdata[co].r9 = _r9
+On_Error_Proceed
+logdata[co].r10 = _r10
+On_Error_Proceed
+logdata[co].r11 = _r11
+On_Error_Proceed
+logdata[co].r12 = _r12
+On_Error_Proceed
+logdata[co].r13 = _r13
+On_Error_Proceed
+logdata[co].r14 = _r14
+;
+END
+;
+;***************************************************
+DEFFCT INT logDate()
+INT logDate
+DECL DATE actDate
+actDate=$DATE
+logDate = actDate.year * 10000
+logDate = logDate + actDate.month * 100
+logDate = logDate + actDate.day
+RETURN(logDate)
+ENDFCT
+;
+;***************************************************
+DEFFCT INT logTime()
+INT logTime
+DECL DATE actTime
+actTime=$DATE
+logTime = actTime.hour * 10000
+logTime = logTime + actTime.min * 100
+logTime = logTime + actTime.sec
+RETURN(logTime)
+ENDFCT
+;
+;ENDFOLD Momentenbetrieb
+;
+;***************************************************
+GLOBAL DEFFCT  REAL DIST_FRAME(P1:OUT,P2:OUT)
+; Berechnung des Abstandes zwischen 2 Positionen
+FRAME P1,P2
+REAL DIST_VEC[3]
+DIST_VEC[1]=P2.X-P1.X
+DIST_VEC[2]=P2.Y-P1.Y
+DIST_VEC[3]=P2.Z-P1.Z
+RETURN  (VEK_LAENGE(DIST_VEC[],3))
+ENDFCT
+;
+;***************************************************
+GLOBAL DEFFCT  REAL VEK_LAENGE(V[]:OUT,N :IN)
+; Berechnung der euklidischen Laenge des N-dimensionalen Vektors V
+REAL V[]
+INT N
+RETURN  (SQRT(SKAL_PROD(V[],V[],N)))
+ENDFCT
+;
+;***************************************************
+GLOBAL DEFFCT  REAL SKAL_PROD(V[]:OUT,W[]:OUT,N :IN)
+; Berechnung des Skalarprodukts der beiden N-dimensionalen Vektoren
+; V und W
+REAL V[],W[]
+INT N
+REAL SK_PROD
+INT I
+SK_PROD=0
+FOR I=1 TO  N
+  SK_PROD=SK_PROD+V[I]*W[I]
+ENDFOR
+RETURN  (SK_PROD)
+ENDFCT
+;
+;***************************************************
+;FOLD USR Message
+DEF USR_Msg(Msg_nr :IN, MsgTyp :IN)
+INT Msg_nr, OFFSET
+DECL USRR_MsgType MsgTyp
+DECL KrlMsg_T USER_Msg
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "USR_R_Msg", Nr -1, Msg_txt[] " "}
+Par[1] = { Par_type #Value, Par_txt[] " " }
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+;
+OFFSET=0
+IF ((n_USRR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = Msg_nr
+  SWITCH  Msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="Fehler: Base 0 geteacht"
+    CASE 2
+      USER_MSG.MSG_TXT[]="TOOL_CORR fehlt"
+    CASE 3
+      USER_MSG.MSG_TXT[]="BASE_CORR fehlt"
+    CASE 4
+      USER_MSG.MSG_TXT[]="P2 Werte nur 1 - 13 zulaessig"
+    CASE 5
+      USER_MSG.MSG_TXT[]="Sensor 1 defekt/Sensor 1 pruefen"
+    CASE 6
+      USER_MSG.MSG_TXT[]="Sensor 2 defekt/Sensor 2 pruefen"
+    CASE 7
+      USER_MSG.MSG_TXT[]="Suchlauf Nahsensor defekt"
+    CASE 8
+      USER_MSG.MSG_TXT[]="Teilespeicher-Nr. von SPS fehlt"
+    CASE 9
+      USER_MSG.MSG_TXT[]="SPS Speicherposition ungueltig"
+    CASE 10
+      USER_MSG.MSG_TXT[]="Koordinaten fuer Speicherposition ungueltig"
+    CASE 11
+      USER_MSG.MSG_TXT[]="Base Type ungueltig"
+    CASE 12
+      USER_MSG.MSG_TXT[]=" "
+    CASE 13
+      USER_MSG.MSG_TXT[]="Punkt schon gepraegt"
+    CASE 14
+      USER_MSG.MSG_TXT[]="Spreizmagnete Stromwert zu hoch, Soll 0-80"
+    CASE 15
+      USER_MSG.MSG_TXT[]="Base-Nr falsch"
+    CASE 16
+      USER_MSG.MSG_TXT[]="Suchlauf fehlerhaft"
+    CASE 17
+      USER_MSG.MSG_TXT[]=" "
+    CASE 18
+      USER_MSG.MSG_TXT[]="Suchl. Neue Base wurde gesetzt"
+    CASE 19
+      USER_MSG.MSG_TXT[]="falsche Gruppennummer "
+    CASE 20
+      USER_MSG.MSG_TXT[]="P1 Falscher Wert"
+    CASE 21
+      USER_MSG.MSG_TXT[]="P2 Falscher Wert"
+    CASE 22
+      USER_MSG.MSG_TXT[]="P3 Falscher Wert"  
+    CASE 23
+      USER_MSG.MSG_TXT[]="P4 Falscher Wert" 
+    CASE 24
+      USER_MSG.MSG_TXT[]="P5 Falscher Wert" 
+    CASE 25
+      USER_MSG.MSG_TXT[]="P6 Falscher Wert" 
+    CASE 26
+      USER_MSG.MSG_TXT[]=" " 
+    CASE 27
+	   USER_MSG.MSG_TXT[]="Signal-Wertebereich ueberschritten"   
+    DEFAULT
+      USER_MSG.MSG_TXT[]=" "
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #QuitMsg
+      n_USRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE ( Exists_KrlMsg(n_USRR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        WAIT Sec 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_USRR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    CASE #StateMsg  
+      n_USRR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Zustandsmeldung
+    DEFAULT
+      n_USRR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;ENDFOLD
+;
+;***************************************************
+;ENDFOLD hidden fold ueber ganzen user MUE 18.2

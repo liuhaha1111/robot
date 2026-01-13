@@ -1,0 +1,1514 @@
+&ACCESS R7
+&REL 280
+&COMMENT KS_26_01_0083 VW (Tech_Basic)
+&PARAM EDITMASK = vw_usr_s
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vw_usr_sv
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM SUPPRESS = LoosOfPrecision UnswitchedEnum UnusedFunctionParameter
+&PARAM DISKPATH = KRC:\R1\VW_User
+DEF VW_USR_S(USER_CMD :IN,CMD_SEL :IN,PARA1 :IN,PARA2 :IN,PARA3 :IN,PARA4 :IN,PARA5 :IN,PARA6 :IN,PARA7 :IN,PARA8 :IN,PARA9 :IN,PARA10 :IN )
+;FOLD ;%{H}%MKUKATPVW
+;VW_USER Call
+DECL VW_USER_CMD USER_CMD
+REAL PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9
+BOOL PARA10
+INT CMD_SEL
+SWITCH  USER_CMD
+CASE #USR_INIT
+USER_INIT ()
+CASE #USR_SAW
+USER_SAW ()
+CASE #USR_RESET
+USER_RESET ()
+CASE #USR_CANCEL
+USER_CANCEL ()
+CASE #USR_LOOP
+USER_LOOP ()
+CASE #USR_MAKRO_SPS
+USER_MAKRO_SPS (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_SAW
+USER_MAKRO_SAW (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_STEP
+USER_MAKRO_STEP (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_TRIG
+USER_MAKRO_TRIG (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_NEUSTART
+USER_MAKRO_NEUSTART (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_INIT_SUB1
+USER_INIT_SUB1 ()
+CASE #USR_INIT_SUB2
+USER_INIT_SUB2 ()
+CASE #USR_INIT_SUB3
+USER_INIT_SUB3 ()
+CASE #USR_INIT_SUB4
+USER_INIT_SUB4 ()
+CASE #USR_INIT_SUB5
+USER_INIT_SUB5 ()
+CASE #USR_MAKRO_SUB1
+USER_MAKRO_SUBMIT1 (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_SUB2
+USER_MAKRO_SUBMIT2 (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_SUB3
+USER_MAKRO_SUBMIT3 (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_SUB4
+USER_MAKRO_SUBMIT4 (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+CASE #USR_MAKRO_SUB5
+USER_MAKRO_SUBMIT5 (CMD_SEL,PARA1,PARA2,PARA3,PARA4,PARA5,PARA6,PARA7,PARA8,PARA9,PARA10)
+DEFAULT
+ENDSWITCH
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Init
+DEF  USER_INIT ()
+;Aufruf beim Start des SPS.SUB
+;
+;***************************************************
+; Technologiepaket Basic                           *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 07.08.2018 CE Palettier-Modus implementiert     *
+;* 23.09.2019 CE Ruecksetzen Tool_Corr Base_corr   *
+;*            angepasst.                           *
+;* 10.01.2019 CE Modul NZ geändert                 *
+;*                                                 *
+;***************************************************
+;
+INT i
+BOOL bRet
+;
+;Version Techpaket
+Tech_Basic.Name[]="KS26.01.083_20191111"
+;
+;Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_USRS_Handle[i]=-1
+  n_USRR_Handle[i]=-1
+ENDFOR
+bRet=Clear_KrlMsg(-99)
+WAIT SEC 0.1
+;
+;TimerInit
+Timer_USR_S=$ROB_TIMER
+HM_Timer_USR_S=$ROB_TIMER
+;
+;Anlauf-Merker (Kaltstart)
+B_Anlauf=TRUE
+;
+;Vorbesetzung MyOldTime ist MyNewTime (Kaltstart)
+MyNewTime=$DATE
+MyOldTime=MyNewTime
+;
+;Peripherie Sharing
+IF PERI_GATEW1 THEN
+  $OUT[3905]=FALSE
+ENDIF
+IF PERI_GATEW2 THEN
+  $OUT[3937]=FALSE
+ENDIF
+;
+;Hilfsflag fuer USER-Aufrufueberwachung ausschalten
+USER_AKTIV=FALSE
+;POT-Timer zuruecksetzen
+$TIMER[TimerNr_POT]=0
+;Hilfsflag fuer FRG Positionieren ausschalten
+$FLAG[F_Frg_Servo]=FALSE
+;
+;Aufruf INIT Module
+;G
+G_INIT()  
+;SZ
+SZ_INIT()  
+;STP
+STP_INIT()
+;SK 
+SK_INIT()
+;BZ
+BZ_INIT()
+;BZ
+OE_INIT()
+;LR
+LR_INIT()
+;CZ 
+CZ_INIT()
+;DS 
+DS_INIT()
+;FD
+FD_INIT()
+;KL
+KL_INIT()
+;MS
+MS_INIT()
+;BM
+BM_INIT()
+;NZ 
+NZ_INIT()
+;RW
+RW_INIT()
+;SFR
+SFR_INIT()
+;RE
+RE_INIT()
+;SR
+SR_INIT()
+;NK
+NK_INIT()
+;SM
+SM_INIT()
+;BU
+BU_INIT()
+;POT
+POT_INIT()
+;IPO
+IPO_INIT()
+;PGR
+PGR_INIT()
+;PR
+PR_INIT()
+;TR
+TR_INIT()
+;EKI
+A_EKI_INIT()
+;VW FE
+VW_FE_INIT()
+;VW_WA
+VW_WA_INIT()
+;PRC
+PRC_INIT()
+;INOS
+INO_INIT()
+;ZAI
+ZAI_INIT()
+;ISRA
+ISR_INIT()
+;VMT
+VMT_INIT()
+;VA
+VA_INIT()
+;MOD1
+MOD1_INIT()
+;MOD2
+MOD2_INIT()
+;MOD3
+MOD3_INIT()
+;RZ 
+RZ_INIT(1)
+;
+;CONV
+CONV_INIT()
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Satzanwahl
+DEF  USER_SAW ()
+;Aufruf bei Verlust der Satzkoinzidenz (z.B. Satzanwahl)
+INT i
+;
+;Tool_corr + Base_corr ruecksetzen
+IF NOT TouchupSaw_Active THEN
+  Tool_Corr=$NULLFRAME
+  Base_Corr=$NULLFRAME
+ENDIF
+;
+;Hilfsflag fuer USER-Aufrufueberwachung ausschalten
+USER_AKTIV=FALSE
+;
+;Hilfsflag fuer FRG Positionieren ausschalten
+$FLAG[F_Frg_Servo]=FALSE
+;
+;Aufruf SAW Module
+;G
+G_SAW()  
+;BZ
+FOR i=1 TO 2
+  IF MIT_BZ[i] THEN
+    BZ_SAW(i)
+  ENDIF  
+ENDFOR
+;OE
+FOR i=1 TO 2
+  IF MIT_OE[i] THEN
+    OE_SAW(i)
+  ENDIF  
+ENDFOR
+;LR
+IF MIT_LR THEN
+  LR_SAW( )
+ENDIF  
+;CZS
+FOR i=1 TO 2
+  IF MIT_CZS[i] OR MIT_CZP[i] THEN
+    CZ_SAW(i)
+  ENDIF
+ENDFOR
+;FD
+FOR i=1 TO 2
+  IF MIT_FD[i] THEN
+    FD_SAW(i)
+  ENDIF
+ENDFOR  
+;KL
+FOR i=1 TO 3
+  IF MIT_KL[i] THEN
+    KL_SAW(i)
+  ENDIF
+ENDFOR  
+;MS
+FOR i=1 TO 2
+  IF MIT_MS[i] THEN
+    MS_SAW(i)
+  ENDIF
+ENDFOR  
+;BM
+FOR i=1 TO 3
+  IF MIT_BM[i] THEN
+    BM_SAW(i)
+  ENDIF
+ENDFOR  
+;NZ
+FOR i=1 TO 2
+  IF MIT_NZS[i] OR MIT_NZH[i] THEN
+    NZ_SAW(i)
+  ENDIF
+ENDFOR  
+;RW
+FOR i=1 TO 2
+  IF MIT_RW[i] THEN
+    RW_SAW(i)
+  ENDIF
+ENDFOR
+;SFR
+IF $SR_SAFEMON_ACTIVE THEN
+  SFR_SAW( )
+ENDIF
+;SR
+IF MIT_SR THEN
+  SR_SAW( )
+ENDIF
+;RE
+IF MIT_RE THEN
+  RE_SAW( )
+ENDIF
+;NK
+IF MIT_NK THEN
+  NK_SAW( )
+ENDIF
+;SM
+FOR i=1 TO 2
+  IF MIT_SM[i] THEN
+    SM_SAW(i)
+  ENDIF
+ENDFOR
+;BU
+IF MIT_BU THEN
+  BU_SAW()
+ENDIF
+;STP
+IF MIT_STP THEN
+  STP_SAW( )
+ENDIF  
+;VA
+IF MIT_VA THEN
+  VA_SAW( )
+ENDIF
+;PR
+IF MIT_PR THEN
+  PR_SAW( )
+ENDIF
+;TR
+TR_SAW( )
+;PGR
+PGR_SAW( )
+;POT
+POT_SAW( )
+;SZ
+FOR i=1 TO 3
+  IF MIT_EZ[i] OR MIT_KE[i] THEN
+    SZ_SAW(i)
+  ENDIF
+ENDFOR
+;DS
+IF MIT_DS THEN
+  DS_SAW()
+ENDIF
+;EKI
+IF MIT_EKI THEN
+  A_EKI_SAW()
+ENDIF
+;PRC
+IF B_MIT_PRC THEN
+  PRC_SAW()
+ENDIF
+;ZAI
+IF B_MIT_ZAI THEN
+  ZAI_SAW()
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  INO_RstIO()
+ENDIF
+;ISRA
+IF B_MIT_ISR THEN
+  IS_ResetSignals()
+ENDIF
+;VMT
+IF B_MIT_VMT THEN
+  VMT_BK_SAW()
+ENDIF
+;MOD1
+MOD1_SAW()
+;MOD2
+MOD2_SAW()
+;MOD3
+MOD3_SAW()
+;RZ
+IF MIT_RZ THEN
+  RZ_SAW( )
+ENDIF
+;CONV
+IF B_MIT_CONV THEN
+  CONV_SAW()
+ENDIF
+;
+;Merker-Init
+B_Merker_Init=TRUE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Reset
+DEF  USER_RESET ()
+;Aufruf bei Programmreset
+INT i
+;
+;Peripherie Sharing
+IF PERI_GATEW1 THEN
+  $OUT[3905]=FALSE
+ENDIF
+IF PERI_GATEW2 THEN
+  $OUT[3937]=FALSE
+ENDIF
+;
+;Hilfsflag fuer USER-Aufrufueberwachung ausschalten
+USER_AKTIV=FALSE
+;
+;Tool_corr + Base_corr ruecksetzen
+Tool_Corr=$NULLFRAME
+Base_Corr=$NULLFRAME
+;
+;Aufruf RESET Module
+;
+;G
+G_RESET()
+;BZ
+FOR i=1 TO 2 
+  IF MIT_BZ[i] THEN
+    BZ_RESET(i)
+  ENDIF
+ENDFOR  
+;OE
+FOR i=1 TO 2 
+  IF MIT_OE[i] THEN
+    OE_RESET(i)
+  ENDIF
+ENDFOR  
+;LR
+IF MIT_LR THEN
+  LR_RESET( )
+ENDIF  
+;CZS
+FOR i=1 TO 2
+  IF MIT_CZS[i] OR MIT_CZP[i] THEN
+    CZ_RESET(i)
+  ENDIF
+ENDFOR
+;FD
+FOR i=1 TO 2
+  IF MIT_FD[i] THEN
+    FD_RESET(i)
+  ENDIF  
+ENDFOR
+;KL
+FOR i=1 TO 3 
+  IF MIT_KL[i] THEN
+    KL_RESET(i)
+  ENDIF
+ENDFOR  
+;MS
+FOR i=1 TO 2 
+  IF MIT_MS[i] THEN
+    MS_RESET(i)
+  ENDIF 
+ENDFOR  
+;BM
+FOR i=1 TO 3
+  IF MIT_BM[i] THEN
+    BM_RESET(i)
+  ENDIF
+ENDFOR  
+;NZ
+FOR i=1 TO 2
+  IF MIT_NZS[i] OR MIT_NZH[i] THEN
+    NZ_RESET(i)
+  ENDIF
+ENDFOR
+;RW
+FOR i=1 TO 2
+  IF MIT_RW[i] THEN
+    RW_RESET(i)
+  ENDIF
+ENDFOR
+;SFR
+IF $SR_SAFEMON_ACTIVE THEN
+  SFR_RESET( )
+ENDIF
+;SR
+IF MIT_SR THEN
+  SR_RESET( )
+ENDIF
+;RE
+IF MIT_RE THEN
+  RE_RESET( )
+ENDIF
+;NK
+IF MIT_NK THEN
+  NK_RESET( )
+ENDIF
+;SM
+FOR i=1 TO 2
+  IF MIT_SM[i] THEN
+    SM_RESET(i)
+  ENDIF
+ENDFOR
+;BU
+IF MIT_BU THEN
+  BU_RESET()
+ENDIF 
+;STP
+IF MIT_STP THEN
+  STP_RESET( )
+ENDIF  
+;VA
+IF MIT_VA THEN
+  VA_RESET( )
+ENDIF
+;PR
+IF MIT_PR THEN
+  PR_RESET( )
+ENDIF
+;TR
+TR_RESET( )
+;POT
+POT_RESET( )
+;PGR
+PGR_RESET()
+;SZ
+FOR i=1 TO 3
+  IF MIT_EZ[i] OR MIT_KE[i] THEN
+    SZ_RESET(i)
+  ENDIF
+ENDFOR
+;EKI
+IF MIT_EKI THEN
+  A_EKI_RESET()
+ENDIF
+;DS
+IF MIT_DS THEN
+  DS_RESET()
+ENDIF
+;PRC
+IF B_MIT_PRC THEN
+  PRC_RESET()
+ENDIF
+;ZAI
+IF B_MIT_ZAI THEN
+  ZAI_RESET()
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  INO_RstIO()
+  INO_RstVars()
+ENDIF
+;ISRA
+IF B_MIT_ISR THEN
+  ISR_USR_RESET()
+ENDIF
+;VMT
+IF B_MIT_VMT THEN
+	VMT_BK_RESET()
+ENDIF
+;MOD1
+MOD1_RESET()
+;MOD2
+MOD2_RESET()
+;MOD3
+MOD3_RESET()
+;RZ
+IF MIT_RZ THEN
+  RZ_RESET( )
+ENDIF
+;CONV
+IF B_MIT_CONV THEN
+  CONV_RESET()
+ENDIF
+;
+;Merker-Init
+B_Merker_Init=TRUE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Cancel
+DEF  USER_CANCEL ()
+;Aufruf bei Programmabwahl
+;
+INT i
+;
+;Peripherie Sharing
+IF PERI_GATEW1 THEN
+  $OUT[3905]=FALSE
+ENDIF
+IF PERI_GATEW2 THEN
+  $OUT[3937]=FALSE
+ENDIF
+;
+;Hilfsflag fuer USER-Aufrufueberwachung ausschalten
+USER_AKTIV=FALSE
+;
+;Tool_corr + Base_corr ruecksetzen
+Tool_Corr=$NULLFRAME
+Base_Corr=$NULLFRAME
+;
+;Aufruf CANCEL Module
+;G
+G_CANCEL()
+;BZ
+FOR i=1 TO 2
+  IF MIT_BZ[i] THEN
+    BZ_CANCEL(i)
+  ENDIF
+ENDFOR  
+;OE
+FOR i=1 TO 2
+  IF MIT_OE[i] THEN
+    OE_CANCEL(i)
+  ENDIF
+ENDFOR  
+;LR
+IF MIT_LR THEN
+  LR_CANCEL( )
+ENDIF  
+;CZS
+FOR i=1 TO 2
+  IF MIT_CZS[i] OR MIT_CZP[i] THEN
+    CZ_CANCEL(i)
+  ENDIF
+ENDFOR
+;FD
+FOR i=1 TO 2
+  IF MIT_FD[i] THEN
+    FD_CANCEL(i)
+  ENDIF  
+ENDFOR
+;KL
+FOR i=1 TO 3
+  IF MIT_KL[i] THEN
+    KL_CANCEL(i)
+  ENDIF
+ENDFOR  
+;MS
+FOR i=1 TO 2 
+  IF MIT_MS[i] THEN
+    MS_CANCEL(i)
+  ENDIF
+ENDFOR  
+;BM
+FOR i=1 TO 3
+  IF MIT_BM[i] THEN
+    BM_CANCEL(i)
+  ENDIF
+ENDFOR
+;NZ
+FOR i=1 TO 2
+  IF MIT_NZS[i] OR MIT_NZH[i] THEN
+    NZ_CANCEL(i)
+  ENDIF
+ENDFOR  
+;RW
+FOR i=1 TO 2
+  IF MIT_RW[i] THEN
+    RW_CANCEL(i)
+  ENDIF
+ENDFOR
+;SFR
+IF $SR_SAFEMON_ACTIVE THEN
+  SFR_CANCEL( )
+ENDIF
+;SR
+IF MIT_SR THEN
+  SR_CANCEL( )
+ENDIF
+;RE
+IF MIT_RE THEN
+  RE_CANCEL( )
+ENDIF
+;NK
+IF MIT_NK THEN
+  NK_CANCEL( )
+ENDIF
+;SM
+FOR i=1 TO 2
+  IF MIT_SM[i] THEN
+    SM_CANCEL(i)
+  ENDIF
+ENDFOR
+;BU
+IF MIT_BU THEN
+  BU_CANCEL()
+ENDIF 
+;POT
+POT_CANCEL( )
+;PGR
+PGR_CANCEL()
+;STP
+IF MIT_STP THEN
+  STP_CANCEL( )
+ENDIF 
+;VA
+IF MIT_VA THEN
+  VA_CANCEL( )
+ENDIF
+;PR
+IF MIT_PR THEN
+  PR_CANCEL( )
+ENDIF
+;TR
+TR_CANCEL( )
+;POT
+POT_CANCEL( )
+;SZ
+FOR i=1 TO 3
+  IF MIT_EZ[i] OR MIT_KE[i] THEN
+    SZ_CANCEL(i)
+  ENDIF
+ENDFOR
+;EKI
+IF MIT_EKI THEN
+  A_EKI_CANCEL()
+ENDIF
+;DS
+IF MIT_DS THEN
+  DS_CANCEL()
+ENDIF
+;PRC
+IF B_MIT_PRC THEN
+  PRC_CANCEL()
+ENDIF
+;ZAI
+IF B_MIT_ZAI THEN
+  ZAI_CANCEL()
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  INO_RstIO()
+  INO_RstVars()
+ENDIF
+;ISRA
+IF B_MIT_ISR THEN
+  ISR_USR_CANCEL()
+ENDIF
+;MOD1
+MOD1_CANCEL()
+;MOD2
+MOD2_CANCEL()
+;MOD3
+MOD3_CANCEL()
+;RZ
+IF MIT_RZ THEN
+  RZ_CANCEL( )
+ENDIF
+;CONV
+IF B_MIT_CONV THEN
+  CONV_CANCEL()
+ENDIF
+;
+;Merker-Init
+B_Merker_Init=TRUE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Loop
+DEF  USER_LOOP ()
+;zyklischer Aufruf im SPS.SUB
+INT i,TOUT,ret
+;
+;USER_AKTIV ruecksetzen
+IF ($PRO_MODE==#BSTEP) THEN
+  IF (USER_AKTIV==TRUE) THEN
+    USER_AKTIV=FALSE
+  ENDIF  
+ENDIF
+;Merker Initialisieren nach Rueckwaertsfahrt/Handeingriff
+IF ($PRO_STATE1==#P_ACTIVE) AND ($PRO_MODE==#GO) AND (HM_P_ACTIVE==FALSE) THEN
+  HM_P_ACTIVE=TRUE
+  HM_Merker_Init=TRUE
+ENDIF
+IF ($PRO_STATE1==#P_STOP) AND (($PRO_MODE==#GO) OR ($PRO_MODE==#BSTEP)) THEN
+  HM_P_ACTIVE=FALSE
+  B_Merker_Init=FALSE
+ENDIF
+IF ($PRO_MODE==#GO) AND ($MODE_OP<>#EX) AND ($PRO_STATE1==#P_ACTIVE) AND (HM_Merker_Init==TRUE) AND (B_Merker_Init==FALSE) AND (B_Merker_Init_aktiv==FALSE) THEN
+  HM_Merker_Init=FALSE
+  B_Merker_Init=TRUE
+ENDIF
+;
+;Online-Freigaben
+$OUT[O_ONLINE_FRG[1]]=$CYCFLAG[C_ONLINE_FRG[1]]
+$OUT[O_ONLINE_FRG[2]]=$CYCFLAG[C_ONLINE_FRG[2]]
+;
+;Flag Roboter Single Step
+$FLAG[F_R_SStep]=$OUT[O_R_Hand]
+;
+;Ohne Prozess in Single Step
+$FLAG[F_o_Proz_SStep]=$FLAG[F_o_Proz_SStep] AND $OUT[O_R_Hand] 
+;
+;Abschaltung erlaubt
+$OUT[O_R_Abs_erl]=$OUT[O_R_steht] AND NOT $OUT[O_R_WAR_BAT] AND ($OUT[O_R_PF0] OR $OUT[O_R_Wart] OR $OUT[O_R_WartB]) AND ($APP_INT[5]==2)
+;
+;Einschaltverzoegerung
+IF NOT $COULD_START_MOTION THEN
+  $TIMER[TimerNr_Ein]=-20000 
+  $TIMER_STOP[TimerNr_Ein]=TRUE
+ELSE  
+  $timer_stop[TimerNr_Ein]=FALSE
+ENDIF
+;
+;Zykluszeit USR_S
+Timer_USR_S=$ROB_TIMER-HM_Timer_USR_S
+HM_Timer_USR_S=$ROB_TIMER
+;
+;Verzoegerter Bus-Reset nach Hibernate  
+MyNewTime=$DATE
+IF (DiffTime(MyNewTime,MyOldTime)>HiberTime) THEN
+  Hibernate=TRUE
+  Hibernate_2=TRUE
+  MyRobTimer=$ROB_TIMER
+ENDIF
+IF Hibernate AND NOT BUS_Reset AND NOT $IN[I_R_Mast_io] AND NOT $POWER_FAIL THEN
+  IF ($ROB_TIMER >(MyRobTimer+(ResetTimeOut*1000))) THEN
+    Ret=IOCTL("PNIO-CTRL",12,1)
+    BUS_Reset=TRUE
+  ENDIF
+  IF BUS_Reset THEN
+    Hibernate=FALSE
+    BUS_Reset=FALSE
+  ENDIF      
+ENDIF
+MyOldTime=$DATE
+IF Hibernate_2 AND $COULD_START_MOTION THEN
+  IF schleppfehler AND NOT $softplcbool[5] AND NOT $softplcbool[6] AND (sf_prog_status<>#SZ_io) THEN
+    sf_prog_status=#SZ_io
+    schleppfehler = FALSE
+  ENDIF 
+ENDIF    
+IF Hibernate_2 AND $OUT[O_R_Proz_akt] AND $OUT[O_R_bewegt] AND ($softplcbool[5]==FALSE) THEN
+  Hibernate=FALSE
+  Hibernate_2=FALSE
+ENDIF   
+;
+;Merker Antriebe aus
+IF NOT $COULD_START_MOTION AND ($PRO_STATE1==#P_STOP) THEN
+  HM_Antriebe_AUS=TRUE
+ENDIF
+;
+IF $COULD_START_MOTION AND HM_Antriebe_AUS AND ($PRO_STATE1==#P_ACTIVE) AND (HM_Koll_aktiv==TRUE) THEN
+  B_Antriebe_AUS=TRUE
+  HM_Antriebe_AUS=FALSE
+ENDIF
+IF ($PRO_STATE1==#P_FREE) OR $OUT[O_R_PF0] THEN
+  ;POT-Timer zuruecksetzen
+  $TIMER[TimerNr_POT]=0
+  B_Antriebe_AUS=FALSE
+  HM_Antriebe_AUS=FALSE
+ENDIF
+;
+;Akkutest
+IF (($ACCU_STATE==#charge_ok_low) OR ($ACCU_STATE==#charge_test_nok) OR ($ACCU_STATE==#charge_nok) OR ($ACCU_STATE==#charge_off)) AND $OUT[O_R_Bereit] THEN
+  $OUT[O_R_WAR_BAT]=TRUE
+ELSE  
+  $OUT[O_R_WAR_BAT]=FALSE
+ENDIF
+;
+;Energiesparmodus (fuer SP)
+IF $FLAG[F_m_e_Mode] THEN
+  Mit_e_Mode=TRUE
+ELSE
+  Mit_e_Mode=FALSE
+ENDIF    
+IF ($Brake_Sig>0) THEN 
+  e_Mode_Hilf=FALSE
+ELSE
+  IF NOT $COULD_START_MOTION THEN
+    e_Mode_Hilf=TRUE
+  ENDIF
+ENDIF    
+IF (NOT Mit_e_Mode OR ($Brake_Sig>0) OR (e_Mode_Hilf AND $COULD_START_MOTION)) THEN
+  $timer[TimerNr_E_Mo]=-20000 
+  $timer_stop[TimerNr_E_Mo]=TRUE
+  e_Mode_Hilf=FALSE
+ELSE
+  IF $timer[TimerNr_E_Mo]<1000 THEN
+    $timer_stop[TimerNr_E_Mo]=FALSE  
+  ELSE
+    $timer_stop[TimerNr_E_Mo]=TRUE
+  ENDIF  
+ENDIF
+e_Mode_Hilf2=((($OUT[O_R_PF0] AND NOT $IN[I_R_SRB]) OR (NOT $OUT[O_R_PF0] AND $OUT[O_R_WSLAV])) AND NOT $OUT[O_R_WPROZ])  
+;
+;Roboter Palettier-Modus
+Ret=StrFind(1, $PRO_IP.NAME[], "folge123", #NOT_CASE_SENS)
+IF (B_Rob_Pal==FALSE) OR (Ret>0) OR ($ROB_CAL==FALSE) THEN
+  $PAL_MODE=FALSE
+ELSE
+  $PAL_MODE=TRUE
+ENDIF
+;
+;Aufruf LOOP Module
+;SZ
+FOR i=1 TO 3
+  IF MIT_EZ[i] OR MIT_KE[i] THEN
+    SZ_LOOP(i)
+  ENDIF
+ENDFOR
+;KE aktiv (verwendet in Makros)
+IF Mit_KE[1] OR Mit_KE[2] OR Mit_KE[3] THEN
+  $FLAG[F_KE_aktiv]=TRUE
+ELSE
+  $FLAG[F_KE_aktiv]=FALSE
+ENDIF
+;G
+G_LOOP()
+;STP
+IF MIT_STP THEN
+  STP_LOOP(1)
+ENDIF
+;SK
+FOR i=1 TO 3
+  IF MIT_SK[i] OR MIT_KE[i] THEN
+    SK_LOOP(i)
+  ENDIF
+ENDFOR    
+;SM
+FOR i=1 TO 2
+  IF MIT_SM[i] THEN
+    SM_LOOP(i)
+  ENDIF
+ENDFOR    
+;BU
+IF MIT_BU THEN
+  BU_LOOP()
+ENDIF 
+;KL
+FOR i=1 TO 3
+  IF MIT_KL[i] THEN
+    KL_LOOP(i)
+  ENDIF
+ENDFOR    
+;NZ
+FOR i=1 TO 2
+  IF MIT_NZS[i] THEN
+    NZS_LOOP(i)
+  ENDIF
+  IF MIT_NZH[i] THEN
+    NZH_LOOP(i)
+  ENDIF  
+ENDFOR  
+;RW
+FOR i=1 TO 2
+  IF MIT_RW[i] THEN
+    RW_LOOP(i)
+  ENDIF
+ENDFOR
+;CZ Servo
+FOR i=1 TO 2
+  IF MIT_CZS[i] THEN
+    CZS_LOOP(i)
+  ENDIF
+ENDFOR
+;CZ Pneum
+FOR i=1 TO 2
+  IF MIT_CZP[i] THEN
+    CZP_LOOP(i)
+  ENDIF
+ENDFOR
+;CZ Flat
+IF MIT_CZF[1] THEN
+  CZF_LOOP()
+ENDIF
+;MS
+FOR i=1 TO 2
+  IF MIT_MS[i] THEN
+    MS_LOOP(i)
+  ENDIF
+ENDFOR    
+;BZ
+FOR i=1 TO 2
+  IF MIT_BZ[i] THEN
+    BZ_LOOP(i)
+  ENDIF
+ENDFOR
+;OE
+FOR i=1 TO 2
+  IF MIT_OE[i] THEN
+    OE_LOOP(i)
+  ENDIF
+ENDFOR
+;BM
+FOR i=1 TO 3
+  IF MIT_BM[i] THEN
+    BM_LOOP(i)
+  ENDIF
+ENDFOR
+;SR
+FOR i=1 TO 4
+  IF MIT_SR THEN
+    SR_LOOP(i)
+  ENDIF
+ENDFOR
+;RE
+IF MIT_RE THEN
+  RE_LOOP()
+ENDIF
+;FD
+FOR i=1 TO 2  
+  IF MIT_FD[i] THEN
+    FD_LOOP(i)
+  ENDIF
+ENDFOR
+;LR
+IF MIT_LR THEN
+  LR_LOOP( )
+ENDIF
+;NK
+IF MIT_NK THEN
+  NK_LOOP()
+ENDIF
+;PR
+IF MIT_PR THEN
+  PR_LOOP( )
+ENDIF
+;TR
+TR_LOOP( )
+;SFR
+IF $SR_SAFEMON_ACTIVE THEN 
+  SFR_LOOP( )
+ENDIF  
+;VW FEHLERANZEIGE
+VWFEH_LOOP()
+;VW Wasseranschaltung
+VW_WASSER()
+IF B_MIT_ISR THEN
+  ISR_LIVE()
+ENDIF
+;VMT
+IF B_MIT_VMT THEN
+  VMT_LOOP() 
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  INO_LOOP() 
+ENDIF
+;EKI
+IF MIT_EKI THEN
+  A_EKI_LOOP() 
+ENDIF
+;DS
+IF MIT_DS THEN
+  DS_LOOP()
+ENDIF
+;POT
+POT_LOOP( )
+;PGR
+PGR_LOOP( )
+;PRC
+IF B_MIT_PRC THEN
+  PRC_LOOP()
+ENDIF
+;INOS
+IF B_MIT_INOS THEN
+  ino_lifebit( )
+ENDIF
+;ZAI
+IF B_MIT_ZAI THEN
+  ZAI_LOOP() 
+ENDIF
+;VA
+IF (ExtServoDev==TRUE) THEN
+  MIT_VA=TRUE
+ELSE
+  MIT_VA=FALSE
+ENDIF
+;VA
+IF MIT_VA THEN
+  VA_LOOP( )
+ENDIF
+;MOD1
+MOD1_LOOP( )
+;MOD2
+MOD2_LOOP( )
+;MOD3
+MOD3_LOOP( )
+;RZ
+IF MIT_RZ THEN
+  RZ_LOOP( )
+ENDIF
+;CONV
+IF B_MIT_CONV THEN
+  CONV_LOOP()
+ENDIF
+;
+;Grundstellung pruefen
+IF NOT $IN_HOME AND $RC_RDY1 AND $COULD_START_MOTION THEN
+  $OUT[O_R_PF0]=FALSE
+ENDIF
+;Arbeitspunktzaehler ruecksetzen
+IF ($OUT[O_R_PF0] OR ($OUT[O_R_Loop_akt] AND $IN_HOME)) THEN
+  SO_SPS_Proz_Nr=0
+  $COUNT_I[I_Arbpkt_Nr]=0
+ENDIF  
+;Roboter hat Not-Aus
+IF $OUT[O_R_N_intern] THEN
+  $OUT[O_R_Notaus]=FALSE
+ELSE
+  $OUT[O_R_Notaus]=TRUE  
+ENDIF
+;Interbus Master i.O.
+;$OUT[O_R_Mast_io]=$IN[I_R_Mast_io]
+;Interbus Quality-/Warnmeldung
+;$OUT[O_R_FeldbusQ]=$IN[I_R_FeldbusQ] OR $IN[I_R_FeldbusW]
+;Programmoverride pruefen
+IF ($OV_PRO==100) OR $OUT[O_R_Hand] THEN
+  $FLAG[F_OV_100]=TRUE
+  $OUT[O_R_n_OV]=FALSE
+ELSE
+  IF (LIN_SUCHEN_OVRED==-1) AND $OUT[O_R_Auto] THEN
+    $FLAG[F_OV_100]=FALSE
+    $OUT[O_R_n_OV]=TRUE
+  ENDIF
+ENDIF
+;Schutzgitterfreigabe
+IF (PROCPAR[90]<=0) OR (PROCPAR[90]>10000) THEN
+  PROCPAR[90]=3000
+ENDIF
+IF NOT $OUT[O_R_WSLAV] AND NOT $OUT[O_R_WPROZ] THEN
+  My_SG_Timer=$ROB_TIMER
+ENDIF
+HM_Prozess1=($OUT[O_R_P1_akt] OR $OUT[O_R_P2_akt] OR $OUT[O_R_P3_akt] OR $OUT[O_R_P4_akt] OR $OUT[O_R_P5_akt])
+HM_Prozess2=($OUT[O_R_P6_akt] OR $OUT[O_R_P7_akt] OR $OUT[O_R_P8_akt] OR $OUT[O_R_P9_akt] OR $OUT[O_R_P10_akt] OR $OUT[O_R_P11_akt])
+b_SG_Hilf=($OUT[KL_BASE_MA[1]+O_KL_S] OR $OUT[KL_BASE_MA[1]+O_KL_S_1K] OR $OUT[KL_BASE_MA[2]+O_KL_S] OR $OUT[KL_BASE_MA[2]+O_KL_S_1K] OR $OUT[KL_BASE_MA[3]+O_KL_S_1K] OR $OUT[KL_BASE_MA[3]+O_KL_S])
+IF (($OUT[O_R_WSLAV] OR $OUT[O_R_WPROZ]) AND ($FLAG[F_RSK_Gst] OR $OUT[O_RSK_F_Sammel]) AND NOT b_SG_Hilf AND ((NOT HM_Prozess1 AND NOT HM_Prozess2) OR (($ROB_TIMER-My_SG_Timer)>PROCPAR[90]))) THEN
+  $OUT[O_R_SG_gesp]=FALSE
+ELSE
+  $OUT[O_R_SG_gesp]=TRUE
+ENDIF   
+;Stellglieder Start vorhanden
+$OUT[O_R_PERI_RDY]=$COULD_START_MOTION
+;Roboter ist in Bewegung
+b_Rob_move_h=FALSE
+FOR i=1 TO 7
+  IF (abs($vel_axis_act[i])>1.0) THEN 
+    b_Rob_move_h=TRUE
+  ENDIF  
+ENDFOR  
+b_Rob_move=b_Rob_move_h  
+$OUT[O_R_i_Bew]=b_Rob_move OR $OUT[O_R_bewegt]
+;Fehlende Roboter-Verriegelung melden
+Hilf_Verr1=($OUT[O_R_Anf_V1] OR $OUT[O_R_Anf_V2] OR $OUT[O_R_Anf_V3] OR $OUT[O_R_Anf_V4] OR $OUT[O_R_Anf_V5] OR $OUT[O_R_Anf_V6] OR $OUT[O_R_Anf_V7] OR $OUT[O_R_Anf_V8])
+Hilf_Verr2=($OUT[O_R_Anf_V9] OR $OUT[O_R_Anf_V10] OR $OUT[O_R_Anf_V11] OR $OUT[O_R_Anf_V12] OR $OUT[O_R_Anf_V13] OR $OUT[O_R_Anf_V14] OR $OUT[O_R_Anf_V15] OR $OUT[O_R_Anf_V16])
+Hilf_Verr=(Hilf_Verr1 OR Hilf_Verr2)
+IF NOT $OUT[O_R_w_FB] AND $OUT[O_R_Auto] AND $OUT[O_R_WSLAV] AND $OUT[O_R_Proz_akt] AND $OUT[O_R_steht] AND Hilf_Verr THEN
+  $OUT[O_R_w_RV]=TRUE
+  $FLAG[F_Verr_BMS]=TRUE
+ELSE
+  $OUT[O_R_w_RV]=FALSE
+ENDIF
+;Fehlende SPS-Bedingung melden
+HM_Prozess1=($OUT[O_R_P1_akt] OR $OUT[O_R_P2_akt] OR $OUT[O_R_P3_akt] OR $OUT[O_R_P4_akt] OR $OUT[O_R_P5_akt])
+HM_Prozess2=($OUT[O_R_P6_akt] OR $OUT[O_R_P7_akt] OR $OUT[O_R_P8_akt] OR $OUT[O_R_P9_akt] OR $OUT[O_R_P10_akt] OR $OUT[O_R_P11_akt])
+IF NOT HM_Prozess1 AND NOT HM_Prozess2 THEN
+  IF NOT $OUT[O_R_w_FB] AND $OUT[O_R_Auto] AND NOT $OUT[O_R_w_RV] AND NOT $OUT[O_R_PF0] AND NOT $OUT[O_R_Wart] AND $IN[I_R_k_ZutrA] AND $OUT[O_R_WSLAV] AND $OUT[O_R_Proz_akt] AND $OUT[O_R_steht] THEN
+    $OUT[O_R_w_SPS]=TRUE
+  ELSE
+    $OUT[O_R_w_SPS]=FALSE
+  ENDIF
+ELSE
+  $OUT[O_R_w_SPS]=FALSE
+ENDIF
+;Ruecksetzen Slavemeldungsausgabe
+IF NOT $OUT[O_R_w_RV] THEN
+  $FLAG[F_Verr_BMS]=FALSE
+ENDIF
+;Roboter wartet auf Fahrbedingung
+HM_Prozess1=($OUT[O_R_P1_akt] OR $OUT[O_R_P2_akt] OR $OUT[O_R_P3_akt] OR $OUT[O_R_P4_akt] OR $OUT[O_R_P5_akt])
+HM_Prozess2=($OUT[O_R_P6_akt] OR $OUT[O_R_P7_akt] OR $OUT[O_R_P8_akt] OR $OUT[O_R_P9_akt] OR $OUT[O_R_P10_akt] OR $OUT[O_R_P11_akt])
+IF $OUT[O_R_Auto] AND NOT $OUT[O_R_WPROZ] THEN
+  $timer[TimerNr_FB]=-20000 
+  $timer_stop[TimerNr_FB]=TRUE
+ELSE  
+  IF $OUT[O_R_Auto] AND $OUT[O_R_WPROZ] AND (HM_Prozess1 OR HM_Prozess2) THEN
+    $timer_stop[TimerNr_FB]=FALSE
+  ENDIF  
+ENDIF
+IF $FLAG[F_FB_PSPS] AND ((NOT HM_Prozess1 AND NOT HM_Prozess2) OR $timer_flag[TimerNr_FB]) THEN
+  IF $OUT[O_R_Auto] AND NOT $OUT[O_R_PF0] AND $OUT[O_R_Proz_akt] AND $OUT[O_R_steht] AND NOT $FLAG[F_Verr_BMS] AND NOT $OUT[O_R_Wart] AND $IN[I_R_Masch_S] AND $IN[I_R_k_ZutrA] AND $OUT[O_R_WPROZ] THEN    
+    $OUT[O_R_w_FB] = TRUE
+  ENDIF
+ELSE
+  IF $OUT[O_R_Auto] AND NOT $OUT[O_R_PF0] AND $OUT[O_R_Proz_akt] AND $OUT[O_R_steht] AND NOT $FLAG[F_Verr_BMS] AND NOT $OUT[O_R_Wart] AND $IN[I_R_Masch_S] AND $IN[I_R_k_ZutrA] AND NOT $FLAG[F_FB_PSPS] THEN    
+    $OUT[O_R_w_FB] = TRUE
+  ENDIF      
+ENDIF               
+IF $OUT[O_R_i_Bew] OR (NOT $OUT[O_R_WPROZ] AND $FLAG[F_FB_PSPS]) THEN
+  $OUT[O_R_w_FB] = FALSE
+ENDIF
+;Anhalten in der P-SPS
+IF ($PRO_MODE1==#MSTEP) THEN
+  $FLAG[F_Halt_PSPS]=TRUE
+ELSE
+  $FLAG[F_Halt_PSPS]=FALSE
+ENDIF
+;Anwenderflag ruecksetzen
+IF $OUT[O_R_PF0] AND $ROB_STOPPED AND (($mode_op==#T1) OR ($mode_op==#T2)) THEN
+  FOR I=930 TO 959
+    $FLAG[I]=FALSE
+  ENDFOR
+ENDIF
+;Datensicherung durch SPS
+IF ($IN[I_DS_Anf_SPS] AND NOT B_DS_Hilf) THEN
+   $APP_INT[6]=0
+   B_DS_aktiv=FALSE
+   WAIT SEC 0.024
+ENDIF
+IF ($IN[I_DS_Anf_SPS] AND B_DS_Hilf AND NOT B_DS_Hilf2) THEN
+   $APP_INT[6]=1
+   B_DS_aktiv=TRUE
+ENDIF
+B_DS_Hilf2 = B_DS_Hilf
+B_DS_Hilf = $IN[I_DS_Anf_SPS]
+IF NOT $IN[I_DS_Anf_SPS] AND $OUT[O_DS_FM_SPS] THEN
+  $OUT[O_DS_FM_SPS]=false
+ENDIF
+IF ((B_DS_aktiv==TRUE) AND ($APP_INT[6]==0)) THEN
+  IF (ARCHIVE_RES==0) THEN
+    ;alles i.o.
+	 $OUT[O_DS_FM_SPS]=TRUE
+	 B_DS_aktiv=false
+  ENDIF
+  IF (ARCHIVE_RES<0) THEN
+    ;Fehlerzustand
+	 USR_Msg(2,#NotifyMsg, ARCHIVE_RES)
+	 B_DS_aktiv=false
+  ENDIF
+ENDIF
+;Peripherie Gateway
+IF PERI_GATEW1 THEN
+  SO_Gateway1=SI_SharedDevice1
+  IF $IN[3792] AND NOT $OUT[560] THEN
+    $OUT[545]=$IN[3777]
+    $OUT[546]=$IN[3778]
+    $OUT[547]=$IN[3779]
+    $OUT[548]=$IN[3780]
+    $OUT[549]=$IN[3781]
+    $OUT[550]=$IN[3782]
+    $OUT[551]=$IN[3783]
+    $OUT[552]=$IN[3784]
+    $OUT[553]=$IN[3785]
+    $OUT[554]=$IN[3786]
+    $OUT[555]=$IN[3787]
+    $OUT[556]=$IN[3788]
+    $OUT[557]=$IN[3789]
+    $OUT[558]=$IN[3790]
+    $OUT[559]=$IN[3791]
+  ENDIF
+ENDIF
+;
+;Ruecksetzen Schrittkette
+IF ($APP_INT[5]<>2) AND (B_RSK_Sperre==FALSE) THEN
+  IF (($mode_op==#T1) OR ($mode_op==#T2)) AND (($PRO_MODE1==#BSTEP) AND NOT $IN[KF_BASE_MA[1]+I_KS_A_INI] AND NOT $IN[KF_BASE_MA[2]+I_KS_A_INI] AND NOT $IN[KF_BASE_MA[3]+I_KS_A_INI]) OR (B_RSK_Ruecksetzen==TRUE) THEN
+    $APP_INT[5]=1
+	 B_RSK_Sperre=TRUE
+  ENDIF
+ENDIF
+IF ($APP_INT[5]==2) THEN
+  B_RSK_Sperre=FALSE
+  B_RSK_Ruecksetzen=FALSE
+ENDIF
+;Ruecksetzen Tool_Corr und Base_Corr
+IF ($PRO_MODE1==#BSTEP) AND (($mode_op==#T1) OR ($mode_op==#T2)) THEN
+  Tool_Corr=$NULLFRAME
+  Base_Corr=$NULLFRAME
+ENDIF 
+END
+;ENDFOLD
+;
+;***************************************************
+GLOBAL DEFFCT Real DiffTime(dMyDate1:IN,dMyDate2:IN)
+DECL DATE dMyDate1, dMyDate2
+REAL rDiffDays
+;
+rDiffDays=Days(dMyDate1.Day, dMyDate1.Month, dMyDate1.Year)-Days(dMyDate2.Day, dMyDate2.Month, dMyDate2.Year)
+;
+RETURN(rDiffDays*24*3600+(dMyDate1.Hour-dMyDate2.Hour)*3600+(dMyDate1.Min-dMyDate2.Min)*60+dMyDate1.Sec-dMyDate2.Sec)
+ENDFCT
+;
+;***************************************************
+DEFFCT INT Days(iMyDays:IN, iMyMonth:IN, iMyYear:IN)
+INT iMyDays, iMyMonth, iMyYear
+INT iCorrFeb, iDays
+;
+iDays=iMyDays+iMyMonth*30+iMyYear*365+(iMyYear-1)/4
+;
+;correct according February 29 current year
+IF (iMyYear-iMyYear/4*4)==0 THEN
+ iCorrFeb=1
+ELSE
+ iCorrFeb=0
+ENDIF
+;
+;correct according days per month
+SWITCH iMyMonth
+  CASE 1
+    ;ok
+  CASE 2
+    iDays=iDays+1
+  CASE 3
+    iDays=iDays-1+iCorrFeb
+  CASE 4,5
+    iDays=iDays+iCorrFeb
+  CASE 6,7
+    iDays=iDays+1+iCorrFeb
+  CASE 8
+    iDays=iDays+2+iCorrFeb
+  CASE 9,10
+    iDays=iDays+3+iCorrFeb
+  CASE 11,12
+    iDays=iDays+4+iCorrFeb
+  Default
+ENDSWITCH
+RETURN(iDays)
+ENDFCT
+;
+;***************************************************
+GLOBAL DEFFCT INT MODULO (X: IN,Y: IN)
+DECL INT X,Y
+RETURN (X-Y*(X/Y))
+ENDFCT
+;
+;***************************************************
+;FOLD BaseCheck
+GLOBAL DEFFCT INT BaseCheck(BASE_SL :IN)
+INT BaseResult,BaseCheck2
+REAL Base_SL,BaseCheck1
+;
+IF (BASE_SL==0) THEN
+  BaseResult=1
+ELSE
+  BaseCheck1=((BASE_SL-1)/8)
+  BaseCheck1=BaseCheck1*1000
+  BaseCheck2=((BASE_SL-1)/8)
+  BaseCheck2=BaseCheck2*1000
+  BaseResult=BaseCheck1-BaseCheck2
+ENDIF
+RETURN(BaseResult)
+;
+ENDFCT
+;ENDFOLD
+;
+;***************************************************
+;FOLD Meldungsausgabe
+DEF USR_Msg(msg_nr :IN, MsgTyp :IN, CmdNr :IN )
+INT msg_nr, CmdNr
+DECL USRS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+INT nHandle, Answer;
+USER_MSG = { Modul[] "USR_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset FALSE, Log_To_DB TRUE }
+;
+IF Varstate("CmdNr")==#initialized then
+  SWITCH CmdNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+IF ((n_USRS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="Ausgleich fuer Zangenfunktion abgebrochen, neu anwaehlen"
+    CASE 2
+      USER_MSG.MSG_TXT[]="Fehler bei automatischer Archivierung, Code %1"	  
+    CASE 3
+      USER_MSG.MSG_TXT[]="PNIO Teilnehmer angedockt"
+    CASE 4
+      USER_MSG.MSG_TXT[]="PNIO Teilnehmer abgedockt"
+    CASE 5
+      USER_MSG.MSG_TXT[]="PNIO Timeout bei Docking"
+    CASE 6
+      USER_MSG.MSG_TXT[]="PNIO IOCTL falscher Parameter"     
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_USRS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_USRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_USRS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_USRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Useraufrufe aus den Makros
+  ;FOLD MakroSPS
+  DEF  USER_MAKRO_SPS (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+  ;Aufruf Aus dem MakroSPS
+  INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+  BOOL PAR10
+  END
+  ;ENDFOLD
+;
+  ;FOLD MakroSAW
+  DEF  USER_MAKRO_SAW (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+  ;Aufruf Aus dem MakroSAW
+  INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+  BOOL PAR10
+  END
+  ;ENDFOLD
+;
+  ;FOLD MakroSTEP
+  DEF  USER_MAKRO_STEP (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+  ;Aufruf Aus dem MakroSTEP
+  INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+  BOOL PAR10
+  END
+  ;ENDFOLD
+;
+  ;FOLD MakroTrigger
+  DEF  USER_MAKRO_TRIG (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+  ;Aufruf Aus dem MakroTrigger
+  INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+  BOOL PAR10
+  END
+  ;ENDFOLD
+;ENDFOLD "Useraufrufe aus den Makros"
+;
+; FOLD MakroNeustart ;%{PS}
+DEF  USER_MAKRO_NEUSTART (CMD_SEL :IN,PAR1 :IN,PAR2 :IN,PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************
+; FOLD Init;%{PS}
+DEF  USER_INIT_SUB1 ()
+;Aufruf beim Start des SPS1.SUB
+END
+;ENDFOLD
+;***************************************************
+; FOLD Init;%{PS}
+DEF  USER_INIT_SUB2 ()
+;Aufruf beim Start des SPS2.SUB
+END
+;ENDFOLD
+;***************************************************
+; FOLD Init;%{PS}
+DEF  USER_INIT_SUB3 ()
+;Aufruf beim Start des SPS3.SUB
+END
+;ENDFOLD
+;***************************************************
+; FOLD Init;%{PS}
+DEF  USER_INIT_SUB4 ()
+;Aufruf beim Start des SPS4.SUB
+END
+;ENDFOLD
+;***************************************************
+; FOLD Init;%{PS}
+DEF  USER_INIT_SUB5 ()
+;Aufruf beim Start des SPS5.SUB
+END
+;ENDFOLD
+;***************************************************
+; FOLD MakroSubmit1 ;%{PS}
+DEF  USER_MAKRO_SUBMIT1 (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************
+; FOLD MakroSubmit1 ;%{PS}
+DEF  USER_MAKRO_SUBMIT2 (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************
+; FOLD MakroSubmit1 ;%{PS}
+DEF  USER_MAKRO_SUBMIT3 (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************
+; FOLD MakroSubmit1 ;%{PS}
+DEF  USER_MAKRO_SUBMIT4 (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************
+; FOLD MakroSubmit1 ;%{PS}
+DEF  USER_MAKRO_SUBMIT5 (CMD_SEL :IN,PAR1 :IN,PAR2 :IN, PAR3 :IN,PAR4 :IN,PAR5 :IN,PAR6 :IN,PAR7 :IN,PAR8 :IN,PAR9 :IN,PAR10 :IN)
+;Aufruf Aus dem MakroNeustart
+INT CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+BOOL PAR10
+END
+;ENDFOLD
+;***************************************************

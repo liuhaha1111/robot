@@ -1,0 +1,80 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/OE_Objekterkennung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_oe_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket OE Objekterkennungssensor       *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2016.07.27 CE                                   *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_OE CHAR Name[20],INT Datum
+DECL _Tech_OE Tech_OE
+;ENDFOLD
+; 
+;***************************************************
+;FOLD OE
+;VARIABLEN INTEGER
+GLOBAL INT Default_OE_BASE_SL[2]
+Default_OE_BASE_SL[1]=177
+Default_OE_BASE_SL[2]=185
+GLOBAL INT CF_OE_BASE_SL[2]
+CF_OE_BASE_SL[1]=449
+CF_OE_BASE_SL[2]=449
+GLOBAL INT O_OE_Mess_niO[4]
+O_OE_Mess_niO[1]=3
+O_OE_Mess_niO[2]=4
+O_OE_Mess_niO[3]=5
+O_OE_Mess_niO[4]=6
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_OE[2]
+MIT_OE[1]=FALSE
+MIT_OE[2]=FALSE
+;SLAVE ADRESSIERUNG
+GLOBAL INT OE_BASE_SL[2] ;OE Indirekte Slave Adressen
+OE_BASE_SL[1]=449
+OE_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_OE_o_Proz=0
+;Slave Ausgaenge
+GLOBAL INT O_OE_Proz_ak=0
+GLOBAL INT O_OE_SPS_LBit=1
+GLOBAL INT O_OE_SPS_HBit=2
+GLOBAL INT O_OE_Mess1niO=3
+GLOBAL INT O_OE_Mess2niO=4
+GLOBAL INT O_OE_Mess3niO=5
+GLOBAL INT O_OE_Mess4niO=6
+;MASTER ADRESSIERUNG
+GLOBAL INT OE_BASE_MA[2] ;OE Indirekte Master Adressen
+OE_BASE_MA[1]=2737
+OE_BASE_MA[2]=2741
+; 
+GLOBAL INT I_OE_Bereit=0
+GLOBAL INT I_OE_MesseniO=1
+; 
+GLOBAL INT O_OE_StartMessen=1
+GLOBAL INT O_OE_Prog_LBit=2
+GLOBAL INT O_OE_Prog_HBit=3
+GLOBAL INT O_OE_Sammel=7
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM OES_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_OES_Handle[100]
+GLOBAL INT n_OER_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

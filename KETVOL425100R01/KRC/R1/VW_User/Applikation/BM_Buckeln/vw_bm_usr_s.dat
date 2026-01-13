@@ -1,0 +1,114 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/BM_Buckeln
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_bm_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket BM Buckeln                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_BM CHAR Name[20],INT Datum
+DECL _Tech_BM Tech_BM
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Mutterbuckeln ohne Fraesen
+; 
+INT BaseResult=0
+; 
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_BM[3]
+MIT_BM[1]=FALSE
+MIT_BM[2]=FALSE
+MIT_BM[3]=FALSE
+GLOBAL BOOL HM_KW_BM_iO[3]
+HM_KW_BM_iO[1]=FALSE
+HM_KW_BM_iO[2]=FALSE
+HM_KW_BM_iO[3]=FALSE
+GLOBAL BOOL B_BM_Hilf=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT Default_BM_BASE_SL[3]
+Default_BM_BASE_SL[1]=161
+Default_BM_BASE_SL[2]=201
+Default_BM_BASE_SL[3]=169
+GLOBAL INT CF_BM_BASE_SL[3]
+CF_BM_BASE_SL[1]=449
+CF_BM_BASE_SL[2]=449
+CF_BM_BASE_SL[3]=449
+;FLAGS
+GLOBAL INT F_BM_nio[3]
+F_BM_nio[1]=205
+F_BM_nio[2]=216
+F_BM_nio[3]=241
+GLOBAL INT F_BM_KW[3]
+F_BM_KW[1]=686
+F_BM_KW[2]=687
+F_BM_KW[3]=688
+GLOBAL INT F_BM_Sammel[3]
+F_BM_Sammel[1]=208
+F_BM_Sammel[2]=219
+F_BM_Sammel[3]=244
+;SLAVE ADRESSIERUNG
+GLOBAL INT BM_BASE_SL[3] ;BM Indirekte Slave Adressen
+BM_BASE_SL[1]=449
+BM_BASE_SL[2]=449
+BM_BASE_SL[3]=449
+;Slave Eingaenge
+GLOBAL INT I_BM_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_BM_anw_KW=2 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_BM_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_BM_nio=2 ;indirekt adressiert
+GLOBAL INT O_BM_V_Ka=3 ;indirekt adressiert
+GLOBAL INT O_BM_M_Ka=4 ;indirekt adressiert
+GLOBAL INT O_BM_Mat=5 ;indirekt adressiert
+GLOBAL INT O_BM_nBerei=6 ;indirekt adressiert
+GLOBAL INT O_BM_Sammel=7 ;indirekt adressiert
+GLOBAL INT BM_BASE_MA[3] ;BM Indirekte Master Adressen
+BM_BASE_MA[1]=1793
+BM_BASE_MA[2]=1825
+BM_BASE_MA[3]=2993
+;Master Eingaenge
+GLOBAL INT I_BM_bereit=0 ;1793,1825,2993
+GLOBAL INT I_BM_KW_v=3 ;1796,1828,2996
+GLOBAL INT I_BM_Mat=18 ;1811,1843,3011
+GLOBAL INT I_BM_V_Ka=29 ;1822,1854,3022
+GLOBAL INT I_BM_M_Ka=30 ;1823,1855,3023
+;Master Ausgaenge
+GLOBAL INT O_BM_Reset=0 ;1793,1825,2993
+GLOBAL INT O_BM_Hand=1 ;1794,1826,2994
+GLOBAL INT O_BM_Auto=2 ;1795,1827,2995
+GLOBAL INT O_BM_Antr=3 ;1796,1828,2996
+GLOBAL INT O_BM_Start=4 ;1797,1829,2997
+GLOBAL INT O_BM_AH_a=8 ;1801,1833,3001
+GLOBAL INT O_BM_AH_z=9 ;1802,1834,3002
+GLOBAL INT O_BM_Zf_z=10 ;1803,1835,3003
+GLOBAL INT O_BM_Zf_v=11 ;1804,1836,3004
+GLOBAL INT O_BM_H_se=12 ;1805,1837,3005
+GLOBAL INT O_BM_H_he=13 ;1806,1838,3006
+GLOBAL INT O_BM_m_Proz=24 ;1817,1849,3017
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM BMS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_BMS_Handle[100]
+GLOBAL INT n_BMR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

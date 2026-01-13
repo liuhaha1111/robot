@@ -1,0 +1,174 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/STP_Stosspunkten
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_stp_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket STP Stosspunkten                *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.15 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_STP CHAR Name[20],INT Datum
+DECL _Tech_STP Tech_STP
+;ENDFOLD
+; 
+;***************************************************
+;FOLD STP
+;VARIABLEN INTEGER
+GLOBAL INT Default_STP_BASE_SL[1]
+Default_STP_BASE_SL[1]=129
+GLOBAL INT CF_STP_BASE_SL[1]
+CF_STP_BASE_SL[1]=449
+BOOL B_STP_n_Ref=FALSE
+GLOBAL BOOL B_STP_AUF_ZU=FALSE
+GLOBAL BOOL B_STP_TEACH_REF=FALSE
+GLOBAL BOOL B_STP_Tastend=FALSE
+GLOBAL INT Timer_STP=75498
+GLOBAL INT TimerNr_STP=75499
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_STP=FALSE
+GLOBAL BOOL STP_Fe_Kappe=FALSE
+;FLAGS
+GLOBAL INT F_STP_AH_KOM=290
+;STP SLAVE ADRESSIERUNG
+GLOBAL INT STP_BASE_SL[1]
+STP_BASE_SL[1]=449
+;FLAGS
+GLOBAL INT F_STP_Sammel=118
+GLOBAL INT F_Mit_STP=289
+;Slave Eingaenge
+GLOBAL INT I_STP_o_Proz=0 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_STP_F_Schl=2 ;indirekt adressiert
+GLOBAL INT O_STP_W_SZ=3 ;indirekt adressiert
+GLOBAL INT O_STP_W_Schm=4 ;indirekt adressiert
+GLOBAL INT O_STP_F_Kraf=5 ;indirekt adressiert
+GLOBAL INT O_STP_F_Prog=6 ;indirekt adressiert
+GLOBAL INT O_STP_F_Ziel=7 ;indirekt adressiert
+GLOBAL INT O_STP_F_Baut=8 ;indirekt adressiert
+GLOBAL INT O_STP_F_schw=9 ;indirekt adressiert
+GLOBAL INT O_STP_F_Frae=10 ;indirekt adressiert
+GLOBAL INT O_STP_F_Geom=11 ;indirekt adressiert
+GLOBAL INT O_STP_F_Ausg=12 ;indirekt adressiert
+GLOBAL INT O_STP_F_Steu=13 ;indirekt adressiert
+GLOBAL INT O_STP_F_Temp=14 ;indirekt adressiert
+GLOBAL INT O_STP_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT STP_BASE_MA[1] ;STP Indirekte Master Adresse
+STP_BASE_MA[1]=705
+;Master Eingaenge
+GLOBAL INT I_STP_bereit=0 ;705
+GLOBAL INT I_STP_Re_aus=2 ;707
+GLOBAL INT I_STP_EK_io=4 ;709
+GLOBAL INT I_STP_TPos_g=6 ;711
+GLOBAL INT I_STP_Auto=8 ;713
+GLOBAL INT I_STP_ref=9 ;714
+GLOBAL INT I_STP_aktiv=10 ;715
+GLOBAL INT I_STP_IPos_g=11 ;716
+GLOBAL INT I_STP_auf=12 ;717
+GLOBAL INT I_STP_zu=13 ;718
+GLOBAL INT I_STP_AR=14 ;719
+GLOBAL INT I_STP_Vorz=47 ;752
+GLOBAL INT I_STP_LBit=48 ;753
+GLOBAL INT I_STP_GCodW1=61 ;766
+GLOBAL INT I_STP_GCodW2=62 ;767
+GLOBAL INT I_STP_GCodW4=63 ;768
+GLOBAL INT I_STP_W_SZ=64 ;769
+GLOBAL INT I_STP_W_Schm=65 ;770
+GLOBAL INT I_STP_F_Kraf=66 ;771
+GLOBAL INT I_STP_F_Prog=67 ;772
+GLOBAL INT I_STP_F_Ziel=68 ;773
+GLOBAL INT I_STP_F_Baut=69 ;774
+GLOBAL INT I_STP_F_schw=70 ;775
+GLOBAL INT I_STP_F_Frae=71 ;776
+GLOBAL INT I_STP_F_Kapp=72 ;777
+GLOBAL INT I_STP_F_Geom=73 ;778
+GLOBAL INT I_STP_F_Schl=74 ;779
+GLOBAL INT I_STP_F_Ausg=75 ;780
+GLOBAL INT I_STP_F_Steu=76 ;781
+GLOBAL INT I_STP_F_Traf=77 ;782
+GLOBAL INT I_STP_F_Mot=78 ;783
+GLOBAL INT I_STP_Sammel=79 ;784
+;Master Ausgaenge
+GLOBAL INT O_STP_Fe_Res=0 ;705
+GLOBAL INT O_STP_Re_aus=2 ;707
+GLOBAL INT O_STP_o_Kra=3 ;708
+GLOBAL INT O_STP_Mit_EK=4 ;709
+GLOBAL INT O_STP_S_TPos=5 ;710
+GLOBAL INT O_STP_TPos_u=6 ;711
+GLOBAL INT O_STP_R_Hand=7 ;712
+GLOBAL INT O_STP_R_Auto=8 ;713
+GLOBAL INT O_STP_ref=9 ;714
+GLOBAL INT O_STP_FRG=10 ;715
+GLOBAL INT O_STP_SPos_g=11 ;716
+GLOBAL INT O_STP_auf=12 ;717
+GLOBAL INT O_STP_zu=13 ;718
+GLOBAL INT O_STP_t_auf=14 ;719
+GLOBAL INT O_STP_t_zu=15 ;720
+GLOBAL INT O_STP_LBit=48 ;753
+GLOBAL INT O_STP_m_RKom=49 ;754
+GLOBAL INT O_STP_KW_io=50 ;755
+GLOBAL INT O_STP_MvFrae=51 ;756
+GLOBAL INT O_STP_MnFrae=52 ;757
+GLOBAL INT O_STP_FToBT=55 ;760
+GLOBAL INT O_STP_Teach=4001 ;STP Master Dummy
+GLOBAL INT O_STP_D_Auf=4002 ;STP Master Dummy
+GLOBAL INT O_STP_Du_Zu=4003 ;STP Master Dummy
+;STP Kraft
+SIGNAL SO_STP_Kraft $OUT[721]  TO $OUT[728]
+;STP Sollposition
+SIGNAL SO_STP_SollPos $OUT[737]  TO $OUT[751]
+;STP Zangencode
+SIGNAL SO_STP_ZCode $OUT[761]  TO $OUT[763]
+;STP Programmnummer
+SIGNAL SO_STP_Prg_Nr $OUT[769]  TO $OUT[776]
+;STP Fahrzeugtyp
+SIGNAL SO_STP_Fzg_Typ $OUT[777]  TO $OUT[784]
+;SK Kraft
+SIGNAL SI_SK1_Kraft $IN[793]  TO $IN[800]
+;SK Fahrzeugtyp
+SIGNAL SO_SK1_Fzg_Typ $OUT[817]  TO $OUT[824]
+
+; 
+;***************************************************
+;FOLD KAPPENWECHSLER STP
+;MASTER ADRESSIERUNG
+GLOBAL INT KW_STP_BASE_MA[1] ;KW STP Indirekte Master Adresse
+KW_STP_BASE_MA[1]=857
+GLOBAL INT I_KW_STP_Kappe=5 ;862
+;ENDFOLD
+; 
+;***************************************************
+;FOLD LEBENSBIT
+;VARIABLEN INTEGER
+INT ErrSTPNr=-1
+INT LBitTimeCnt[1]
+LBitTimeCnt[1]=-1
+;VARIABLEN BOOL
+BOOL LBitState[1]
+LBitState[1]=FALSE
+BOOL STP_LBitFeh[1]
+STP_LBitFeh[1]=FALSE
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM STPS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_STPS_Handle[100]
+GLOBAL INT n_STPR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

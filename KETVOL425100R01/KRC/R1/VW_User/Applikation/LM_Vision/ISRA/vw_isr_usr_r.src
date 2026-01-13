@@ -1,0 +1,5267 @@
+&ACCESS RVEO
+&COMMENT KS26
+&REL 59
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Isra
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM EDITMASK = VW_ISR_USR_R
+DEF VW_ISR_USR_R( )
+;
+;***************************************************
+;* ISRA                                            *
+;* Version 1.30  / VKRC 4                          *
+;* Bearbeitet am:                                  *
+;* 27.11.2014 JHo                                  *
+;***************************************************
+;
+;FOLD ISRA
+;FOLD ISRA RF Messsystem ansteuern
+;***************************************************
+END
+
+GLOBAL DEF ISRA_RF_Interface(USER_CMD:IN,CMD_SEL:IN,MODUS:IN,TYP:IN,SUBTYP:IN,SPECIFIER:IN,TOOLNR:IN,WIEDERHOLUNG:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+	DECL VW_USER_CMD USER_CMD
+	DECL INT CMD_SEL, MODUS,TYP,SUBTYP,SPECIFIER,TOOLNR,WIEDERHOLUNG,PAR7,PAR8,PAR9
+	DECL INT iCounter, iServiceCounter
+	DECL BOOL bRepeatMeasurement
+;
+	iCounter = 1
+	iServiceCounter = 1
+	bRepeatMeasurement=FALSE
+;
+	IS_MODUS				= MODUS
+	IS_TYP					= TYP
+	IS_SUBTYP				= SUBTYP
+	IS_SPECIFIER		= SPECIFIER
+	IS_TOOLNR				= TOOLNR
+	IS_WIEDERHOLUNG	= WIEDERHOLUNG
+;
+	; Ueberprufung der Eingabeparameter
+	IF (IS_CheckParams(CMD_SEL,MODUS,TYP,SUBTYP,SPECIFIER,TOOLNR,WIEDERHOLUNG)==FALSE) THEN
+		RETURN
+	ENDIF
+;
+  SWITCH USER_CMD
+  ;-- Advance
+	CASE #USR_ADV
+   	;FOLD Advance: Messung anmelden
+   	;
+ 		iCounter = 1
+ 		iServiceCounter = 1
+ 		;
+ 		REPEAT ;Im Fehlerfall wiederholen
+   		SWITCH IS_MODUS
+   			CASE 1,3,6						; RF Messung anmelden
+   			  ; Nur anmelden wenn noch keine Messung laeuft
+   				IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+   					IS_RF_Prepare(IS_TYP, IS_SUBTYP, IS_SPECIFIER)
+   				ENDIF
+   			CASE 21								; Base/Tool-Korrektur anwenden
+   				;
+   			CASE 22								; Base oder Tool zuruecksetzen
+   				IS_ResetBaseOrTool(IS_SPECIFIER)
+   			CASE 23								; Base und Tool zuruecksetzen
+   				IS_ResetBaseOrTool(1)
+   				IS_ResetBaseOrTool(2)
+   			CASE 24								; ServiceErgebnis anwenden auf Base/Tool
+   				;
+   			CASE 31								; RF Sensortausch
+   			  ; moved to TRIG
+   			CASE 32 							; RF Tooltausch
+   			  ; moved to TRIG
+        CASE 33 							; RF Robotertausch
+          ; moved to TRIG
+   			CASE 36								; Fehlerdiagnose
+   				;
+   		  DEFAULT ;modus nicht vorhanden
+   		ENDSWITCH
+   	;
+   	 	iCounter = iCounter+1
+ 	  UNTIL ((iCounter>=IS_WIEDERHOLUNG) OR ($FLAG[IS_FLAG_ERROR]==FALSE))
+ 		;
+   	;ENDFOLD (Advance)
+  ;-- Trig
+	CASE #USR_TRIG
+   ;FOLD Trig
+   		iCounter = 1
+   		iServiceCounter = 1
+   		;
+   		REPEAT ;Im Fehlerfall wiederholen
+   		;
+   		  SWITCH IS_MODUS
+   			CASE 1,6								; RF Messung ausführen (1) und Komplett ausfuehren (6)
+   				IS_iMeasPoint = IS_iMeasPoint + 1
+   				IF (IS_iMeasPoint == IS_TOOLNR) THEN
+   					IS_RF_Apply(0)
+   				ELSE
+   					IS_SetInternError(IS_IntErr_MeasPosNo, IS_iMeasPoint, IS_TOOLNR)
+   				ENDIF
+   			CASE 3							; RF Messung m. Korrektur (3)
+   				IF ($MODE_OP==#T1) OR ($MODE_OP==#T2) THEN
+   					;Teach-Modus
+   					REPEAT
+   					  IF (bRepeatMeasurement==TRUE) THEN
+   					  	ISRA_PG_INIT()
+   							; Nur anmelden wenn noch keine Messung laeuft
+				   			IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+				   				IS_RF_Prepare(IS_TYP, IS_SUBTYP, IS_SPECIFIER)
+				   			ENDIF
+				   		ENDIF
+				   		;
+   						IS_RF_Apply(0)
+   						IS_RF_EndPose()
+   						;
+	            IF IS_STATE_OK() THEN
+	            	$FLAG[IS_FLAG_RESULT_OK]=TRUE
+	   					ELSE
+	   						;Abfrage an User, ob die Messung wiederholt werden soll
+	   						IS_MSG(IS_MSG_I_MEAS_FAILED, IS_MSG_TYPE_DIALOG)
+   							IF (IS_ANSWER == 1) THEN
+									;'Wiederholen': Prepare und erneute Messung
+   								bRepeatMeasurement=TRUE	
+				   			ELSE
+				   				;'Abbrechen': Schleife beenden
+				   				RETURN
+   							ENDIF
+	   					ENDIF
+	   				UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+	   			ELSE
+	   				;Automatik
+	 					IS_RF_Apply(0)
+						IS_RF_EndPose()
+						IF IS_STATE_OK() THEN
+							$FLAG[IS_FLAG_RESULT_OK]=TRUE
+						ENDIF
+	   			ENDIF		
+   			CASE 21								; Base/Tool-Korrektur anwenden
+   				;
+   			CASE 22								; Base oder Tool zuruecksetzen
+   				;
+   			CASE 23								; Base und Tool zuruecksetzen
+   				;
+        CASE 24               ; ServiceErgebnis anwenden auf Base/Tool
+					;
+   			CASE 31								; RF Sensortausch
+   			  ; Die Schleife darf nur verlassen werden, wenn der Sensortausch erfolgreich abgeschlossen ist.
+   			  REPEAT
+   			  	; Wenn in Wdh, erneutes ProgramInit durchführen
+   			  	IF iServiceCounter > 1 THEN
+               ISRA_PG_INIT()
+   			  	ENDIF
+   			  	;
+	          ; Prepare Sensorpruefung
+	   				IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+	   					IS_RF_Prepare(IS_TYP, IS_SUBTYP, IS_SPECIFIER)
+	   				ENDIF
+	   				;
+	   				; Hier schon Service anmelden, damit keine Fehlermeldungen für eine normale Messung erscheinen
+	   				IS_Apply_Service(3) ;3
+	   				;
+	   			  ; Sensorpruefung ausfuehren
+	   			  IS_RF_Apply(0)
+	   			  IS_RF_EndPose()
+	   				SWITCH IS_SPECIFIER
+	   				 CASE 1
+	   				 	IS_RF_GetCorrection(1,31)
+	   				 CASE 2
+	   				 	IS_RF_GetCorrection(2,31)
+	   				ENDSWITCH
+	   				;
+	   				IF NOT IS_State_OK() THEN
+	   		  	  IS_MSG_ERR(IS_MSG_ERR_SERV_SENS1)
+	   				ELSE
+	   		  		IS_MSG(IS_MSG_I_SERV_SENS_CHK, IS_MSG_TYPE_NOTIFY)
+							;
+	   		  		IS_Apply_Service(3) ;3
+	   		  		; Start Sensortausch, wenn keine Messung laueft
+		   			  IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+		   					IS_RF_Prepare(IS_iRM_Calib,0,0)
+		   				ENDIF
+		   				;
+		   				IS_RF_Apply(1)				; ControlID 1 = Flaechenbildaufnahme
+		   				IS_RF_Apply(2)				; ControlID 2 = Streifenbildaufnahme
+	   		  		IS_RF_EndPose()
+	   					;
+   						IF IS_State_OK() THEN
+		   		  		IS_MSG(IS_MSG_I_SERV_SENS, IS_MSG_TYPE_NOTIFY)
+		   		  	ELSE
+	  	 		  		IS_MSG_ERR(IS_MSG_ERR_SERV_SENS2)
+		   			  ENDIF
+	   		  	ENDIF
+	   		  	;
+	   		  	iServiceCounter = iServiceCounter+1
+	   		  	;
+	   		  UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+	   		  ;
+	   		  IF IS_STATE_OK() THEN
+	   		  	$FLAG[IS_FLAG_RESULT_OK] = TRUE
+	   			ENDIF
+   				;
+   			CASE 32 							; RF Tooltausch
+   			  ; Die Schleife darf nur verlassen werden, wenn der Tooltausch erfolgreich abgeschlossen ist.
+   			  REPEAT
+   			  	; Wenn in Wdh, erneutes ProgramInit durchführen
+   			  	IF iServiceCounter > 1 THEN
+            	ISRA_PG_INIT()
+   			  	ENDIF
+   			  	;
+	          IS_Apply_Service (1) ;1
+	   				IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+	   					IS_RF_Prepare(IS_TYP, IS_SUBTYP, 0)
+	   				ENDIF
+	   				IS_RF_Apply(0)
+   					IS_RF_EndPose()
+   					IS_RF_GetCorrection(2,IS_TOOLNR)
+	   				;
+	   				IF (NOT IS_CheckCorrFrame($ISRA_TOOL_OFFSET,$NULLFRAME)) THEN
+	   					$FLAG[IS_FLAG_ERROR] = TRUE
+	   					IS_MSG_ERR(IS_MSG_ERR_TOL_EXCEEDED)
+	   				ENDIF
+		   			;
+	   				iServiceCounter = iServiceCounter+1
+	   				;
+   				UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+   			CASE 33						;RF Robotertausch
+   				IF ((IS_iMeasStateRF == IS_iMS_STARTED) OR (IS_iMeasStateRF == IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+   					; Letzter Messpunkt eines bewegten Robotertauschs, darum kein Eintritt in Dauerschleife
+   					IS_RF_Apply(0)
+   					IS_RF_EndPose()
+   					;
+   					IS_Apply_Service (2) ;2
+   					IS_RF_GetCorrection(1,IS_TOOLNR)
+   					;
+   				ELSE
+   					; stationärer Robotertausch
+   					; Die Schleife darf nur verlassen werden, wenn der Robotertausch erfolgreich abgeschlossen ist.
+	   			  REPEAT
+	   			  	; Wenn in Wdh, erneutes ProgramInit durchführen
+	   			  	IF iServiceCounter > 1 THEN
+	               ISRA_PG_INIT()
+	   			  	ENDIF
+	   			  	;
+		   				IS_Apply_Service (2) ;2
+		   				IF ((IS_iMeasStateRF <> IS_iMS_STARTED) AND (IS_iMeasStateRF <> IS_iMS_RUNNING) AND (NOT $FLAG[IS_FLAG_ERROR])) THEN
+		   					IS_RF_Prepare(IS_TYP, IS_SUBTYP, 0)
+		   				ENDIF
+		   				IS_RF_Apply(0)
+		   				IS_RF_EndPose()
+		   				IS_RF_GetCorrection(1,IS_TOOLNR)
+				   		;
+				   		IF (NOT IS_CheckCorrFrame($ISRA_BASE_OFFSET,$NULLFRAME)) THEN
+		   					$FLAG[IS_FLAG_ERROR] = TRUE
+		   					IS_MSG_ERR(IS_MSG_ERR_TOL_EXCEEDED)
+					   	ENDIF
+				   		;
+		   				iServiceCounter = iServiceCounter+1
+		   				;
+	   				UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+	   			ENDIF
+	   			;
+	   			IF IS_STATE_OK() THEN
+	   				$FLAG[IS_FLAG_RESULT_OK]=TRUE
+	   			ENDIF
+   			CASE 36								; Fehlerdiagnose
+   				;
+   	    DEFAULT ;modus nicht vorhanden
+   		  ENDSWITCH
+   			;
+   	 	iCounter = iCounter+1
+   		;
+   	  UNTIL ((iCounter>=IS_WIEDERHOLUNG) OR ($FLAG[IS_FLAG_ERROR]==FALSE))
+   		;
+   	;ENDFOLD (Trig)
+	;-- Main
+	CASE #USR_MAIN
+   ;FOLD Main
+   ;
+   		iCounter = 1
+   		REPEAT  ;Im Fehlerfall wiederholen
+   ;
+   		  SWITCH IS_MODUS
+				CASE 1									; RF Messen
+					;
+   			CASE 3									; RF Messung mit Korrektur
+   				IS_RF_GetCorrection(IS_SPECIFIER,31)
+   				IS_ApplyCorrection(IS_SPECIFIER,31)
+   				IF (IS_iMaxNumIterations > 1) THEN
+   					IS_RF_Apply_Iterative()
+   				ENDIF
+   			CASE 6									; RF Messung Komplett
+   				IS_RF_EndPose()
+   				;
+   				IF IS_STATE_OK() THEN
+   					$FLAG[IS_FLAG_RESULT_OK]=TRUE
+   				ENDIF
+   				;
+   				SWITCH IS_SPECIFIER
+   				 CASE 1
+   				 	IS_RF_GetCorrection(1,31)
+   				 CASE 2
+   				 	IS_RF_GetCorrection(2,31)
+   				ENDSWITCH
+   			CASE 21									; Base/Tool-Korrektur anwenden
+   				IS_ApplyCorrection(IS_SPECIFIER,31)
+   			CASE 22									; Base oder Tool zuruecksetzen
+   				;
+   			CASE 23									; Base und Tool zuruecksetzen
+   				;
+   			CASE 24									; ServiceErgebnis anwenden auf Base/Tool
+   			  ; Den entsprechenden ServiceMode anmelden und Service anwenden
+					SWITCH IS_SPECIFIER
+   				CASE 1
+   					REPEAT
+	   					IS_Apply_Service (2) ; RF Robotertausch
+	   					IS_Apply_RobotChange(IS_TOOLNR)
+	   				UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+   				CASE 2
+   					REPEAT
+	   					IS_Apply_Service (1) ; RF Tooltausch
+	   					IS_Apply_ToolChange(IS_TOOLNR)
+						UNTIL ($FLAG[IS_FLAG_ERROR]==FALSE)
+   				DEFAULT
+   					IS_Apply_Service (0) ; IS_SERVICE_NONE
+   					IS_SetInternError(IS_IntErr_SrvcExp)
+   				ENDSWITCH
+   			CASE 31									; RF Sensortausch
+   				;
+   			CASE 32 								; Tooltausch
+   			  ; moved to TRIG
+   			CASE 33 								; Robotortausch
+   			  ; moved to TRIG
+   			CASE 36 								; Fehlerdiagnose
+   				IS_System_Diag()
+   			DEFAULT ;modus nicht vorhanden
+   			ENDSWITCH
+   ;
+   	 	iCounter = iCounter+1
+   ;
+   	  UNTIL ((iCounter>=IS_WIEDERHOLUNG) OR ($FLAG[IS_FLAG_ERROR]==FALSE))
+   ;
+   ;ENDFOLD (Main)
+;
+	ENDSWITCH
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD ISRA IMT Messsystem ansteuern
+;---------------------------------------------------------------------------------------------
+GLOBAL DEF ISRA_IMT_Interface(USER_CMD:IN,CMD_SEL:IN,MODUS:IN,TYP:IN,SUBTYP:IN,SPECIFIER:IN,TOOLNR:IN,WIEDERHOLUNG:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+	DECL VW_USER_CMD USER_CMD
+	DECL INT CMD_SEL,MODUS,TYP,SUBTYP,SPECIFIER,TOOLNR,WIEDERHOLUNG,PAR7,PAR8,PAR9
+;
+	;IS_Log("ISRA_IMT_Interface",1,TRUE)
+;
+	IS_MODUS				= MODUS
+	IS_TYP					= TYP
+	IS_SUBTYP				= SUBTYP
+	IS_SPECIFIER		= SPECIFIER
+	IS_TOOLNR				= TOOLNR
+	IS_WIEDERHOLUNG	= WIEDERHOLUNG
+;
+	; Ueberprufung der Eingabeparameter
+	IF (IS_CheckParams(CMD_SEL, MODUS,TYP,SUBTYP,SPECIFIER,TOOLNR,WIEDERHOLUNG)==FALSE) THEN
+		RETURN
+	ENDIF
+;
+  SWITCH USER_CMD
+  ;-- Advance
+	CASE #USR_ADV
+   ;FOLD Advance: Messung anmelden
+   	  SWITCH MODUS
+   		CASE 13,14,15 			;IMT Messung anmelden
+   			;IS_IMT_Prepare(TYP, SUBTYP, SPECIFIER)
+   			IS_IMT_Prepare(SUBTYP)
+   		CASE 22						;Base oder Tool zuruecksetzen
+   			IS_ResetBaseOrTool(SPECIFIER)
+   		CASE 23						; Base und Tool zuruecksetzen
+   			IS_ResetBaseOrTool(1)
+   			IS_ResetBaseOrTool(2)
+   		CASE 32 					;Tooltausch
+   			IS_Apply_Service (1)
+   		CASE 33 					;Robotertausch
+   			IS_Apply_Service (2)
+   		CASE 34 					;Sensortausch
+   			IS_Apply_Service (4)
+   		CASE 35 					;Vollkalib
+   			IS_Apply_Service (5)
+   	  DEFAULT ;modus nicht vorhanden
+   	  ENDSWITCH
+   	;ENDFOLD (Advance)
+  ;-- Trig
+	CASE #USR_TRIG
+   ;FOLD Trig
+   	  SWITCH MODUS
+   		CASE 13,14,15						;IMT Messung ausfuehren
+   			;IS_IMT_Apply(SPECIFIER)
+   			IS_IMT_Apply(TRUE)
+    DEFAULT ;modus nicht vorhanden
+   	  ENDSWITCH
+   	;ENDFOLD (Trig)
+	;-- Main
+	CASE #USR_MAIN
+   ;FOLD Main
+   	  SWITCH MODUS
+   		CASE 14				;IMT Messung Komplett
+   			IF NOT $FLAG[950] THEN
+   				IS_IMT_EndPose()
+   				SWITCH SPECIFIER
+   				CASE 1,2,3,4
+   					IS_IMT_GetCorrection(SPECIFIER,TOOLNR) ; AB 2010-11-28 (auch Faelle 3 und 4 behandelt)
+   				DEFAULT ; wrong specifier
+   				ENDSWITCH
+   			ENDIF
+   		CASE 15				;IMT Messung mit Korrektur
+   			IS_IMT_EndPose()
+   			IS_IMT_GetCorrection(SPECIFIER,TOOLNR)
+   			IS_ApplyCorrection(SPECIFIER,TOOLNR)
+   		CASE 16
+   			IS_IMT_EndPose()
+   	  CASE 12
+   			REPEAT ; Full calib?, measurement, split calib?
+   				IS_SelectUP(TYP)
+   			UNTIL ((IS_bRepeatUpSel<>TRUE) OR ($FLAG[IS_FLAG_ERROR]) OR NOT IS_State_OK())
+   		CASE 21						;Base/Tool-Korrektur anwenden
+   			IS_ApplyCorrection(SPECIFIER,TOOLNR)
+   		CASE 24						;ServiceErgebnis anwenden auf Base/Tool
+   			SWITCH IS_iServiceMode
+   			CASE IS_iTOOL_CHANGE
+   				IS_IMT_GetCorrection(2,TOOLNR)
+   				IS_Apply_ToolChange(TOOLNR)
+   			CASE IS_iROBOT_CHANGE
+   				IS_IMT_GetCorrection(1,TOOLNR)
+   				IS_Apply_RobotChange(TOOLNR)
+   			DEFAULT
+   				IS_SetInternError(IS_IntErr_SrvcExp)
+   			ENDSWITCH
+   		CASE 36 					;Fehlerdiagnose
+   			IS_System_Diag()
+   		 ENDSWITCH
+   ;ENDFOLD (Main)
+	ENDSWITCH
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Programm Init wird beim Start eines Motion TP aufgerufen
+;---------------------------------------------------------------------------------------------
+GLOBAL DEF ISRA_PG_INIT()
+DECL BOOL bVal
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) AND $IS_COMMUNICATE THEN
+		; Init
+		IS_ResetSignals()
+		IS_ResetFlags()
+		IS_iErrorSource		= 0
+		IS_iInternErrors	= 0
+		IS_iMeasPoint			= 0
+		IS_iServiceMode 	= IS_iSERVICE_NONE
+		IS_bInternError 	= FALSE
+		IS_strErrorSource[]	= "VW-User"
+		;
+		IS_iQuitFlag			= 0
+		;
+		IS_iCurrentUserError	= 0
+		;
+		IS_iMeasStateRF			= IS_iMS_PREP_NOK
+		;
+		IS_bMeasurementOK = FALSE
+		;
+		IS_bHWCheckMode = FALSE
+		;
+		; Jetzt sollte alles initialisiert sein, so dass auf eine funktionierende Gegenstelle geschaut werden kann
+		IS_iExternErrors = IS_RX8_RF_ERR_SUM
+		;
+		IF (IS_iExternErrors <> 0) THEN
+			;IS_Log("ISRA_PG_INIT: EReset required",1,TRUE)
+			IS_TX1_RF_ERESET = TRUE
+			bVal = IS_RF_WAIT(#IS_RF_ERESET, FALSE, 0, IS_FnctID_RF_Init1)
+			IS_TX1_RF_ERESET = FALSE
+		ENDIF
+		;
+		IS_iExternErrors = IS_RX8_RF_ERR_SUM
+		;
+		; Ohne Livesignal auch kein Ready...
+		IF $IS_LIVE_SIGNAL THEN
+			; Falls nicht betriebsbereit, muss hier noch der Ablauf zurueckgesetzt werden
+			IF NOT IS_RX1_RF_READY THEN
+				;IS_Log("ISRA_PG_INIT: SReset required",1,TRUE)
+				IS_TX1_RF_SRESET = TRUE
+				bVal = IS_RF_WAIT(#IS_RF_READY, TRUE, 0, IS_FnctID_RF_Init2)
+				IS_TX1_RF_SRESET = FALSE			
+			ENDIF
+			;
+		ENDIF
+		;
+	ENDIF
+	;
+	; System synchronisieren
+	IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) AND $IS_COMMUNICATE THEN
+		;IS_Log("ISRA_PG_INIT: Sync start...",1,TRUE)
+		bVal = IS_IMT_SyncHandshake()
+	ENDIF
+	;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD ISRA Messsystem initialisieren und Handshake synchronisieren
+;---------------------------------------------------------------------------------------------
+GLOBAL DEFFCT BOOL IS_IMT_SyncHandshake()
+;
+$IS_iHandshakeCounter = 0
+;
+IS_ResetFlags()
+;
+IS_TX1_ERROR_STATE		= FALSE
+IS_iErrorSource 			= 0
+IS_iExternErrors 			= 0
+IS_iInternErrors 			= 0
+IS_bInternError 			= FALSE
+IS_strErrorSource[] 	= "VW-User"
+IS_strErrorSource[8] 	= 0
+IS_iCurrentUserError	= 0
+;
+IS_bSendBase 					= FALSE
+IS_bSendAxes          = FALSE
+;
+IS_iServiceMode				= IS_iSERVICE_NONE ;TH
+;
+IS_iQuitFlag 					= 1
+;
+IS_bRepeatUpSel 			= FALSE
+;
+IS_ResetSignals()
+;
+IS_TX1_INIT_SIGNALS			= TRUE
+IS_bHandshake 					= TRUE
+IS_TX1_HANDSHAKE				= IS_bHandshake
+$IS_iHandshakeCounter		= $IS_iHandshakeCounter + 1
+;
+IF (IS_WaitForEnd(IS_FnctID_IMT_Sync1)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+CONTINUE
+IS_TX1_INIT_SIGNALS		= FALSE
+IS_bHandshake         = FALSE
+;
+IS_TX1_HANDSHAKE			= IS_bHandshake
+$IS_iHandshakeCounter = $IS_iHandshakeCounter + 1
+;
+IF (IS_WaitForEnd(IS_FnctID_IMT_Sync2)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Alle Flags zuruecksetzen
+DEF IS_ResetFlags()
+;
+$FLAG[IS_FLAG_ERR_SPS] 				= FALSE
+$FLAG[IS_FLAG_ERR_ROBOT] 			= FALSE
+$FLAG[IS_FLAG_ERR_PREPARE] 		= FALSE
+$FLAG[IS_FLAG_ERR_ACQ]		 		= FALSE
+$FLAG[IS_FLAG_ERR_FEATURE] 		= FALSE
+$FLAG[IS_FLAG_ERR_EVAL] 			= FALSE
+$FLAG[IS_FLAG_ERR_TOL] 				= FALSE
+$FLAG[IS_FLAG_WARN_TOL]			 	= FALSE
+$FLAG[IS_FLAG_KAL1_HLP]				= FALSE
+$FLAG[IS_FLAG_KAL2_HLP]				= FALSE
+$FLAG[IS_FLAG_RESULT_OK] 			= FALSE
+$FLAG[IS_FLAG_RESULT_NOK] 		= FALSE
+$FLAG[IS_FLAG_ERROR] 					= FALSE
+;
+END
+;ENDFOLD
+;
+;FOLD Handshake umschalten
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_ToggleHandshake()
+;
+CONTINUE
+IF IS_bHandshake THEN
+	CONTINUE
+	IS_bHandshake = FALSE
+	CONTINUE
+	$IS_iHandshakeCounter = 0
+	CONTINUE
+	IS_TX1_HANDSHAKE = FALSE
+	CONTINUE
+	RETURN FALSE
+ELSE
+	CONTINUE
+	IS_bHandshake = TRUE
+	CONTINUE
+	$IS_iHandshakeCounter = 1
+	CONTINUE
+	IS_TX1_HANDSHAKE = TRUE
+	CONTINUE
+	RETURN TRUE
+ENDIF
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Timer starten
+;---------------------------------------------------------------------------------------------
+DEF IS_StartTimer(TNR:IN, TIME:IN)
+DECL INT 	TNR
+DECL REAL TIME
+;
+$TIMER_STOP[TNR]	= TRUE
+$TIMER[TNR]				= -1000*TIME
+$TIMER_STOP[TNR]	= FALSE
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Timer stoppen
+;---------------------------------------------------------------------------------------------
+DEF IS_StopTimer(TNR:IN)
+DECL INT 	TNR
+DECL REAL TIME
+;
+CONTINUE
+$TIMER_STOP[TNR]	= TRUE
+CONTINUE
+$TIMER[TNR]				= -1
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Eingabeparamter auf Korrektheit ueberpruefen
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_CheckParams (CMD_SEL:IN,MODUS:IN,TYP:IN,SUBTYP:IN,SPECIFIER:IN,TOOLNR:IN,WIEDERHOLUNG:IN)
+DECL INT CMD_SEL,MODUS,TYP,SUBTYP,SPECIFIER,TOOLNR,WIEDERHOLUNG
+DECL INT Idx
+DECL BOOL bValid
+DECL INT iMsgNr
+DECL INT iparam1, iparam2
+FRAME aModeParamType[23]
+;
+;IS_Log("CheckParams",1,FALSE)
+;
+;ParamType:	0	nicht belegt fuer diesen Modus, also 0
+;						1 Alle Werte erlaubt
+;						2	Alle Werte ausser 0 erlaubt
+;											P1		P2	 P3		P4	 P5		P6
+aModeParamType[ 1] = {X  1, Y 1, Z 1, A 0, B 2, C 0}	;RF Messen
+aModeParamType[ 2] = {X  2, Y 1, Z 1, A 1, B 0, C 2}	;obsolet: RF Messen, Beenden, Korrektur holen (optional) = RF Messung Ges. o. Korr.
+aModeParamType[ 3] = {X  3, Y 1, Z 1, A 2, B 0, C 2}	;RF Messen; Beenden; Korrektur holen und anwenden = RF Messung Ges. m. Korr.
+aModeParamType[ 4] = {X  4, Y 2, Z 1, A 1, B 0, C 2}	;obsolet
+aModeParamType[ 5] = {X  5, Y 2, Z 1, A 0, B 0, C 0}	;obsolet
+aModeParamType[ 6] = {X  6, Y 2, Z 1, A 2, B 2, C 1}	;RF Messen.Komplett und Korrektur holen (nicht anwenden)
+aModeParamType[ 7] = {X 11, Y 1, Z 2, A 0, B 0, C 1}	;IMT MessungUPAuswahl
+aModeParamType[ 8] = {X 12, Y 2, Z 0, A 0, B 0, C 1}	;IMT UpAuswahl
+aModeParamType[ 9] = {X 13, Y 2, Z 1, A 0, B 0, C 1}	;IMT Messen
+aModeParamType[10] = {X 14, Y 2, Z 1, A 1, B 0, C 1}	;IMT Messen, Beenden, Korrektur holen (optional)
+aModeParamType[11] = {X 15, Y 2, Z 1, A 2, B 2, C 1}	;IMT Messen, Beenden, Korrektur holen und anwenden
+aModeParamType[12] = {X 16, Y 0, Z 0, A 0, B 0, C 1}	;IMT Messung Beenden
+aModeParamType[13] = {X 21, Y 0, Z 0, A 2, B 0, C 0}	;Korrektur anwenden auf Base/Tool
+aModeParamType[14] = {X 22, Y 0, Z 0, A 2, B 0, C 0}	;Base oder Tool reseten
+aModeParamType[15] = {X 23, Y 0, Z 0, A 0, B 0, C 0}	;Alle Base/Tool reseten
+aModeParamType[16] = {X 24, Y 0, Z 0, A 2, B 2, C 0}	;Serivceergebnis anwenden auf Base/Tool	
+aModeParamType[17] = {X 31, Y 2, Z 2, A 0, B 0, C 0}	;RF Sensortausch
+IF (CMD_SEL == 1007) THEN ;RF
+aModeParamType[18] = {X 32, Y 2, Z 0, A 0, B 2, C 0}	;RF Tooltausch 
+aModeParamType[19] = {X 33, Y 2, Z 0, A 0, B 0, C 0}	;RF Robotertausch 
+ELSE
+aModeParamType[18] = {X 32, Y 0, Z 0, A 0, B 0, C 1}	;IMT Tooltausch 
+aModeParamType[19] = {X 33, Y 0, Z 0, A 0, B 0, C 1}	;IMT Robotertausch 
+ENDIF
+aModeParamType[20] = {X 34, Y 1, Z 1, A 0, B 0, C 1}	;IMT Sensortausch 
+aModeParamType[21] = {X 35, Y 0, Z 0, A 0, B 0, C 1}	;IMT Vollkalibrierung 
+aModeParamType[22] = {X 36, Y 0, Z 0, A 0, B 0, C 0}	;Systemdiagnose
+aModeParamType[23] = {X 40, Y 0, Z 0, A 2, B 2, C 0}	;obsolet Korrektur holen
+;
+bValid = FALSE
+;
+FOR Idx = 1 TO 23
+	IF (aModeParamType[Idx].x == MODUS) THEN
+		bValid = TRUE
+	ENDIF
+ENDFOR
+;
+IF (bValid==FALSE) THEN
+	IS_MSG_ERR(IS_IntErr_Param1, IS_MODUS)	;Falscher Modus
+	RETURN FALSE
+ENDIF
+;
+Idx=1
+;
+WHILE (Idx<24) AND (bValid)
+	IF (aModeParamType[Idx].x == MODUS) THEN
+		IF (IS_CheckModusParam(aModeParamType[Idx], Typ, Subtyp, SPECIFIER, TOOLNR, WIEDERHOLUNG, iMsgNr, iparam1, iparam2) == FALSE) THEN
+			bValid = FALSE
+		ENDIF
+	ENDIF
+	Idx = Idx+1
+ENDWHILE
+;
+IF (bValid==FALSE) THEN
+	IS_MSG_ERR(iMsgNr,iparam1,iparam2) ; Falscher Parameter-Wert
+	RETURN FALSE
+ENDIF
+;
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;-----------------------------------------------------------
+;-- Hilfsfunktion fuer IS_CheckParams
+;-----------------------------------------------------------
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_CheckParam(iType:IN, iValue:IN)
+;FOLD
+	DECL INT iType
+	DECL INT iValue
+
+		SWITCH iType
+		CASE 0
+			IF (iValue == 0) THEN
+				RETURN TRUE
+			ELSE
+				RETURN FALSE
+			ENDIF
+
+		CASE 1
+			RETURN TRUE
+
+		CASE 2
+			IF (iValue <> 0) THEN
+				RETURN TRUE
+			ELSE
+				RETURN FALSE
+			ENDIF
+
+		DEFAULT
+			RETURN FALSE
+		ENDSWITCH
+
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+
+;-----------------------------------------------------------
+;-- Hilfsfunktion fuer IS_CheckParams
+;-----------------------------------------------------------
+DEFFCT BOOL IS_CheckModusParam(ParamType:IN, P2:IN, P3:IN, P4:IN, P5:IN, P6:IN, iMsgNr:OUT, iparam1:OUT, iparam2:OUT)
+;FOLD
+	DECL FRAME ParamType
+	DECL INT P2,P3,P4,P5,P6
+	DECL INT iMsgNr
+	DECL INT iparam1, iparam2
+
+	IF (IS_CheckParam(ParamType.y, P2) == FALSE) THEN
+			iMsgNr = IS_IntErr_Param2
+			iparam1 = IS_TYP
+			iparam2 = IS_MODUS
+			RETURN FALSE
+	ENDIF
+
+	IF (IS_CheckParam(ParamType.z, P3) == FALSE) THEN
+			iMsgNr = IS_IntErr_Param3
+			iparam1 = IS_SUBTYP
+			iparam2 = IS_MODUS
+			RETURN FALSE
+	ENDIF
+
+	IF (IS_CheckParam(ParamType.a, P4) == FALSE) THEN
+			iMsgNr = IS_IntErr_Param4
+			iparam1 = IS_SPECIFIER
+			iparam2 = IS_MODUS
+			RETURN FALSE
+	ENDIF
+
+	IF (IS_CheckParam(ParamType.b, P5) == FALSE) THEN
+			iMsgNr = IS_IntErr_Param5
+			iparam1 = IS_TOOLNR
+			iparam2 = IS_MODUS
+			RETURN FALSE
+	ENDIF
+
+	IF (IS_CheckParam(ParamType.c, P6) == FALSE) THEN
+			iMsgNr = IS_IntErr_Param6
+			iparam1 = IS_WIEDERHOLUNG
+			iparam2 = IS_MODUS
+			RETURN FALSE
+	ENDIF
+	
+	IF NOT (Varstate ("iparam1")==#initialized) then
+	   iparam1 = 0;
+	ENDIF
+	;
+	IF NOT (Varstate ("iparam2")==#initialized) then
+	   iparam2 = 0;
+	ENDIF
+
+	RETURN TRUE
+
+ENDFCT
+;ENDFOLD
+
+;ENDFOLD
+;
+;FOLD Komm-Zustand ueberpruefen
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_State_OK ()
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+	CONTINUE
+	IF IS_bSkipFlag THEN
+		RETURN FALSE
+	ENDIF
+	CONTINUE
+	IF $IS_LIVE_SIGNAL AND $IS_COMMUNICATE AND NOT IS_TX1_ERROR_STATE AND NOT IS_RX1_ERROR_STATE THEN
+		RETURN TRUE
+	ELSE
+		CONTINUE
+		IF $IS_LIVE_SIGNAL == FALSE THEN
+			IF NOT $FLAG[IS_FLAG_ERROR] THEN ;Noch keinen Fehlerflag gesetzt ?
+				IS_SetInternError(IS_IntErr_Com)			; Fehler ISRA Livesignal
+			ENDIF
+			RETURN FALSE
+		ENDIF
+		IF IS_RX1_ERROR_STATE THEN
+			IF NOT $FLAG[IS_FLAG_ERROR] THEN ;Noch keinen Fehlerflag gesetzt ?
+				IS_IMT_GetExternErrors()
+			ENDIF
+		  RETURN FALSE
+		ENDIF
+		RETURN FALSE
+	ENDIF
+	;
+ENDIF
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+	; Da die Fehlerbehandlung nach jedem Kommunikationsschritt zuschlaegt sind bei Fehlern auch die Flags gesetzt
+	IF ($FLAG[IS_FLAG_ERROR]==FALSE) AND ($IS_COMMUNICATE==TRUE) AND ($IS_LIVE_SIGNAL==TRUE) THEN
+		RETURN TRUE
+	ELSE
+		IF ($IS_LIVE_SIGNAL == FALSE) THEN
+			; Noch keinen Fehlerflag gesetzt ?
+			IF (NOT $FLAG[IS_FLAG_ERROR]) THEN
+				IS_SetInternError(IS_IntErr_Com) ;Fehler ISRA Livesignal
+				;
+				IF $IS_LIVE_SIGNAL ==TRUE THEN
+					IS_ResetFlags()
+					IS_bInternError = FALSE
+					RETURN TRUE
+				ENDIF
+			ENDIF
+			RETURN FALSE
+		ENDIF
+		RETURN FALSE
+	ENDIF
+	;
+ENDIF
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+; FOLD Schleife zum Wiederaufbau der Verbindung zum ISRA-System
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_ReconnectLoop()
+INT nHandle
+BOOL retVal
+BOOL bISRALive
+DECL CHAR ch_KXRKey[100]
+;
+nHandle = -1
+;
+;Existiert eine Wartemeldung bereits?
+IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+	retVal = Clear_KrlMsg (nHandle)
+ENDIF
+;
+; Wartemeldung ausgeben
+ch_KxrKey[]= "IS_Wait_Connection"
+IS_ShowMessage(nHandle, #waiting, ch_KxrKey[], "vw_isr_usr_r", 1, TRUE)
+;
+IF (nHandle > 0) THEN
+	; Solange wiederholen, bis Kommunikation wieder laeuft oder Benutzer 'Simuliere' drueckt
+	REPEAT
+		IF $IS_LIVE_SIGNAL==TRUE THEN
+			bISRALive = TRUE
+		ELSE
+			bISRALive = FALSE
+		ENDIF
+		;
+		;Abfrage, ob Benutzer 'Simuliere' gedrueckt hat
+		IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+			bISRALive = TRUE
+ 		ENDIF
+ 		;
+ 		WAIT SEC 0.2
+ 		;
+	UNTIL (bISRALive==TRUE)
+	;
+	; Ablöschen einer noch anstehenden Wartemeldung
+	IF (Exists_KrlMsg (nHandle) == TRUE) THEN
+	  retVal = Clear_KrlMsg (nHandle)
+	ENDIF
+ENDIF
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Auf Handshake warten, Datenkennung abgleichen, Fehlerbehandlung
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_Wait(iWaitType:IN, bCompareDataID:IN, iFnctID:IN)
+DECL ISWaitType iWaitType
+DECL BOOL				bCompareDataID
+DECL INT				iFnctID 
+;
+;Skip-Message-Box
+DECL KrlMsg_T msg
+DECL KrlMsgPar_T par[3]
+DECL KrlMsgOpt_T opt
+INT nHandle, validPgNo
+BOOL retVal
+;
+msg = {modul[] "ISRA_COM", Nr 1, msg_txt[] "Skip?"}
+;
+nHandle = -1
+;
+IS_bSkipFlag		= FALSE
+IS_bTimeoutFlag	= FALSE
+;
+IF (iWaitType <> #IS_ERROR_ID) THEN
+	IS_iFnctID = iFnctID
+ENDIF
+;
+IS_StartTimer (IS_iWaitTimerID, IS_rWaitTimeout)
+;
+; In case of already known error only wait for handshake change
+IF (iWaitType == #IS_ERROR_ID) THEN
+  ;WAIT FOR ((IS_RX1_HANDSHAKE<>IS_bHandshake) OR $TIMER_FLAG[IS_iWaitTimerID])
+  WHILE (TRUE)
+		IF (IS_RX1_HANDSHAKE == IS_bHandshake) THEN      
+			EXIT
+		ENDIF
+		;
+		;Has there a Skip-Messagebox been created?
+		IF (IS_bTimeoutFlag == TRUE) THEN
+			IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+				;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+				retVal = Clear_KrlMsg (nHandle)
+				IS_bSkipFlag = TRUE
+			ENDIF
+		ENDIF
+		;
+		IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+			IS_bSkipFlag = TRUE
+			EXIT
+		ENDIF
+		;
+		IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+			IS_TX1_TIMEOUT = TRUE
+			nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+			IS_bTimeoutFlag = TRUE
+		ENDIF
+		;
+  	WAIT SEC 0.005
+  ENDWHILE
+ELSE
+	;WAIT FOR ((IS_RX1_HANDSHAKE==IS_bHandshake) OR IS_RX1_ERROR_STATE OR $TIMER_FLAG[IS_iWaitTimerID])
+	WHILE (TRUE)
+		IF (IS_RX1_HANDSHAKE == IS_bHandshake) OR (IS_RX1_ERROR_STATE==TRUE) THEN      
+			EXIT
+		ENDIF
+		;
+		;Has there a Skip-Messagebox been created?
+		IF (IS_bTimeoutFlag == TRUE) THEN
+			IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+				;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+				retVal = Clear_KrlMsg (nHandle)
+				IS_bSkipFlag = TRUE
+			ENDIF
+		ENDIF
+		;
+		IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+			IS_bSkipFlag = TRUE
+			EXIT
+		ENDIF
+		;
+		IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+			IS_TX1_TIMEOUT = TRUE
+			nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+			IS_bTimeoutFlag = TRUE
+		ENDIF
+  	WAIT SEC 0.005
+  ENDWHILE
+ENDIF
+;
+; Clearing a potential Skip-Messagebox
+IF (Exists_KrlMsg (nHandle) == TRUE) THEN
+  retVal = Clear_KrlMsg (nHandle)
+ENDIF
+;
+; Resetting the timeout-signal on leave
+IF IS_bTimeoutFlag == TRUE THEN
+  IS_TX1_TIMEOUT = FALSE
+ENDIF
+;
+;Skip
+IF IS_bSkipFlag == TRUE THEN
+  IS_ResetSignals()
+  IS_TX1_SKIP = TRUE
+  RETURN FALSE
+ENDIF
+;
+;Fehler
+IF IS_RX1_ERROR_STATE AND (iWaitType <> #IS_ERROR_ID) THEN
+	IS_IMT_GetExternErrors()
+  IS_StopTimer(IS_iWaitTimerID)
+  RETURN FALSE
+ENDIF
+;
+IS_StopTimer(IS_iWaitTimerID)
+;
+;IF bCompareDataID THEN
+;	CONTINUE
+;	IF (IS_RX8_DATA_ID <> IS_TX8_DATA_ID) THEN
+;		IS_MSG_ERR(IS_MSG_I_SERV_SENS_CHK)
+;		wait SEC 0.5
+;		IF (IS_RX8_DATA_ID <> IS_TX8_DATA_ID) THEN
+;			IS_MSG_ERR(4002,0,0)
+;			IS_MSG_ERR(4003,0,0)
+;			IS_SetError(IS_Err_ID_Drain) ;Kommandoablauf
+;			return FALSE
+;		endif
+;	endif
+;ENDIF
+;
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Auf Handshake warten, Datenkennung abgleichen, Fehlerbehandlung, Vorlaufzeiger nicht verzoegern
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_WaitInMotion(iWaitType:IN, bCompareDataID:IN, iFnctID:IN)
+DECL ISWaitType iWaitType
+DECL BOOL				bCompareDataID
+DECL INT				iFnctID
+;
+;Skip-Message-Box
+DECL KrlMsg_T msg
+DECL KrlMsgPar_T par[3]
+DECL KrlMsgOpt_T opt
+INT nHandle, validPgNo
+BOOL retVal
+;
+CONTINUE
+msg = {modul[] "ISRA_COM", Nr 1, msg_txt[] "Skip?"}
+CONTINUE
+nHandle = -1
+;
+CONTINUE
+IS_bTimeoutFlag = FALSE
+CONTINUE
+IS_bSkipFlag    = FALSE
+;
+CONTINUE
+IF (iWaitType <> #IS_ERROR_ID) THEN
+	CONTINUE
+	IS_iFnctID = iFnctID
+ENDIF
+;
+CONTINUE
+IS_StartTimer (IS_iWaitTimerID, IS_rWaitTimeout)
+;
+IF (iWaitType == #IS_ERROR_ID) THEN
+	CONTINUE
+	;WAIT FOR ((IS_RX1_HANDSHAKE==IS_bHandshake) OR $TIMER_FLAG[IS_iWaitTimerID])
+	;
+	CONTINUE
+	WHILE (TRUE)
+		CONTINUE
+		IF(IS_RX1_HANDSHAKE==IS_bHandshake) THEN
+			CONTINUE
+			EXIT
+		ENDIF
+		
+		CONTINUE
+		;
+		;Has there a Skip-Messagebox been created?
+    CONTINUE
+    ;
+    IF (IS_bTimeoutFlag == TRUE) THEN
+      CONTINUE
+      IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+        CONTINUE
+        ;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+        CONTINUE
+        retVal = Clear_KrlMsg (nHandle)
+        CONTINUE
+        IS_bSkipFlag = TRUE
+        CONTINUE
+      ENDIF
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+      CONTINUE
+      IS_bSkipFlag = TRUE
+      CONTINUE
+      EXIT
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+      CONTINUE
+      IS_TX1_TIMEOUT = TRUE
+      CONTINUE
+      nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+      CONTINUE
+      IS_bTimeoutFlag = TRUE
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    WAIT SEC 0.005
+    CONTINUE
+	ENDWHILE
+	;
+	CONTINUE
+	;
+ELSE
+	;CONTINUE
+	;WAIT FOR ((IS_RX1_HANDSHAKE==IS_bHandshake) OR IS_RX1_ERROR_STATE OR $TIMER_FLAG[IS_iWaitTimerID])
+	;
+	WHILE (TRUE)
+		IF(IS_RX1_HANDSHAKE==IS_bHandshake) OR (IS_RX1_ERROR_STATE==TRUE) THEN
+			CONTINUE
+			EXIT
+		ENDIF
+		;
+		;Has there a Skip-Messagebox been created?
+    IF (IS_bTimeoutFlag == TRUE) THEN
+      IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+        ;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+        retVal = Clear_KrlMsg (nHandle)
+        IS_bSkipFlag = TRUE
+      ENDIF
+    ENDIF
+    ;
+    IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+      IS_bSkipFlag = TRUE
+      EXIT
+    ENDIF
+    ;
+    IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+      IS_TX1_TIMEOUT = TRUE
+      nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+      IS_bTimeoutFlag = TRUE
+    ENDIF
+    ;
+		WAIT SEC 0.005
+	ENDWHILE
+	;
+ENDIF
+;
+; Clearing a potential Skip-Messagebox
+IF (Exists_KrlMsg (nHandle) == TRUE) THEN
+  retVal = Clear_KrlMsg (nHandle)
+ENDIF
+;
+; Resetting the timeout-signal on leave
+IF IS_bTimeoutFlag == TRUE THEN
+  IS_TX1_TIMEOUT = FALSE
+ENDIF
+;
+;Skip
+IF IS_bSkipFlag == TRUE THEN
+  IS_ResetSignals()
+  IS_TX1_SKIP = TRUE
+  RETURN FALSE
+ENDIF
+;
+;Fehler
+IF IS_RX1_ERROR_STATE AND (iWaitType <> #IS_ERROR_ID) THEN
+	IS_IMT_GetExternErrors()
+  IS_StopTimer(IS_iWaitTimerID)
+  RETURN FALSE
+ENDIF
+;
+IS_StopTimer(IS_iWaitTimerID)
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Auf Handshake warten, Fehlerbehandlung, Vorlaufzeiger nicht verzoegern
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_WaitForEnd(iFnctID:IN)
+DECL INT iFnctID
+DECL BOOL bInit
+;
+;Skip-Message-Box
+DECL KrlMsg_T msg
+DECL KrlMsgPar_T par[3]
+DECL KrlMsgOpt_T opt
+INT nHandle, validPgNo
+BOOL retVal
+;
+CONTINUE
+msg = {modul[] "ISRA_COM", Nr 1, msg_txt[] "Skip?"}
+CONTINUE
+nHandle = -1
+;
+CONTINUE
+IS_bTimeoutFlag = FALSE
+CONTINUE
+IS_bSkipFlag    = FALSE
+;
+IS_iFnctID = iFnctID
+CONTINUE
+IS_StartTimer (IS_iWaitTimerID, IS_rWaitTimeout)
+CONTINUE
+;
+IF (IS_TX1_INIT_SIGNALS) THEN
+	CONTINUE
+  ; WAIT FOR ((IS_RX1_HANDSHAKE==TRUE) AND (IS_RX1_INIT_SIGNALS==TRUE)) OR ($TIMER_FLAG[IS_iWaitTimerID])
+  CONTINUE
+  WHILE (TRUE)
+  	IF(IS_RX1_HANDSHAKE==IS_bHandshake) AND (IS_RX1_INIT_SIGNALS==TRUE) THEN
+  		CONTINUE
+  		EXIT
+  	ENDIF	
+  	;
+    CONTINUE
+    ;Has there a Skip-Messagebox been created?
+    CONTINUE
+    IF (IS_bTimeoutFlag == TRUE) THEN
+      CONTINUE
+      IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+        CONTINUE
+        ;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+        CONTINUE
+        retVal = Clear_KrlMsg (nHandle)
+        CONTINUE
+        IS_bSkipFlag = TRUE
+        CONTINUE
+      ENDIF
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+      CONTINUE
+      IS_bSkipFlag = TRUE
+      CONTINUE
+      EXIT
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+      CONTINUE
+      IS_TX1_TIMEOUT = TRUE
+      CONTINUE
+      nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+      CONTINUE
+      IS_bTimeoutFlag = TRUE
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    WAIT SEC 0.005
+    CONTINUE
+  ENDWHILE
+	CONTINUE
+ELSE
+	CONTINUE
+	; WAIT FOR ((IS_RX1_HANDSHAKE==IS_bHandshake) OR (IS_RX1_ERROR_STATE==TRUE) OR $TIMER_FLAG[IS_iWaitTimerID])
+  WHILE (TRUE)
+    CONTINUE
+    IF (IS_RX1_HANDSHAKE == IS_bHandshake) OR (IS_RX1_ERROR_STATE==TRUE) THEN
+      CONTINUE
+      EXIT
+    ENDIF
+    ;
+    CONTINUE
+    ;Has there a Skip-Messagebox been created?
+    CONTINUE
+    IF (IS_bTimeoutFlag == TRUE) THEN
+      CONTINUE
+      IF (Exists_KrlMsg (nHandle) == FALSE) THEN
+        CONTINUE
+        ;The user must have skipped, since there is a handle and the messagebox doesnt exist anymore!
+        CONTINUE
+        retVal = Clear_KrlMsg (nHandle)
+        CONTINUE
+        IS_bSkipFlag = TRUE
+        CONTINUE     
+      ENDIF
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    IF ((IS_RX1_SKIP == TRUE) OR (IS_bSkipFlag == TRUE)) THEN
+      CONTINUE
+      IS_bSkipFlag = TRUE
+      CONTINUE
+      EXIT
+    ENDIF
+    ;
+    CONTINUE
+    IF (($TIMER_FLAG[IS_iWaitTimerID]) AND (NOT (IS_bSkipFlag==TRUE)) AND (IS_bTimeoutFlag == FALSE)) THEN
+      CONTINUE
+      IS_TX1_TIMEOUT = TRUE
+      CONTINUE
+      nHandle = Set_KrlMsg (#waiting, msg, par[], opt)
+      CONTINUE
+      IS_bTimeoutFlag = TRUE
+      CONTINUE
+    ENDIF
+    ;
+    CONTINUE
+    WAIT SEC 0.005
+    CONTINUE
+  ENDWHILE
+  ;
+  CONTINUE
+ENDIF
+;
+CONTINUE
+; Clearing a potential Skip-Messagebox
+CONTINUE
+IF (Exists_KrlMsg (nHandle) == TRUE) THEN
+  CONTINUE
+  retVal = Clear_KrlMsg (nHandle)
+  CONTINUE
+ENDIF
+;
+CONTINUE
+; Resetting the timeout-signal on leave
+CONTINUE
+IF IS_bTimeoutFlag == TRUE THEN
+  CONTINUE
+  IS_TX1_TIMEOUT = FALSE
+  CONTINUE
+ENDIF
+;
+CONTINUE
+;Skip
+CONTINUE
+IF IS_bSkipFlag == TRUE THEN
+  CONTINUE
+  IS_ResetSignals()
+  CONTINUE
+  IS_TX1_SKIP = TRUE
+  CONTINUE
+  RETURN FALSE
+ENDIF
+;
+CONTINUE
+;Fehler
+CONTINUE
+IF IS_RX1_ERROR_STATE THEN
+  CONTINUE
+	IS_IMT_GetExternErrors()
+  CONTINUE
+  IS_StopTimer(IS_iWaitTimerID)
+  CONTINUE
+  RETURN FALSE
+ENDIF
+;
+CONTINUE
+IS_StopTimer(IS_iWaitTimerID)
+CONTINUE
+;
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Service-Ergebnis Tooltausch auf Tool anwenden
+;---------------------------------------------------------------------------------------------
+DEF IS_Apply_ToolChange (iCorrID:IN)
+DECL INT iCorrID
+DECL FRAME tmpToolData
+;
+IF NOT IS_State_OK() OR (IS_iExternErrors<>0) OR IS_bInternError THEN
+	IS_MSG_ERR(IS_MSG_ERR_SERV_TOOL)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF
+;
+IF (iCorrID < 1) OR (iCorrID > 31) THEN
+	IS_SetInternError(IS_IntErr_Tool, iCorrID)
+	IS_MSG_ERR(IS_MSG_ERR_SERV_TOOL)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF
+;
+tmpToolData = TOOL_DATA[iCorrID]
+;
+IS_MSG_FRAME2 (2, iCorrID, $ISRA_TOOL_OFFSET)													;Abweichung zum aktuellen Tool
+IS_MSG_FRAME2 (5, iCorrID, tmpToolData) 															;Altes Tool
+IS_MSG_FRAME2 (6, iCorrID, $ISRA_TOOL_OFFSET : tmpToolData) 					;Neues Tool
+;
+IF NOT IS_SetRobFrame(iCorrID) THEN
+	$FLAG[IS_FLAG_ERROR]=TRUE
+	IS_MSG_ERR(IS_MSG_ERR_SERV_TOOL_T)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF
+;
+IF IS_State_OK() THEN
+	IS_MSG(IS_MSG_I_SERV_TOOL, IS_MSG_TYPE_NOTIFY)
+	;IS_MSG(0,12)
+	IS_MSG(IS_MSG_I_SERV_TOOL_PATH2, IS_MSG_TYPE_DIALOG, iCorrID)
+	IS_MSG(IS_MSG_I_SERV_TOOL_PATH1, IS_MSG_TYPE_NOTIFY)
+ELSE
+	IS_MSG_ERR(IS_MSG_ERR_SERV_TOOL)
+ENDIF
+;
+;IS_iServiceMode = IS_iSERVICE_NONE
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Service-Ergebnis Robotertausch auf Base anwenden
+;---------------------------------------------------------------------------------------------
+DEF IS_Apply_RobotChange (iCorrID:IN)
+DECL INT iCorrID
+FRAME tmpBaseData
+;
+IF NOT IS_State_OK() OR (IS_iExternErrors <> 0) OR IS_bInternError THEN
+	IS_MSG_ERR(IS_MSG_ERR_SERV_ROB)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF
+;
+IF (iCorrID < 1) OR (iCorrID > 31) THEN
+	IS_SetInternError(IS_IntErr_Base,iCorrID)	 ;Base ID out of range
+	IS_MSG_ERR(IS_MSG_ERR_SERV_ROB)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF 
+;
+tmpBaseData = BASE_DATA[iCorrID]
+;
+IS_MSG_FRAME2 (1, iCorrID, $ISRA_BASE_OFFSET)  								;Offset
+IS_MSG_FRAME2 (3, iCorrID, tmpBaseData) 											;Alte Base 
+IS_MSG_FRAME2 (4, iCorrID, $ISRA_BASE_OFFSET : tmpBaseData)		;Neue Base
+;
+IF NOT IS_SetRobFrame(iCorrID) THEN
+	$FLAG[IS_FLAG_ERROR]=TRUE
+	IS_MSG_ERR(IS_MSG_ERR_SERV_ROB_T)
+	IS_iServiceMode = IS_iSERVICE_NONE
+	RETURN
+ENDIF
+;
+IF IS_State_OK() THEN
+	IS_MSG(IS_MSG_I_SERV_ROB, IS_MSG_TYPE_NOTIFY)
+	;IS_MSG(0,13)
+	IS_MSG(IS_MSG_I_SERV_ROB_PATH2, IS_MSG_TYPE_DIALOG, iCorrID)
+	IS_MSG(IS_MSG_I_SERV_ROB_PATH1, IS_MSG_TYPE_NOTIFY)
+ELSE
+	IS_MSG_ERR(IS_MSG_ERR_SERV_ROB)
+ENDIF
+;
+;IS_iServiceMode = IS_iSERVICE_NONE
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Tool-/Robotertausch-Ergebnis anwenden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_SetRobFrame(iFrameID:IN)
+DECL INT iFrameID
+DECL FRAME tmpTool
+;
+SWITCH IS_iServiceMode
+CASE IS_iTOOL_CHANGE
+	tmpTool = TOOL_DATA[iFrameID]
+	;
+   ;IF IS_CheckCorrFrame($ISRA_TOOL_OFFSET,$NULLFRAME) THEN
+		;
+		IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+			TOOL_DATA[iFrameID] = $ISRA_TOOL_OFFSET : TOOL_DATA[iFrameID]
+			RETURN TRUE
+		ENDIF
+		;
+		IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+			TOOL_DATA[iFrameID] = $ISRA_TOOL_OFFSET : TOOL_DATA[iFrameID]
+			RETURN TRUE
+		ENDIF
+		;
+	;ELSE
+		;RETURN FALSE
+	;ENDIF
+	;
+CASE IS_iROBOT_CHANGE
+   ;IF IS_CheckCorrFrame($ISRA_BASE_OFFSET,$NULLFRAME) THEN
+		;
+		IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+			BASE_DATA[iFrameID] = $ISRA_BASE_OFFSET : BASE_DATA[iFrameID]
+			RETURN TRUE
+		ENDIF
+		;
+		IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+			BASE_DATA[iFrameID] = $ISRA_BASE_OFFSET : BASE_DATA[iFrameID]
+			RETURN TRUE
+		ENDIF
+		;
+	;ELSE
+		;RETURN FALSE
+	;ENDIF
+DEFAULT
+	;IS_Log("IS_SetRobFrame: Unknown Servicemode",1,TRUE)
+	RETURN FALSE
+ENDSWITCH
+;
+RETURN FALSE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Korrekturwert auf Toleranz ueberpruefen und Fehlerflag setzen
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_CheckCorrFrame(fr_Frame1:IN,fr_Frame2:IN)
+DECL FRAME fr_Frame1
+DECL FRAME fr_Frame2
+DECL REAL r_DeltaX
+DECL REAL r_DeltaY
+DECL REAL r_DeltaZ
+DECL REAL r_DeltaA
+DECL REAL r_DeltaB
+DECL REAL r_DeltaC
+;
+r_DeltaX=ABS(fr_Frame1.X-fr_Frame2.X)
+r_DeltaY=ABS(fr_Frame1.Y-fr_Frame2.Y)
+r_DeltaZ=ABS(fr_Frame1.Z-fr_Frame2.Z)
+r_DeltaA=ABS(fr_Frame1.A-fr_Frame2.A)
+r_DeltaB=ABS(fr_Frame1.B-fr_Frame2.B)
+r_DeltaC=ABS(fr_Frame1.C-fr_Frame2.C)
+;
+IF (r_DeltaX > IS_CORR_ACCEPT_FRAME.X) OR (r_DeltaY > IS_CORR_ACCEPT_FRAME.Y) THEN
+	;IS_SetError(IS_Err_ID_Tolerance) ;Toleranzueberschreitung
+	RETURN FALSE
+ENDIF
+;
+IF (r_DeltaZ > IS_CORR_ACCEPT_FRAME.Z) OR (r_DeltaA > IS_CORR_ACCEPT_FRAME.A) THEN
+	;IS_SetError(IS_Err_ID_Tolerance) ;Toleranzueberschreitung
+	RETURN FALSE
+ENDIF
+;
+IF (r_DeltaB > IS_CORR_ACCEPT_FRAME.B) OR (r_DeltaC > IS_CORR_ACCEPT_FRAME.C) THEN
+	;IS_SetError(IS_Err_ID_Tolerance) ;Toleranzueberschreitung
+	RETURN FALSE
+ENDIF
+;
+RETURN TRUE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD ISRA Base/Tool-Offset zuruecksetzen
+;---------------------------------------------------------------------------------------------
+DEF IS_ResetBaseOrTool (iType:IN)
+DECL INT iType
+;
+;IS_Log("ResetBaseOrTool",1,TRUE)
+;
+SWITCH iType
+	CASE 1
+		$ISRA_BASE_OFFSET = $NULLFRAME
+	CASE 2
+		$ISRA_TOOL_OFFSET = $NULLFRAME
+ENDSWITCH
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD ModellNr Abgleich, RountinenNr Abfrage, UP-Select
+;---------------------------------------------------------------------------------------------
+DEF IS_SelectUP(iModelID:IN)
+DECL INT  iModelID
+DECL INT  SEL_RES
+DECL BOOL bRetVal
+;
+IS_MODEL = iModelID
+;
+IF IS_STATE_OK() THEN
+;
+	;Model-ID Abgleich
+	IS_TX8_MODEL_ID 			= IS_MODEL
+	IS_TX8_DATA_ID				= 8					; Model-ID
+	IS_TX1_DATA_END_TRANS = TRUE
+	IS_TX1_DATA_VALID 		= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+	IF (IS_Wait(#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SelectUp1) == FALSE) THEN
+		RETURN
+	ENDIF
+;
+	;Abfrage UP-Nr
+	IS_TX1_DATA_END_TRANS	= FALSE
+	IS_TX1_DATA_VALID			= FALSE
+	IS_TX8_DATA_ID 				= 51 				;Prog-ID
+	IS_TX1_DATA_REQUEST 	= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+  IF (IS_Wait(#IS_VALID, TRUE, IS_FnctID_IMT_SelectUp2) == TRUE) THEN
+		IF (IS_RX8_PROG_ID < 1) THEN
+			IS_SetError(IS_Err_ID_ProgID) 	;Fehler ProgID
+			RETURN
+		ENDIF
+		;
+		IS_PROGID	= IS_RX8_PROG_ID
+		IS_iCurrentSub = IS_PROGID
+		;
+		IF (UPNR[iModelID, IS_PROGID]>0)  THEN
+			IS_TX8_DATA_ID 				= 51
+			IS_TX1_DATA_REQUEST 	= FALSE
+			IS_TX1_DATA_ACCEPTED 	= TRUE
+			IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+			;
+			bRetVal = IS_Wait(#IS_ACCEPTED, FALSE, IS_FnctID_IMT_SelectUp3)
+			SEL_RES=SELECT(#UP,UPNR[iModelID, IS_PROGID],TRUE) 							;UP selektieren
+		ELSE
+			IS_SetError(IS_Err_ID_ProgID) ;Fehler ProgID
+			RETURN
+		ENDIF
+ 	ENDIF
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Messergebnis holen
+;---------------------------------------------------------------------------------------------
+DEF IS_IMT_GetCorrection(iSpecifier:IN, iToolNr:IN)
+DECL INT 		iSpecifier
+DECL INT 		iToolNr
+DECL FRAME 	CORR_FRAME
+DECL INT 		ID1, ID2, ID3
+DECL INT 		iStateResult
+DECL INT 		iStateWarning
+;
+IF IS_STATE_OK() THEN
+	;
+	IF (IS_IMT_GetExternState (iStateResult, iStateWarning)==FALSE) THEN
+		RETURN ;Fehler beim Zustandholen
+	ENDIF
+	;
+	CORR_FRAME = $NULLFRAME
+	;
+	SWITCH iSpecifier
+	CASE 1,3		;Base
+		ID1 = 52
+		ID2 = 53
+		ID3 = 54
+	CASE 2,4		;Tool
+		ID1 = 55
+		ID2 = 56
+		ID3 = 57
+	DEFAULT
+		IS_SetInternError(IS_IntErr_Specif, IS_SPECIFIER)
+		RETURN
+	ENDSWITCH
+	;
+	;XY-Korrektur erfragen
+	IS_TX1_DATA_ACCEPTED	= FALSE		;Fuer RF
+	IS_TX8_DATA_ID				= ID1
+	IS_TX1_DATA_REQUEST		= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+	;
+	IF (IS_Wait(#IS_VALID, TRUE, IS_FnctID_IMT_GetCorr1) == FALSE) THEN
+		RETURN
+	ENDIF
+	;
+	CORR_FRAME.X = IS_RX32_CORR_X / IS_IMT_rScaleXYZ
+  CORR_FRAME.Y = IS_RX32_CORR_Y / IS_IMT_rScaleXYZ
+	;
+	IS_TX8_DATA_ID				= ID1
+	IS_TX1_DATA_ACCEPTED	= TRUE
+	IS_TX1_DATA_REQUEST		= FALSE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+	;
+	IF (IS_Wait(#IS_VALID, FALSE, IS_FnctID_IMT_GetCorr2) == FALSE) THEN
+		RETURN
+	ENDIF
+	;
+	IF (IS_RX8_DATA_ID <> ID2) THEN
+		IS_SetError(IS_Err_ID_Drain)
+		RETURN
+	ENDIF
+	;
+	CORR_FRAME.Z = IS_RX32_CORR_Z / IS_IMT_rScaleXYZ
+  CORR_FRAME.A = IS_RX32_CORR_A / IS_IMT_rScaleABC
+	;
+	IS_TX8_DATA_ID 				= ID2
+	IS_TX1_DATA_ACCEPTED	= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+	;
+	IF (IS_Wait(#IS_VALID, FALSE, IS_FnctID_IMT_GetCorr3) == FALSE) THEN
+		RETURN
+	ENDIF
+	;
+	IF (IS_RX8_DATA_ID <> ID3) THEN
+		IS_SetError(IS_Err_ID_Drain) ;Kommandoablauf
+		RETURN
+	ENDIF
+	;
+	CORR_FRAME.B = IS_RX32_CORR_B / IS_IMT_rScaleABC
+  CORR_FRAME.C = IS_RX32_CORR_C / IS_IMT_rScaleABC
+	;
+	IS_TX8_DATA_ID 				= ID3
+	IS_TX1_DATA_END_TRANS = TRUE
+	IS_TX1_DATA_ACCEPTED	= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+	;
+	IF (IS_Wait(#IS_ACCEPTED, FALSE, IS_FnctID_IMT_GetCorr4)==FALSE) THEN
+		RETURN
+	ENDIF
+	;
+	IS_TX8_DATA_ID 				= 0
+	IS_TX1_DATA_END_TRANS = FALSE
+	IS_TX1_DATA_ACCEPTED	= FALSE
+	;
+	IS_iFnctID = 0 ;keine irrefuehrende Fehlermeldung erzeugen
+	;
+	IF (IS_SyncErrors(IS_iErrorSource, IS_iExternErrors)==FALSE) THEN
+		IS_iFnctID = IS_FnctID_IMT_GetExtStat
+		IS_ProcessErrors()
+		RETURN
+	ENDIF
+	;
+	IF (IS_IMT_ProcessExtState (iStateResult, iStateWarning)==FALSE) THEN
+		;Meldung
+		RETURN
+	ENDIF
+	;
+	;--- write Corr_Frame ---
+	;
+	SWITCH IS_iServiceMode
+	CASE IS_iTOOL_CHANGE
+			$ISRA_TOOL_OFFSET	= CORR_FRAME
+	CASE IS_iROBOT_CHANGE
+			$ISRA_BASE_OFFSET	= CORR_FRAME
+	DEFAULT
+		IF IS_CheckCorrFrame(CORR_FRAME, $NULLFRAME) THEN
+			SWITCH (iSpecifier)
+			CASE 1
+				$ISRA_BASE_OFFSET	= CORR_FRAME
+			CASE 2
+				$ISRA_TOOL_OFFSET	= CORR_FRAME
+			CASE 3
+				;Achtung Offset wird akkumuliert
+				$ISRA_BASE_OFFSET	= $ISRA_BASE_OFFSET : CORR_FRAME
+			CASE 4
+				;Achtung Offset wird akkumuliert
+				$ISRA_TOOL_OFFSET	= $ISRA_TOOL_OFFSET : CORR_FRAME
+			ENDSWITCH
+	  ENDIF
+	ENDSWITCH
+;
+ENDIF ;State_OK
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Messergebnis für RF holen
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_GetCorrection(iSpecifier:IN, iToolNr:IN)
+DECL INT 		iSpecifier
+DECL INT 		iToolNr
+DECL FRAME 	CORR_FRAME
+;
+IF IS_State_OK()THEN
+	;Zuerst Messpunktnummer zurücksetzen:
+	IS_iMeasPoint = 0
+	;
+	;IS_Log("IS_RF_GetCorrection: Executing",1,TRUE)
+	;
+   IF (IS_iMeasStateRF <> IS_iMS_ENDED) THEN
+		;IS_Log("IS_RF_GetCorrection: Wrong state to get results",1,TRUE)
+		;
+		IS_bInternError = TRUE
+		;
+		$FLAG[IS_FLAG_ERROR]=TRUE
+		$FLAG[IS_FLAG_ERR_ROBOT]=TRUE
+		;
+		IS_iFnctID = IS_FnctID_RF_GCorr3
+		;
+		IS_SetInternError(IS_IntErr_RFGCSt)
+		;
+		IS_bInternError = FALSE
+		IS_iFnctID = 0
+		;
+		RETURN
+	ENDIF
+	;
+	; Warten auf Messende, falls noch nicht gesetzt
+	IF IS_RF_Wait(#IS_RF_RESRUN, FALSE, 0, IS_FnctID_RF_GCorr1) THEN
+	  ; Read 16-bit Integer
+		IS_RX16_DATA[1] = IS_RX16_RF_RES_X
+	  IF (IS_RX16_DATA[1] > 32767) THEN
+	    CORR_FRAME.X= ((IS_RX16_DATA[1] b_or 'HFFFF0000') / IS_RF_rScaleXYZ)
+	  ELSE
+	    CORR_FRAME.X = IS_RX16_DATA[1] / IS_RF_rScaleXYZ
+	  ENDIF
+	  ;
+	  IS_RX16_DATA[2] = IS_RX16_RF_RES_Y
+	  IF (IS_RX16_DATA[2] > 32767) THEN
+	    CORR_FRAME.Y= ((IS_RX16_DATA[2] b_or 'HFFFF0000') / IS_RF_rScaleXYZ)
+	  ELSE
+	    CORR_FRAME.Y = IS_RX16_DATA[2] / IS_RF_rScaleXYZ
+	  ENDIF
+		;
+	  IS_RX16_DATA[3] = IS_RX16_RF_RES_Z
+	  IF (IS_RX16_DATA[3] > 32767) THEN
+	    CORR_FRAME.Z= ((IS_RX16_DATA[3] b_or 'HFFFF0000') / IS_RF_rScaleXYZ)
+	  ELSE
+	    CORR_FRAME.Z = IS_RX16_DATA[3] / IS_RF_rScaleXYZ
+	  ENDIF
+		;		
+	  IS_RX16_DATA[4] = IS_RX16_RF_RES_RZ
+	  IF (IS_RX16_DATA[4] > 32767) THEN
+	    CORR_FRAME.A= ((IS_RX16_DATA[4] b_or 'HFFFF0000') / IS_RF_rScaleABC)
+	  ELSE
+	    CORR_FRAME.A = IS_RX16_DATA[4] / IS_RF_rScaleABC
+	  ENDIF
+		;		
+	  IS_RX16_DATA[5] = IS_RX16_RF_RES_RY
+	  IF (IS_RX16_DATA[5] > 32767) THEN
+	    CORR_FRAME.B= ((IS_RX16_DATA[5] b_or 'HFFFF0000') / IS_RF_rScaleABC)
+	  ELSE
+	    CORR_FRAME.B = IS_RX16_DATA[5] / IS_RF_rScaleABC
+	  ENDIF
+		;		
+	  IS_RX16_DATA[6] = IS_RX16_RF_RES_RX
+	  IF (IS_RX16_DATA[6] > 32767) THEN
+	    CORR_FRAME.C= ((IS_RX16_DATA[6] b_or 'HFFFF0000') / IS_RF_rScaleABC)
+	  ELSE
+	    CORR_FRAME.C = IS_RX16_DATA[6] / IS_RF_rScaleABC
+	  ENDIF
+		;						
+		SWITCH IS_iSERVICEMODE
+			CASE IS_iTOOL_CHANGE
+				$ISRA_TOOL_OFFSET = CORR_FRAME
+			CASE IS_iROBOT_CHANGE
+				$ISRA_BASE_OFFSET = CORR_FRAME
+			DEFAULT
+				IF IS_CheckCorrFrame(CORR_FRAME, $NULLFRAME) THEN
+					;
+					SWITCH iSpecifier
+						CASE 1
+							; Achtung Offset wird akkumuliert
+							$ISRA_BASE_OFFSET = CORR_FRAME
+						CASE 2
+							; Achtung Offset wird akkumuliert
+							$ISRA_TOOL_OFFSET = CORR_FRAME
+            DEFAULT
+							;
+          ENDSWITCH
+					;
+				ELSE
+					IS_iFnctID = IS_FnctID_RF_GCorr2
+					IS_SetInternError(IS_IntErr_TolRob) 		; Toleranzueberschreitung
+				ENDIF
+				;
+		ENDSWITCH
+		;
+   ENDIF
+	;
+ELSE
+	;IS_Log("IS_RF_GetCorrection: Skipping",1,TRUE)
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Korrektur auf Base/Tool anwenden
+;---------------------------------------------------------------------------------------------
+DEF IS_ApplyCorrection (iCorrType:IN, iCorrID:IN)
+DECL INT iCorrType
+DECL INT iCorrID
+;
+IF (IS_State_OK()==FALSE) THEN
+	RETURN
+ENDIF
+;
+;IS_Log("ApplyCorrection",1,TRUE)
+;
+SWITCH iCorrType
+	CASE 1
+		IF (iCorrID>=1) AND (iCorrID <= 31) THEN
+      BASE_DATA[iCorrID] = BASE_DATA[VW_MPARA_ACT.BASE_NO] : $ISRA_BASE_OFFSET
+		ELSE
+			IS_SetInternError(IS_IntErr_Base, iCorrID) ;Base ID out of range
+		ENDIF
+	CASE 2
+		IF (iCorrID>=1) AND (iCorrID <= 31) THEN
+      TOOL_DATA[iCorrID] = TOOL_DATA[VW_MPARA_ACT.TOOL_NO] : $ISRA_TOOL_OFFSET
+		ELSE
+			IS_SetInternError(IS_IntErr_Tool, iCorrID) ;Tool ID out of range
+		ENDIF
+	DEFAULT
+		IS_SetInternError(IS_IntErr_Specif, IS_SPECIFIER) ;Specifier nicht erlaubt
+ENDSWITCH
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Serviceprogramm anmelden
+;---------------------------------------------------------------------------------------------
+DEF IS_Apply_Service(iServiceID:IN)
+DECL INT  iServiceID
+DECL BOOL	bRetVal
+;
+IF NOT IS_State_OK() THEN
+	RETURN
+ENDIF
+;
+IS_ResetFlags()
+IS_iExternErrors = 0
+IS_bInternError = FALSE
+;
+;IS_Log("Apply Service",1,TRUE)
+;
+SWITCH iServiceID
+	CASE 0
+		IS_iServiceMode=IS_iSERVICE_NONE
+	CASE 1
+		IS_iServiceMode=IS_iTOOL_CHANGE
+	CASE 2
+		IS_iServiceMode=IS_iROBOT_CHANGE
+	CASE 3
+		IS_iServiceMode=IS_iSENSOR_CHANGE
+	CASE 4
+		IS_iServiceMode=IS_iSENSOR_CHANGE_IMT
+	CASE 5
+		IS_iServiceMode=IS_iFULL_CALIB
+	DEFAULT
+		IS_iServiceMode=IS_iSERVICE_NONE
+ENDSWITCH
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN		;Extra anmelden des Servicemode ist fuer RF nicht notwendig
+	CONTINUE
+	IS_TX8_DATA_ID				= 10
+	CONTINUE
+	IS_TX16_SERVICE_ID		= iServiceID
+	CONTINUE
+	IS_TX1_DATA_END_TRANS	= TRUE
+	CONTINUE
+	IS_TX1_DATA_VALID			= TRUE
+	CONTINUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+	;
+	IF (IS_Wait(#IS_ACCEPTED, TRUE, IS_FnctID_IMT_Service)==FALSE) THEN
+		IS_iServiceMode=IS_iSERVICE_NONE
+	ENDIF
+	;
+	CONTINUE
+	IS_TX1_DATA_END_TRANS	= FALSE
+	CONTINUE
+	IS_TX1_DATA_VALID = FALSE
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD RF Messung vorbereiten
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_Prepare(iType:IN, iSubType:IN, iColor:IN)
+DECL INT iType
+DECL INT iSubType
+DECL INT iColor
+DECL BOOL bVal
+DECL INT iDesiredRM
+;
+IF (IS_iMeasStateRF <> IS_iMS_PREP_ADV) THEN
+  IS_iMeasStateRF = IS_iMS_PREP_NOK
+ENDIF
+;
+IF (IS_STATE_OK()) THEN
+	;
+	; Ready?
+	IF (IS_iMeasStateRF == IS_iMS_PREP_ADV) THEN
+		bVal = TRUE
+	ELSE
+		bVal = IS_RF_Wait(#IS_RF_READY, TRUE, 0, IS_FnctID_RF_Prepare1)
+	ENDIF
+	;
+	IF bVal THEN
+		;IS_Log("RF Prepare: ROVIS signals ready",1,TRUE)
+		; Betriebsart setzen
+		IF (IS_iServiceMode == IS_iSENSOR_CHANGE) THEN
+			iDesiredRM = 5  ; Kalibrierung
+		ELSE
+			iDesiredRM = 2	; Automatik
+		ENDIF
+		;
+		IS_TX4_RF_RM = iDesiredRM
+		;
+		IF IS_RF_Wait(#IS_RF_RM, FALSE, iDesiredRM, IS_FnctID_RF_Prepare2) THEN
+			;IS_Log("RF Prepare: ROVIS signals desired Runmode",1,TRUE)
+			; Typinformation setzen
+			IS_TX8_RF_TYP 			= iType
+			IS_TX8_RF_SUB_TYP 	= iSubType
+			IS_TX8_RF_COLOR_ID 	= iColor
+			IS_TX1_RF_TYP_STR 	= TRUE
+			;
+			IF IS_RF_Wait(#IS_RF_PREP, TRUE, 0, IS_FnctID_RF_Prepare3) THEN
+				;IS_Log("RF Prepare: ROVIS signals prepare OK",1,TRUE)
+				IS_iMeasStateRF = IS_iMS_PREP_OK
+			ENDIF
+			;
+			IS_TX1_RF_TYP_STR 	= FALSE
+			;
+			; RETURN
+		ENDIF
+		;
+	ENDIF
+ELSE
+	;IS_Log("RF Prepare: Skipping",1,TRUE)
+;
+ENDIF
+;
+; RETURN
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD RF Messung ausfuehren
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_Apply(iColor:IN)
+DECL INT iColor
+;
+IF (IS_STATE_OK()) THEN
+	;
+	IF (IS_iMeasStateRF == IS_iMS_PREP_OK) THEN
+		;
+		;Ist das Signal vor der ersten Messung aus?
+		IF IS_RF_WAIT(#IS_RF_MESRUN, FALSE, 0, IS_FnctID_RF_Apply1) THEN
+			IS_iMeasStateRF = IS_iMS_STARTED
+		ELSE
+			IS_iMeasStateRF = IS_iMS_NONE
+		ENDIF
+		;
+	ENDIF
+	;
+	WAIT SEC IS_rSettlingTime
+	;
+	IF  ((IS_iMeasStateRF == IS_iMS_STARTED) OR (IS_iMeasStateRF == IS_iMS_RUNNING)) THEN
+		;
+		; Vor Eintritt darf keine Bildaufnahme laufen
+		IF IS_RF_WAIT(#IS_RF_IMGACQ, FALSE, 0, IS_FnctID_RF_Apply4) THEN
+			;MsgNotify("RF Apply: ROVIS signals image acquisition is not running")
+			;
+			; Falls Sensortausch (=Kalibrierung) muss noch die Controlgroup auf ROVIS-Seite klar sein
+			IF (IS_iServiceMode == IS_iSENSOR_CHANGE) THEN
+				IS_TX8_RF_COLOR_ID = iColor
+			ENDIF
+			;
+			IS_TX1_RF_START = TRUE
+			;
+			; Messung laeuft  ist Grundvoraussetzung
+			IF IS_RF_WAIT(#IS_RF_MESRUN, TRUE, 0, IS_FnctID_RF_Apply2) THEN
+				;MsgNotify("RF Apply: ROVIS signals measurement runnning")
+				;
+				; Bildaufnahme laeuft
+				IF IS_RF_WAIT(#IS_RF_IMGACQ, TRUE, 0, IS_FnctID_RF_Apply5) THEN
+					;MsgNotify("RF Apply: ROVIS signals image acqusition started")
+					;
+					IS_TX1_RF_START = FALSE
+					;
+					IF IS_RF_WAIT(#IS_RF_IMGACQ, FALSE, 0, IS_FnctID_RF_Apply3) THEN
+						;MsgNotify("RF Apply: ROVIS signals image acquisition finished")
+						IS_iMeasStateRF = IS_iMS_RUNNING
+					ELSE
+						IS_iMeasStateRF = IS_iMS_NONE
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		;IS_Log("RF Apply: Wrong state to apply a measurement",1,TRUE)
+		;
+		IS_bInternError = TRUE
+		;
+		$FLAG[IS_FLAG_ERROR] = TRUE
+		$FLAG[IS_FLAG_ERR_ROBOT] = TRUE
+		;
+		IS_iFnctID = IS_FnctID_RF_Apply6
+		;
+		IS_SetInternError(IS_IntErr_RFAState)
+		;
+		IS_bInternError = FALSE
+		IS_iFnctID = 0
+	ENDIF
+	;
+	IS_TX1_RF_START = FALSE
+	;
+ELSE
+	;MsgNotify("RF Apply: Skipping")
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD RF Messung beenden
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_EndPose()
+;
+IF IS_State_OK() THEN
+;
+	;MsgNotify("Executing","IS_RF_EndPose")
+	;
+	; Warten auf Messende, falls noch nicht gesetzt
+	IF IS_RF_WAIT(#IS_RF_MESRUN, FALSE, 0, IS_FnctID_RF_End1) THEN
+		;
+		IF IS_RF_WAIT(#IS_RF_RESRUN, FALSE, 0, IS_FnctID_RF_End2) THEN
+			;
+			;IS_Log("IS_RF_EndPose: ROVIS signals results available",1,TRUE)
+			IF (IS_iMeasStateRF == IS_iMS_RUNNING) THEN
+				IS_iMeasStateRF = IS_iMS_ENDED
+			ELSE
+				;
+				;MsgNotify("IS_RF_EndPose","Wrong state to end a measurement")
+				;
+				IS_bInternError = TRUE
+				;
+				$FLAG[IS_FLAG_ERROR] = TRUE
+				$FLAG[IS_FLAG_ERR_ROBOT] = TRUE
+				;
+				IS_iFnctID = IS_FnctID_RF_End3
+				;
+				IS_SetInternError(IS_IntErr_RFEPSt)
+  			;
+  			IS_bInternError = FALSE
+  			;
+  			IS_iFnctID = 0
+			ENDIF
+			;
+		ENDIF
+		;
+	ENDIF
+;
+ELSE
+	;IS_Log("IS_RF_EndPose: Skipping",1,TRUE)
+ENDIF
+;
+;Hardware OK?
+IS_CheckHW()
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD RF Iterative Messung ausfuehren
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_Apply_Iterative()
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD RF Warten auf Systemantworten (RoVis)
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_RF_Wait(WaitType:IN, bWaitingVal:IN, iWaitingVal:IN, iFnctID:IN)
+DECL ISWaitType WaitType
+DECL BOOL bWaitingVal
+DECL INT iWaitingVal
+DECL INT iFnctID
+;
+IF IS_STATE_OK() THEN
+	IS_StartTimer (IS_iWaitTimerID, IS_rWaitTimeout)
+	
+	IS_iFnctID = iFnctID
+	 ;MsgNotify("Starting...", "IS_RF_Wait")
+   SWITCH WaitType 
+
+   CASE #IS_RF_READY       ; Warten auf Ready
+   	WAIT FOR ((IS_RX1_RF_READY == bWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_RM          ; Warten auf Gleichheit der Runmodes
+   	WAIT FOR ((IS_RX4_RF_RM == iWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_PREP        ; Warten auf Prepare OK
+   	WAIT FOR ((IS_RX1_RF_PREP_OK == bWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_IMGACQ      ; Warten auf Bildaufnahme läuft -- Achtung: Nicht abgesichert!
+    WAIT FOR ((IS_RX1_RF_IMG_ACQ == bWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_MESRUN      ; Warten auf Messung läuft
+   	WAIT FOR ((IS_RX1_RF_MEAS_RUN == bWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_RESRUN      ; Warten auf Ergebnisuebertragung "noch nicht fertig"
+    WAIT FOR ((IS_RX1_RF_RES_RUN == bWaitingVal) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+   CASE #IS_RF_ERESET      ; Warten auf Ruecksetzen der Fehlerbits
+    WAIT FOR ((IS_RX8_RF_ERR_SUM == 0) OR ($TIMER_FLAG[IS_iWaitTimerID]))
+	DEFAULT
+    ;IS_Log("IS_RF_Wait: Case not available",1,TRUE)
+  ENDSWITCH
+  ;
+ 	;
+  ;Hinweis zu Prioritaeten:
+	; Ein Fehler von ROVIS ist immer als höchste Meldung zu beruecksichtigen
+	; Ein Timeout ist eine Art "unbekannter" Fehler, der nicht von der Gegenstelle gemeldet wird 
+	; und kann daher nur ueber die "Stelle" des Auftretens im Ablauf vom VW-User/ISRA-Comm klassifiziert werden
+	; Ein Timeout ist daher für die Meldungsausgabe von zweithöchster Prioritaet
+	; Eine Warnung von ROVIS hat niedrigste Priorität und wird nur dann gemeldet, wenn ansonsten alles ok ist
+	
+	; 1. Fehler von RoVis
+	IS_RF_GetExternErrors(iFNCTID)
+	;
+	;Fehlerzustand bei GetExtErrRF festgestellt
+	IF NOT IS_STATE_OK() THEN
+	  IS_StopTimer(IS_iWaitTimerID)
+	  RETURN FALSE
+	ENDIF
+	
+	; 2. TimeOut-Fehler, hier kommt man nur herein, wenn ROVIS sich gar nicht aeussert...
+	; ...
+  IF ($TIMER_FLAG[IS_iWaitTimerID]) THEN
+  	;
+  	; Das "kleine" SetInternErr fuer RF
+  	IS_iInternErrors = IS_Err_ID_Timeout
+  	IS_bInternError = TRUE
+  	$FLAG[IS_FLAG_ERROR] = TRUE
+  	;
+  	IS_ProcessErrors()
+  	;
+  	;Reset
+  	IS_iInternErrors = 0
+  	IS_bInternError = FALSE
+  	;
+  	;Hinweis: Das FLG[FL_ERR] bleibt gesetzt, so dass IS_STATE_OK weiterhin "nicht ok" ist
+  	;
+  	IS_StopTimer(IS_iWaitTimerID)
+  	RETURN FALSE
+  	;
+	ENDIF
+	;
+	; 3. Warnungen von ROVIS
+	IS_RF_GetExternWarn(iFNCTID, TRUE)
+	; Keine Fehlerbehandlung, weil Ablauf durch Warnungen nicht beeinflusst wird
+	;
+	IS_StopTimer(IS_iWaitTimerID)
+	;
+	;MsgNotify("End of", "IS_RF_Wait")
+	RETURN TRUE
+	;
+ELSE
+	;IS_Log("IS_RF_Wait: Skipping",1,TRUE)
+ENDIF
+;
+RETURN FALSE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+
+;FOLD IMT Messpunkt anmelden
+;---------------------------------------------------------------------------------------------
+DEF IS_IMT_Prepare(iPoseId:IN)
+;
+DECL INT iPoseID
+DECL BOOL b_RetVal
+;
+IF IS_State_OK() THEN
+;
+	;IS_Log("IMT_Prepare",1,TRUE)
+;
+	CONTINUE
+	IS_TX8_MODEL_ID 			= 0
+	CONTINUE
+	IS_TX1_DATA_END_TRANS	= FALSE
+	CONTINUE
+	IS_TX1_DATA_VALID			= FALSE
+	CONTINUE
+	IS_TX1_DATA_ACCEPTED	= FALSE
+	CONTINUE
+	IS_TX8_POSE_ID 				= iPoseID
+	CONTINUE
+	IS_TX1_APPROACH_POSE	= TRUE
+	CONTINUE
+	IS_TX1_IN_POSE				= FALSE
+	CONTINUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+	b_RetVal = IS_WaitForEnd(IS_FnctID_IMT_Prepare)
+;
+ENDIF ;State_OK
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD IMT Messpunkt messen
+;---------------------------------------------------------------------------------------------
+DEF IS_IMT_Apply(b_Active:IN)
+DECL INT  iSendBase
+DECL INT  iFrameID
+DECL BOOL bRetVal
+DECL BOOL b_Active
+;
+IF NOT (Varstate ("b_Active")==#initialized) then
+   b_Active = TRUE;
+ENDIF
+;
+WAIT SEC 0.0 ;stop advance pointer
+;
+IF ((b_Active==FALSE) OR ($IS_COMMUNICATE==FALSE)) THEN
+   RETURN
+ENDIF
+;
+IF IS_State_OK() THEN
+;
+	IF NOT IS_WaitForEnd(IS_FnctID_IMT_Prepare) THEN
+		RETURN
+	ENDIF
+;
+	;current work object can already be sent, before the robot stands still at the measurement feature
+	IF $ISRA_SEND_BASE THEN
+		IF NOT IS_IMT_SendBase() THEN
+			RETURN
+		ENDIF
+		IF NOT IS_IMT_SendTool() THEN
+			RETURN
+		ENDIF
+	ENDIF
+;
+	IF NOT IS_IMT_CheckAxisState() THEN
+		RETURN
+	ENDIF
+;
+	IF IS_bSendBase THEN
+		IF NOT IS_IMT_SendBase() THEN
+			RETURN
+		ENDIF
+		IF NOT IS_IMT_SendTool() THEN
+			RETURN
+		ENDIF		
+		IF ($ISRA_SEND_AXES==FALSE) AND (IS_bSendAxes==FALSE) THEN
+			IF NOT IS_IMT_CheckAxisState() THEN
+				RETURN
+			ENDIF
+		ENDIF
+	ENDIF
+;
+	WAIT FOR $ROB_STOPPED
+	WAIT SEC IS_rSettlingTime
+	;WAIT SEC IS_rMeasurementDelay
+;
+	IF $ISRA_SEND_AXES OR IS_bSendAxes THEN
+		IF NOT IS_IMT_SendAxes() THEN
+			RETURN
+		ENDIF
+		IF NOT IS_IMT_SendPose() THEN ;if axis angles are required, send Cartesian pose as well
+			RETURN
+		ENDIF
+	ENDIF
+;
+	;IS_Log("IS_IMT_Apply",1,TRUE)
+	IS_TX8_DATA_ID				= 0
+	IS_TX1_DATA_UNCHANGED	= FALSE
+	IS_TX1_DATA_END_TRANS	= FALSE
+	IS_TX1_DATA_VALID			= FALSE
+	IS_TX1_APPROACH_POSE	=	FALSE
+	IS_TX1_IN_POSE				= TRUE
+	IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+	bRetVal = IS_Wait(#IS_CONTINUE, FALSE, IS_FnctID_IMT_Apply)
+;
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Ende des IMT Messzyklus signalisieren
+;---------------------------------------------------------------------------------------------
+DEF IS_IMT_EndPose(b_Active:IN)
+DECL BOOL b_Active, b_RetVal
+;
+IF NOT (Varstate ("b_Active")==#initialized) then
+   b_Active = TRUE;
+ENDIF
+;
+IF ((b_Active==FALSE) OR ($IS_COMMUNICATE==FALSE)) THEN
+   RETURN
+ENDIF
+;
+;IF $FLAG[950] THEN 
+;   RETURN
+;ENDIF
+;
+IS_bRepeatUpSel = FALSE
+;
+IF IS_State_OK() THEN
+	IS_TX1_IN_POSE		= FALSE
+	IS_TX1_IN_ENDPOSE	= TRUE
+	IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+	IF (IS_WaitForEnd(IS_FnctID_IMT_EndPose1)==FALSE)THEN
+		RETURN
+	ENDIF
+;
+	IF IS_RX1_CONTINUE THEN
+	  IS_bRepeatUpSel = TRUE
+	ELSE
+	  IS_bRepeatUpSel = FALSE
+	ENDIF
+;
+	IS_TX1_IN_ENDPOSE	= FALSE
+	IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+	b_RetVal= IS_WaitForEnd(IS_FnctID_IMT_EndPose2)
+;
+	SWITCH IS_iServiceMode
+		CASE IS_iSENSOR_CHANGE_IMT
+			IF IS_STATE_OK() THEN
+				IS_MSG(IS_MSG_I_SERV_SENS, IS_MSG_TYPE_NOTIFY)
+			ELSE
+				IS_MSG_ERR(IS_MSG_ERR_SERV_SENSIMT)
+			ENDIF
+	      IS_iServiceMode=IS_iSERVICE_NONE
+		CASE IS_iFULL_CALIB
+			IF IS_STATE_OK() THEN
+				IS_MSG(IS_MSG_I_TRANS_AXES, IS_MSG_TYPE_NOTIFY)
+			ENDIF
+			IS_iServiceMode=IS_iSERVICE_NONE
+	ENDSWITCH
+;
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Signalisiert, ob Achsen gesendet werden oder nicht
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_CheckAxisState()
+DECL BOOL b_RetVal
+;
+IS_bSendBase = FALSE
+IS_bSendAxes = FALSE
+;
+IF $ISRA_SEND_AXES THEN
+	RETURN TRUE
+ENDIF
+;
+IF (IS_State_OK()==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID 				= 1
+IS_TX1_DATA_UNCHANGED = TRUE
+IS_TX1_DATA_END_TRANS = TRUE
+IS_TX1_DATA_VALID 		= TRUE
+IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+IF IS_WaitInMotion(#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendAxis1) THEN
+	RETURN TRUE
+ENDIF
+
+IF (IS_iErrorSource==3) AND (IS_iExternErrors == 16) THEN ;Achsen
+	b_RetVal=IS_SyncErrors(0,0)
+	IS_TX1_DATA_UNCHANGED = FALSE
+	IS_TX1_DATA_END_TRANS = FALSE
+	IS_TX1_DATA_VALID 		= FALSE
+	IS_bSendAxes 					= TRUE
+	RETURN TRUE
+ENDIF
+
+IF (IS_iErrorSource==3) AND (IS_iExternErrors == 32) THEN ;Base
+	b_RetVal=IS_SyncErrors(0,0)
+	IS_TX1_DATA_UNCHANGED = FALSE
+	IS_TX1_DATA_END_TRANS = FALSE
+	IS_TX1_DATA_VALID 		= FALSE
+	IS_bSendBase 					= TRUE
+	RETURN TRUE
+ENDIF
+
+IF (IS_iErrorSource==3) AND (IS_iExternErrors == 48) THEN ;Achsen+Base
+	b_RetVal=IS_SyncErrors(0,0)
+	IS_TX1_DATA_UNCHANGED = FALSE
+	IS_TX1_DATA_END_TRANS = FALSE
+	IS_TX1_DATA_VALID 		= FALSE
+	IS_bSendBase 					= TRUE
+	IS_bSendAxes 					= TRUE
+	RETURN TRUE
+ENDIF
+;
+RETURN FALSE
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Achsen senden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_SendAxes()
+DECL BOOL b_RetVal
+;
+IF (IS_State_OK()==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 1
+IS_TX32_AXIS_1 		= IS_IMT_rScaleAXIS*$AXIS_ACT.A1
+IS_TX32_AXIS_2		= IS_IMT_rScaleAXIS*$AXIS_ACT.A2
+IS_TX1_DATA_VALID = TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait(#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendAxis2)==FALSE) THEN
+	IF (IS_iErrorSource==3) AND (IS_iExternErrors==32) THEN  ;Basedaten ungueltig, senden
+		b_RetVal=IS_SyncErrors(0,0)
+		IS_TX8_DATA_ID 		= 0
+		IS_TX32_AXIS_1 		= 0
+		IS_TX32_AXIS_2 		= 0
+		IS_TX1_DATA_VALID = FALSE
+		RETURN TRUE
+	ENDIF
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID 		= 2
+IS_TX32_AXIS_3 		= IS_IMT_rScaleAXIS*$AXIS_ACT.A3
+IS_TX32_AXIS_4 		= IS_IMT_rScaleAXIS*$AXIS_ACT.A4
+IS_TX1_DATA_VALID = TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendAxis3)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID 				= 3
+IS_TX32_AXIS_5 				= IS_IMT_rScaleAXIS*$AXIS_ACT.A5
+IS_TX32_AXIS_6 				= IS_IMT_rScaleAXIS*$AXIS_ACT.A6
+IS_TX1_DATA_END_TRANS = TRUE
+IS_TX1_DATA_VALID 		= TRUE
+IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+b_RetVal = IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendAxis4)
+;
+IS_TX32_AXIS_1 = 0
+IS_TX32_AXIS_2 = 0
+IS_TX32_AXIS_3 = 0
+IS_TX32_AXIS_4 = 0
+IS_TX32_AXIS_5 = 0
+IS_TX32_AXIS_6 = 0
+IS_TX1_DATA_END_TRANS = FALSE
+IS_TX1_DATA_VALID 		= FALSE
+;
+RETURN b_RetVal
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Base senden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_SendBase()
+DECL BOOL b_RetVal
+;
+IF (IS_State_OK()==FALSE)THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 4
+IS_TX32_BASE_X		= IS_IMT_rScaleXYZ*$BASE.X
+IS_TX32_BASE_Y		= IS_IMT_rScaleXYZ*$BASE.Y
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendBase1)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID 		= 5
+IS_TX32_BASE_Z 		= IS_IMT_rScaleXYZ*$BASE.Z
+IS_TX32_BASE_A 		= IS_IMT_rScaleABC*$BASE.A
+IS_TX1_DATA_VALID = TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendBase2)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID 				= 6
+IS_TX32_BASE_B 				= IS_IMT_rScaleABC*$BASE.B
+IS_TX32_BASE_C 				= IS_IMT_rScaleABC*$BASE.C
+IS_TX1_DATA_END_TRANS = TRUE
+IS_TX1_DATA_VALID 		= TRUE
+IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+b_RetVal = IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendBase3)
+;
+IS_TX8_DATA_ID 				= 0
+IS_TX32_BASE_X 				= 0
+IS_TX32_BASE_Y 				= 0
+IS_TX32_BASE_Z 				= 0
+IS_TX32_BASE_A 				= 0
+IS_TX32_BASE_B 				= 0
+IS_TX32_BASE_C 				= 0
+IS_TX1_DATA_END_TRANS = FALSE
+IS_TX1_DATA_VALID 		= FALSE
+;
+RETURN b_RetVal
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Tool senden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_SendTool()
+DECL BOOL b_RetVal
+;
+IF (IS_State_OK()==FALSE)THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 14
+IS_TX32_TOOL_X		= IS_IMT_rScaleXYZ*$TOOL.X
+IS_TX32_TOOL_Y		= IS_IMT_rScaleXYZ*$TOOL.Y
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendTool1)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 15
+IS_TX32_TOOL_Z		= IS_IMT_rScaleXYZ*$TOOL.Z
+IS_TX32_TOOL_A		= IS_IMT_rScaleXYZ*$TOOL.A
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendTool2)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 16
+IS_TX32_TOOL_B		= IS_IMT_rScaleXYZ*$TOOL.B
+IS_TX32_TOOL_C		= IS_IMT_rScaleXYZ*$TOOL.C
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+b_RetVal = IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendTool3)
+;
+IS_TX8_DATA_ID 				= 0
+IS_TX32_TOOL_X 				= 0
+IS_TX32_TOOL_Y 				= 0
+IS_TX32_TOOL_Z 				= 0
+IS_TX32_TOOL_A 				= 0
+IS_TX32_TOOL_B 				= 0
+IS_TX32_TOOL_C 				= 0
+IS_TX1_DATA_END_TRANS = FALSE
+IS_TX1_DATA_VALID 		= FALSE
+;
+RETURN b_RetVal
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Aktuelle Position senden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_SendPose()
+DECL BOOL b_RetVal
+;
+IF (IS_State_OK()==FALSE)THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 11
+IS_TX32_POSE_X		= IS_IMT_rScaleXYZ*$POS_ACT.X
+IS_TX32_POSE_Y		= IS_IMT_rScaleXYZ*$POS_ACT.Y
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendPose1)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 12
+IS_TX32_POSE_Z		= IS_IMT_rScaleXYZ*$POS_ACT.Z
+IS_TX32_POSE_A		= IS_IMT_rScaleXYZ*$POS_ACT.A
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+IF (IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendPose2)==FALSE) THEN
+	RETURN FALSE
+ENDIF
+;
+IS_TX8_DATA_ID		= 13
+IS_TX32_POSE_B		= IS_IMT_rScaleXYZ*$POS_ACT.B
+IS_TX32_POSE_C		= IS_IMT_rScaleXYZ*$POS_ACT.C
+IS_TX1_DATA_VALID	= TRUE
+IS_TX1_HANDSHAKE	= IS_ToggleHandshake()
+;
+b_RetVal = IS_Wait (#IS_ACCEPTED, TRUE, IS_FnctID_IMT_SendPose3)
+;
+IS_TX8_DATA_ID 				= 0
+IS_TX32_POSE_X 				= 0
+IS_TX32_POSE_Y 				= 0
+IS_TX32_POSE_Z 				= 0
+IS_TX32_POSE_A 				= 0
+IS_TX32_POSE_B 				= 0
+IS_TX32_POSE_C 				= 0
+IS_TX1_DATA_END_TRANS = FALSE
+IS_TX1_DATA_VALID 		= FALSE
+;
+RETURN b_RetVal
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+; FOLD Handlungsanweisung bestimmen
+;---------------------------------------------------------------------------------------------
+DEF IS_GetUserInstruction(iInstruction:IN)
+DECL INT iInstruction
+;DECL CHAR MELDUNG[80]
+DECL INT OFFSET
+DECL INT iAnswer
+CHAR ch_KXRKey[100]
+CHAR ch_KXRKey_btn[10]
+	iAnswer=0
+	
+	IF (iInstruction==-1) THEN
+		RETURN
+	ENDIF
+
+	SWITCH(iInstruction)
+	CASE 0
+		IF $FLAG[IS_FLAG_ERR_PREPARE] THEN
+			ch_KXRKey[]="IS_Instr_Flag_Prep"
+		ELSE
+			IF $FLAG[IS_FLAG_ERR_ACQ] THEN
+				ch_KXRKey[]="IS_Instr_Flag_Prep"
+			ELSE
+				IF $FLAG[IS_FLAG_ERR_FEATURE] THEN
+					ch_KXRKey[]="IS_Instr_Flag_Feat"
+				ELSE
+					IF $FLAG[IS_FLAG_ERR_EVAL] THEN
+						ch_KXRKey[]="IS_Instr_Flag_Eval"
+					ELSE
+						IF $FLAG[IS_FLAG_ERR_TOL] THEN
+							ch_KXRKey[]="IS_Instr_Flag_Tol"
+						ELSE
+							ch_KXRKey[]="IS_Instr_Flag_Default"
+						ENDIF						
+					ENDIF				
+				ENDIF			
+			ENDIF	
+		ENDIF
+	CASE IS_Instr_Response
+		ch_KXRKey[] = "IS_Instr_Response"
+	CASE IS_Instr_ModelCmp
+		ch_KXRKey[] = "IS_Instr_ModelCmp"
+	CASE IS_Instr_ModelChk
+		ch_KXRKey[] = "IS_Instr_ModelChk"
+	CASE IS_Instr_DeadlyErr
+		ch_KXRKey[] = "IS_Instr_DeadlyErr"
+	CASE IS_Instr_RoutCheck
+		ch_KXRKey[] = "IS_Instr_RoutCheck"
+	CASE IS_Instr_PntChk
+    ch_KXRKey[] = "IS_Instr_PntChk"
+	CASE IS_Instr_TolChk
+		ch_KXRKey[] = "IS_Instr_TolChk"
+	CASE IS_Instr_CalChk
+		ch_KXRKey[] = "IS_Instr_CalChk"
+	CASE IS_Instr_ImgMsgChk
+		ch_KXRKey[] = "IS_Instr_ImgMsgChk"
+	CASE IS_Instr_RobTol
+    ch_KXRKey[] = "IS_Instr_RobTol"
+	CASE IS_Instr_TypeChk
+		ch_KXRKey[] = "IS_Instr_TypeChk"
+	CASE IS_Instr_HWChk
+		ch_KXRKey[] = "IS_Instr_HWChk"
+	CASE IS_Instr_MsgChk
+		ch_KXRKey[] = "IS_Instr_MsgChk"
+	CASE IS_Instr_RobProg
+		ch_KXRKey[] = "IS_Instr_RobProg"
+	ENDSWITCH
+	;
+ 	ch_KXRKey_btn[] = "BACK"
+ 	;
+	IS_ShowDialog(iAnswer," ",ch_KXRKey_btn[]," "," "," "," "," ",ch_KXRKey[], "vw_isr_usr_r", TRUE)
+	;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Fehler nach Aussen melden
+;---------------------------------------------------------------------------------------------
+DEF IS_SetError(iError:IN)
+DECL INT  iError
+DECL BOOL bRetVal
+;
+;IS_Log("SetError",1,FALSE)
+;
+IS_strErrorSource[ ] = "VW-User"
+IS_strErrorSource[8] = 0
+;
+IS_iCurrentUserError = iError
+;
+IF (iError>0) AND (iError<7) THEN
+	IS_TX1_ERROR_STATE = TRUE
+	IS_TX1_HANDSHAKE = IS_ToggleHandshake()
+	;
+	IF (IS_WAIT(#IS_ERROR_ID, FALSE,0)==FALSE) THEN
+		$FLAG[IS_FLAG_ERROR] = TRUE
+		IS_SetInternError(IS_IntErr_ESendBit) 					;Fehleruebertragung schlug fehl
+		;IS_MSG_ERR(IS_MSG_ERR_BIT_TRNS)
+		;IS_iFnctID = 0
+	ENDIF
+	;
+	IF (IS_RX8_DATA_ID==9) AND ($FLAG[IS_FLAG_ERROR]==FALSE) THEN
+		IS_TX8_DATA_ID  			= 9
+		IS_TX8_ERROR_ID1 			= 0
+		IS_TX8_ERROR_ID2			= iError
+		IS_TX1_DATA_END_TRANS	= TRUE
+		IS_TX1_DATA_VALID			= TRUE
+		IS_TX1_HANDSHAKE			= IS_ToggleHandshake()
+;
+		IF (IS_WAIT(#IS_ERROR_ID, FALSE,0)==FALSE) THEN
+			$FLAG[IS_FLAG_ERROR] = TRUE
+			IS_SetInternError(IS_IntErr_ESend) 				;Fehleruebertragung schlug fehl
+			;IS_MSG_ERR(IS_MSG_ERR_TRANSM)
+			;IS_iFnctID = 0
+		ENDIF
+;
+		IS_TX8_DATA_ID  			= 0
+		IS_TX8_ERROR_ID1 			= 0
+		IS_TX8_ERROR_ID2			= 0
+		IS_TX1_DATA_END_TRANS	= FALSE
+		IS_TX1_DATA_VALID			= FALSE
+;
+		SWITCH iError
+			CASE 2,3,4
+				$FLAG[IS_FLAG_ERR_ROBOT] = TRUE	 ;Verbindungsfehler
+			CASE 6
+				$FLAG[IS_FLAG_ERR_TOL] = TRUE 	 ;Korrektur ausser Toleranz
+		ENDSWITCH
+;
+		$FLAG[IS_FLAG_ERROR] = TRUE
+;
+	ENDIF
+;
+ENDIF
+;
+IS_iInternErrors = iError
+IS_ProcessErrors()
+IS_iInternErrors = 0
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Internen Fehler signalisieren
+;---------------------------------------------------------------------------------------------
+DEF IS_SetInternError(iError:IN, iParam1: IN, iParam2: IN)
+DECL INT iError
+DECL INT iParam1,iParam2
+;
+IF NOT (Varstate ("iParam1")==#initialized) then
+   iParam1 = 0;
+ENDIF
+;
+IF NOT (Varstate ("iParam2")==#initialized) then
+   iParam2 = 0;
+ENDIF
+;
+IS_strErrorSource[] = "VW-User"
+IS_strErrorSource[8] = 0
+;
+IF (iError>=1010) AND (iError<=1018) THEN
+;
+	SWITCH iError
+		CASE IS_IntErr_Com
+		 	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE 									;Fehler ISRA LiveSignal
+	 	CASE 1011
+		 	$FLAG[IS_FLAG_ERR_PREPARE]= TRUE  								;Model_ID Abgleich mit ISRA-System fehlgeschlagen
+		CASE 1012
+	   	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Reintialisieren der Signale fehlgeschlagen
+	  CASE IS_IntErr_ERequest
+	   	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Fehlerabfrage schlug fehl
+	  CASE 1016
+	    $FLAG[IS_FLAG_ERR_PREPARE]= TRUE									;Daten holen NIO. Typ ,SubTyp
+	  CASE IS_IntErr_Base
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Base ID n out of range (1-31)
+	  CASE IS_IntErr_Tool
+	    $FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Tool ID %d out of range (1-31)
+	  CASE IS_IntErr_ESendBit
+	   	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Fehleruebertragung schlug fehl
+	  CASE IS_IntErr_Specif
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Specifier nicht erlaubt
+	  CASE IS_IntErr_SrvcExp
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;
+	  CASE IS_IntErr_StReq1
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;
+	  CASE IS_IntErr_StReq2
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;
+	  CASE 1025
+	  	$FLAG[IS_FLAG_ERR_FEATURE]= TRUE							  	;Fehler beim Uebertragen der Tooldaten
+		CASE IS_IntErr_ESend
+	   	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Fehleruebertragung schlug fehl
+	  CASE IS_IntErr_MeasPosNo
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;Fehler am Messpunkt
+	  CASE IS_IntErr_IQRWait
+	  	;
+	  CASE IS_IntErr_PCWait
+	  	;
+	  CASE IS_IntErr_TolRob
+	  	$FLAG[IS_FLAG_ERR_TOL] 		= TRUE									;Toleranzueberschreitung
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;
+	  CASE IS_IntErr_RFAState
+	  	$FLAG[IS_FLAG_ERR_ROBOT] 	= TRUE									;
+	  	
+	  DEFAULT
+	    ;
+	  ENDSWITCH
+ ;
+ENDIF
+;
+IS_bInternError = TRUE
+;
+$FLAG[IS_FLAG_ERROR] = TRUE
+;
+;
+IS_MSG_ERR(iError, iParam1, iParam2)
+;
+IS_iFnctID = 0
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Externen Fehler vom Bus abfragen
+;---------------------------------------------------------------------------------------------
+DEF IS_IMT_GetExternErrors ()
+DECL BOOL b_RetVal
+;
+IF (IS_RX1_ERROR_STATE == FALSE) THEN
+	RETURN
+ENDIF
+;
+IS_TX1_DATA_END_TRANS = FALSE
+IS_TX1_DATA_VALID			= FALSE
+IS_TX1_DATA_ACCEPTED	= FALSE
+IS_TX8_DATA_ID 				= 9			;Fehlerabfrage
+IS_TX1_DATA_REQUEST 	= TRUE
+IS_TX1_HANDSHAKE 			= IS_ToggleHandshake()
+;
+WAIT SEC 0.1
+;
+IF (IS_Wait(#IS_ERROR_ID, TRUE, IS_FnctID_IMT_GetExtErr) == FALSE) THEN
+	$FLAG[IS_FLAG_ERROR] 			= TRUE
+	IS_SetInternError(IS_IntErr_ERequest)				;Fehlerabfrage schlug fehl
+	IS_MSG_ERR(IS_MSG_ERR_REQUEST)
+	IS_iFnctID = 0
+	RETURN
+ENDIF
+;
+IS_iErrorSource 			= IS_RX8_ERR_SYS_ID
+IS_iExternErrors 			= IS_RX8_ERRORS
+IS_TX1_DATA_REQUEST 	= FALSE
+IS_TX1_DATA_ACCEPTED 	= TRUE
+IS_TX1_HANDSHAKE = IS_ToggleHandshake()
+;
+IF (IS_Wait(#IS_ERROR_ID, FALSE, 0) == FALSE) THEN
+	$FLAG[IS_FLAG_ERROR] = TRUE
+	IS_SetInternError(IS_IntErr_ERequest)				;Fehlerabfrage schlug fehl
+	IS_MSG_ERR(IS_MSG_ERR_REQUEST)
+	IS_iFnctID = 0
+	RETURN
+ENDIF
+;
+IS_TX1_DATA_ACCEPTED = FALSE
+;
+;Synchronisieren der ISRA Flags mit Roboter Flags.
+b_RetVal = IS_SyncErrors(IS_iErrorSource, IS_iExternErrors)
+;
+IS_ProcessErrors()
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;
+;FOLD Externen Fehler für RF vom Bus abfragen
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_GetExternErrors (iFnctID:IN)
+DECL INT iFnctID
+DECL BOOL bVal
+;
+IS_iExternErrors = 0
+;
+; Auslesen und in internes Mapping ueberfuehren
+IF IS_RX1_RF_ERR_DEADLY THEN
+	IS_iExternErrors = IS_iExternErrors B_OR IS_ErrBit_Deadly
+ENDIF
+;
+IF IS_RX1_RF_ERR_PREP THEN
+	IS_iExternErrors = IS_iExternErrors B_OR IS_ErrBit_Prepare
+ENDIF
+;
+IF IS_RX1_RF_ERR_FEAT THEN
+	IS_iExternErrors = IS_iExternErrors B_OR IS_ErrBit_Feature
+ENDIF
+;
+IF IS_RX1_RF_ERR_TOL THEN
+	IS_iExternErrors = IS_iExternErrors B_OR IS_ErrBit_Tol
+ENDIF
+;
+IF IS_iExternErrors <> 0 THEN
+	;Synchronisieren der ISRA Fehler mit Roboter Flags
+  bVal = IS_SyncErrors(1, IS_iExternErrors)
+	;
+	IS_ProcessErrors()
+ENDIF
+;
+IS_iExternErrors = 0
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;	
+;FOLD Externen Fehler für RF vom Bus abfragen
+;---------------------------------------------------------------------------------------------
+DEF IS_RF_GetExternWarn (iFncID:IN, MSGOUT:IN)
+DECL INT iFncID
+DECL BOOL MSGOUT
+DECL BOOL bVal
+;
+IS_iExternWarns_RF = 0
+;
+; Auslesen und in internes Mapping ueberfuehren
+IF IS_RX1_RF_W_MAN THEN
+	IS_iExternWarns_RF = IS_iExternWarns_RF B_OR IS_STATE_WARN_MANMEAS
+ENDIF
+;
+IF IS_RX1_RF_W_TOL THEN
+	IS_iExternWarns_RF = IS_iExternWarns_RF B_OR IS_STATE_WARN_TOL
+ENDIF
+;
+IF IS_RX1_RF_W_EVAL THEN
+	IS_iExternWarns_RF = IS_iExternWarns_RF B_OR IS_STATE_WARN_EVAL
+ENDIF
+;
+IF IS_iExternWarns_RF <> 0 THEN
+	; Synchronisieren der ISRA Warnungen mit Roboter Flags
+	; TODO: ErrSourceRoVis = 1
+	bVal = IS_RF_SyncWarns(1, IS_iExternWarns_RF, TRUE)
+	;
+	; Meldungsausgabe: TODO: ProcessWarns --> Funktioniert das?
+ENDIF
+;
+IS_iExternWarns_RF = 0
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Abbilden der externen Fehler auf Roboter Flags
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_SyncErrors (iErrorSource:IN, iExternErrors:IN)
+DECL INT  iErrorSource
+DECL INT  iExternErrors
+DECL BOOL b_OK
+;
+;FOLD Reset Flags
+IF (iErrorSource==0) AND (iExternErrors==0) THEN
+	$FLAG[IS_FLAG_ERR_SPS] 				= FALSE
+	$FLAG[IS_FLAG_ERR_ROBOT] 			= FALSE
+	$FLAG[IS_FLAG_ERR_PREPARE] 		= FALSE
+	$FLAG[IS_FLAG_ERR_ACQ]		 		= FALSE
+	$FLAG[IS_FLAG_ERR_FEATURE] 		= FALSE
+	$FLAG[IS_FLAG_ERR_EVAL] 			= FALSE
+	$FLAG[IS_FLAG_ERR_TOL] 				= FALSE
+	$FLAG[IS_FLAG_WARN_TOL]			 	= FALSE
+	$FLAG[IS_FLAG_RESULT_OK] 			= FALSE
+	$FLAG[IS_FLAG_RESULT_NOK] 		= FALSE
+	$FLAG[IS_FLAG_ERROR] 					= FALSE
+	;
+	IS_iErrorSource = 0
+	IS_iExternErrors = 0
+	;	
+	IS_strErrorSource[] = "VW-User"
+	IS_strErrorSource[8] = 0
+	;
+	RETURN TRUE
+ENDIF
+;ENDFOLD (Reset Flags)
+;
+b_OK = TRUE
+;	
+;Bit 1
+IF (iExternErrors B_AND 1)==IS_ErrBit_SPS THEN 				;Fehler SPS-Kommunikation
+  $FLAG[IS_FLAG_ERR_SPS] = TRUE
+  $FLAG[IS_FLAG_ERROR]   = TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_SPS]=FALSE
+ENDIF
+;
+;Bit 2
+IF (iExternErrors B_AND 2)==IS_ErrBit_Rob THEN						;Fehler Roboter-Kommunikation
+  $FLAG[IS_FLAG_ERR_ROBOT]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_ROBOT]=FALSE
+ENDIF
+;
+;Bit 3
+IF (iExternErrors B_AND 4)==IS_ErrBit_Command THEN 			;Fehler bei Messbeauftragung
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ENDIF
+;
+;Bit 4
+IF (iExternErrors B_AND 8)==IS_ErrBit_Prepare THEN 			;Fehler Typanmeldung
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERR_PREPARE]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_PREPARE]=FALSE
+ENDIF
+;
+;Bit 5
+IF (iExternErrors B_AND 16)==IS_ErrBit_ACQ THEN 					;Fehler Bildaufnahme
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERR_ACQ]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_ACQ]=FALSE
+ENDIF
+;
+;Bit 6
+IF (iExternErrors B_AND 32)==IS_ErrBit_Feature THEN			;Fehler Merkmalerkennung
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERR_FEATURE]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_FEATURE]=FALSE
+ENDIF
+;
+;Bit 7
+IF (iExternErrors B_AND 64)==IS_ErrBit_Eval THEN 				;Fehler bei Auswertung
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERR_EVAL]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_EVAL]=FALSE
+ENDIF
+;
+;Bit 8
+IF (iExternErrors B_AND 128)==IS_ErrBit_Tol THEN 			;Fehler Toleranzueberschreitung
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  $FLAG[IS_FLAG_ERR_TOL]=TRUE
+  $FLAG[IS_FLAG_ERROR]=TRUE
+  b_OK = FALSE
+ELSE
+  $FLAG[IS_FLAG_ERR_TOL]=FALSE
+ENDIF
+;
+RETURN b_OK
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Abbilden der externen Fehler auf Roboter Flags für RF
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_RF_SyncWarns (iErrorSource:IN, iExternWarns:IN, MSGOUT:IN)
+DECL INT  iErrorSource
+DECL INT  iExternWarns
+DECL BOOL MSGOUT ; flag zur ausgabe von meldungen
+DECL BOOL bOk
+;
+IF (iErrorSource == 0) AND (iExternWarns == 0) THEN
+	;
+	$FLAG[IS_FLAG_WARN_TOL]=FALSE
+	
+	IS_iErrorSource = 0
+	IS_iExternWarns_RF = 0
+	IS_strErrorSource[] = "VW-User"
+	RETURN TRUE
+ENDIF
+bOk = TRUE
+;
+; 1: Manuelle Messunganmeldung wurde verwendet
+IF (iExternWarns B_AND IS_STATE_WARN_MANMEAS) == IS_STATE_WARN_MANMEAS THEN
+	;bisher gibt es kein Flag
+	bOk = FALSE 
+ENDIF
+;
+; 2: bei Ergebnissimulation
+IF (iExternWarns B_AND IS_STATE_WARN_EVAL) == IS_STATE_WARN_EVAL THEN
+	;bisher gibt es kein Flag
+	bOk = FALSE 
+ENDIF
+;
+; 3: Toleranzverletzung
+IF (iExternWarns B_AND IS_STATE_WARN_TOL) == IS_STATE_WARN_TOL THEN
+	$FLAG[IS_FLAG_WARN_TOL] = TRUE
+	bOk = FALSE 
+ENDIF
+;
+RETURN bOK
+;
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Zentrale Funktion zur Fehlerbehandlung
+;---------------------------------------------------------------------------------------------
+DEF IS_ProcessErrors()
+DECL CHAR strErrorSource[10]
+DECL INT OFFSET
+DECL STATE_T STATE
+CHAR ch_tempString[300]
+;
+IF (IS_iExternErrors==0) AND (IS_iInternErrors==0) THEN
+	RETURN
+ENDIF
+;
+IF (IS_iExternErrors <> 0) THEN
+	SWITCH IS_iErrorSource
+	CASE 1
+		strErrorSource[] = "RoVis"
+		strErrorSource[6] = 0
+	CASE 2
+		strErrorSource[] = "Genesis"
+		strErrorSource[8] = 0
+	CASE 3
+		strErrorSource[] = "IQRob"
+		strErrorSource[6] = 0
+	CASE 4
+		strErrorSource[] = "ISRob"
+		strErrorSource[6] = 0
+	CASE 5
+		strErrorSource[] = "Dynalog"
+		strErrorSource[8] = 0
+		SWITCH IS_iExternErrors
+			CASE 1
+				IS_MSG_ERR(IS_MSG_ERR_RTC_CALIB)
+			CASE 2
+				SWITCH IS_iServiceMode
+				CASE IS_iTOOL_CHANGE
+					IS_MSG_ERR(IS_MSG_ERR_RTC_CALC_TOOL)
+				CASE IS_iROBOT_CHANGE
+					IS_MSG_ERR(IS_MSG_ERR_RTC_CALC_BASE)
+				CASE IS_iSENSOR_CHANGE_IMT
+					IS_MSG_ERR(IS_MSG_ERR_SERV_SENSIMT)
+				DEFAULT
+					IS_MSG_ERR(IS_MSG_ERR_RTC)
+				ENDSWITCH
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_RTC)
+			ENDSWITCH
+		RETURN
+	DEFAULT
+		strErrorSource[] = "ISRA"
+		strErrorSource[5] = 0
+	ENDSWITCH
+;
+	OFFSET=0
+	SWRITE(IS_strErrorSource[], STATE, OFFSET, "%s%d", strErrorSource[], IS_iExternErrors)
+ENDIF
+;
+IF (IS_iInternErrors <> 0) THEN
+	strErrorSource[] = "VW-User"
+	strErrorSource[8]= 0
+	OFFSET=0
+	SWRITE(IS_strErrorSource[], STATE, OFFSET, "%s%d", strErrorSource[], IS_iInternErrors)
+ENDIF
+;
+IF (IS_iInternErrors == IS_Err_ID_Tolerance) THEN
+	OFFSET=0
+	SWRITE(ch_tempString[], STATE, OFFSET, "Max = {X %.2f, Y %.2f, Z %.2f, A %.2f, B %.2f, C %.2f}", IS_CORR_ACCEPT_FRAME.X, IS_CORR_ACCEPT_FRAME.Y, IS_CORR_ACCEPT_FRAME.Z, IS_CORR_ACCEPT_FRAME.A, IS_CORR_ACCEPT_FRAME.B, IS_CORR_ACCEPT_FRAME.C)
+	IS_MSG_ERR(IS_MSG_ERR_TOL_EXCEEDED)
+	RETURN
+ENDIF
+;
+SWITCH IS_iServiceMode
+	CASE IS_iSENSOR_CHANGE
+		IF (IS_iErrorSource==3) AND (IS_iExternErrors==16) THEN
+			;IS_MSG_ERR(IS_MSG_ERR_SERV_SENS2)
+			IS_MSG(IS_MSG_I_TRANS_AXES, IS_MSG_TYPE_NOTIFY) ;Achswinkel werden uebertragen
+			IS_iFnctID = 0
+		ELSE
+		  ;IS_MSG_ERR(IS_MSG_ERR_SERV_SENS2)
+		ENDIF
+		RETURN
+	CASE IS_iTOOL_CHANGE
+		IF (IS_iErrorSource==3) AND (IS_iExternErrors==16) THEN
+			;IS_MSG_ERR(IS_MSG_ERR_AXIS1A)
+			IS_MSG(IS_MSG_I_TRANS_AXES, IS_MSG_TYPE_NOTIFY) ;Achswinkel werden uebertragen
+			IS_iFnctID = 0
+		ELSE
+		  IS_MSG_ERR(IS_MSG_ERR_SERV_TOOL)
+		ENDIF
+		RETURN
+	CASE IS_iROBOT_CHANGE
+		IF (IS_iErrorSource==3) AND (IS_iExternErrors==16) THEN
+			;IS_MSG_ERR(IS_MSG_ERR_AXIS1A)
+			IS_MSG(IS_MSG_I_TRANS_AXES, IS_MSG_TYPE_NOTIFY) ;Achswinkel werden uebertragen
+			IS_iFnctID = 0
+		ELSE
+		  IF (IS_iErrorSource==3) AND (IS_iExternErrors==32) THEN
+		  	;IS_MSG_ERR(IS_MSG_ERR_AXIS1B)
+				IS_MSG(IS_MSG_I_TRANS_BASE, IS_MSG_TYPE_NOTIFY) ;Basedaten werden uebertragen
+				IS_iFnctID = 0
+			ELSE
+			  IF (IS_iErrorSource==3) AND (IS_iExternErrors==48) THEN
+					;IS_MSG_ERR(IS_MSG_ERR_AXIS1B)
+					;IS_MSG_ERR(IS_MSG_ERR_AXIS1A)
+					IS_MSG(IS_MSG_I_TRANS_BASE, IS_MSG_TYPE_NOTIFY) ;Basedaten werden uebertragen)
+					IS_MSG(IS_MSG_I_TRANS_AXES, IS_MSG_TYPE_NOTIFY) ;Achswinkel werden uebertragen
+					IS_iFnctID = 0
+			  ELSE
+				  IS_MSG_ERR(IS_MSG_ERR_SERV_ROB)
+				ENDIF
+			ENDIF
+		ENDIF
+		RETURN
+   CASE IS_iSENSOR_CHANGE_IMT
+		IS_MSG_ERR(IS_MSG_ERR_SERV_SENSIMT)
+		IS_iFnctID = 0
+		RETURN
+ENDSWITCH
+;
+SWITCH IS_iFnctID
+;
+;FOLD SNYC
+CASE IS_FnctID_IMT_Sync1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_SYNC1A)
+	ELSE
+		IS_MSG_ERR(IS_MSG_ERR_SYNC1B)
+	ENDIF
+CASE IS_FnctID_IMT_Sync2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_SYNC2A)
+	ELSE
+		IS_MSG_ERR(IS_MSG_ERR_SYNC2B)
+	ENDIF
+;ENDFOLD (SYNC)
+;
+;FOLD SELECT
+CASE IS_FnctID_IMT_SelectUp1
+IF (IS_iExternErrors>0) THEN
+	IF (IS_iErrorSource==3) AND ((IS_iExternErrors b_and 4)==4) THEN
+		IS_MSG_ERR(IS_MSG_ERR_SELECT1A, IS_MODEL)
+	ELSE
+		IS_MSG_ERR(IS_MSG_ERR_SELECT1, IS_MODEL)
+	ENDIF
+ELSE
+	SWITCH IS_iInternErrors
+		CASE IS_Err_ID_Drain 																;Ablauffehler
+			IS_MSG_ERR(IS_MSG_ERR_SELECT1B, IS_MODEL)
+		CASE IS_Err_ID_Timeout 															;Timeout
+			IS_MSG_ERR(IS_MSG_ERR_SELECT1C)
+		DEFAULT
+			IS_MSG_ERR(IS_MSG_ERR_SELECT1, IS_MODEL)
+	ENDSWITCH
+ENDIF
+CASE IS_FnctID_IMT_SelectUp2
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_SELECT2A)
+			CASE IS_Err_ID_ProgID
+				IS_MSG_ERR(IS_MSG_ERR_SELECT2B, IS_PROGID)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_SELECT2)
+		ENDSWITCH
+CASE IS_FnctID_IMT_SelectUp3
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_SELECT3A, IS_PROGID)
+			DEFAULT
+			 IS_MSG_ERR(IS_MSG_ERR_SELECT3, IS_PROGID)
+		ENDSWITCH
+;ENDFOLD (SELECT)
+;
+;FOLD IMT_RREPARE
+CASE IS_FnctID_IMT_Prepare
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and 8)==8) THEN
+			IS_MSG_ERR(IS_MSG_ERR_IMT_PREPARE1A, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_IMT_PREPARE1, IS_SUBTYP)
+		ENDIF
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_IMT_PREPARE1B, IS_SUBTYP)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_IMT_PREPARE1, IS_SUBTYP)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (IMT_RREPARE)
+;
+;FOLD IMT_APPLY
+CASE IS_FnctID_IMT_Apply
+	IS_MSG_ERR(IS_MSG_ERR_IMT_APPLY, IS_SUBTYP)
+;ENDFOLD (IMT_APPLY)
+;
+;FOLD ACHSWINKEL SENDEN
+CASE IS_FnctID_IMT_SendAxis1
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and 8)==8) THEN
+			IS_MSG_ERR(IS_MSG_ERR_IMT_PREPARE1, IS_SUBTYP)
+			IS_iFnctID = 0
+			RETURN
+		ENDIF
+		IF (IS_iErrorSource==3) AND (IS_iExternErrors==16) THEN
+		  IF (($MODE_OP==#T2) OR ($MODE_OP==#T1)) THEN
+        ;MsgNotify("Achswinkel werden uebertragen", "ISRA")
+      ENDIF
+		ELSE
+		  IF (IS_iErrorSource==3) AND (IS_iExternErrors==32) THEN
+        IF (($MODE_OP==#T2) OR ($MODE_OP==#T1)) THEN
+           ;MsgNotify("Basedaten werden uebertragen", "ISRA")
+        ENDIF
+			ELSE
+			 IF (IS_iErrorSource==3) AND (IS_iExternErrors==48) THEN
+         IF (($MODE_OP==#T2) OR ($MODE_OP==#T1)) THEN
+            ;MsgNotify("Basedaten und Achswinkel werden uebertragen", "ISRA")
+         ENDIF
+			 ELSE
+					IS_MSG_ERR(IS_MSG_ERR_AXIS1)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_AXIS1C)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_AXIS1D)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_AXIS1)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendAxis2
+	IF (IS_iExternErrors>0) THEN
+		IF (IS_iErrorSource==3) AND (IS_iExternErrors==32) THEN
+			IS_MSG_ERR(IS_MSG_ERR_AXIS1B)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_AXIS2)
+		ENDIF
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_AXIS2A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_AXIS2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_AXIS2)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendAxis3
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_AXIS3)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_AXIS3A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_AXIS3B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_AXIS3)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendAxis4
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_AXIS4)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_AXIS4A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_AXIS4B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_AXIS4)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (ACHSEN)
+;
+;FOLD BASE SENDEN
+CASE IS_FnctID_IMT_SendBase1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_BASE1)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_BASE1A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_BASE2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_BASE1)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendBase2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_BASE2)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_BASE2A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_BASE2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_BASE2)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendBase3
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_BASE3)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_BASE3A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_BASE3B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_BASE3)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (BASE SENDEN)
+;
+;FOLD POSE SENDEN
+CASE IS_FnctID_IMT_SendPose1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_POSE1)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_POSE1A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_POSE1B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_POSE1)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendPose2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_POSE2)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_POSE2A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_POSE2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_POSE2)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendPose3
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_POSE3)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_POSE3A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_POSE3B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_POSE3)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (POSE SENDEN)
+;
+;FOLD TOOL SENDEN
+CASE IS_FnctID_IMT_SendTool1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_TOOL1)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_TOOL1A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_TOOL1B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_TOOL1)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendTool2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_TOOL2)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_TOOL2A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_TOOL2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_TOOL2)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_SendTool3
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_TOOL3)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_TOOL3A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_TOOL3B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_TOOL3)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (POSE SENDEN)
+;
+;FOLD END_POSE
+CASE IS_FnctID_IMT_EndPose1, IS_FnctID_IMT_EndPose2
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors B_AND 64)==64) THEN
+			IS_MSG_ERR(IS_MSG_ERR_IMT_END1A)
+		ENDIF
+		IF ((IS_iExternErrors B_AND 128)==128) THEN
+			IS_MSG_ERR(IS_MSG_ERR_IMT_END1B)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_IMT_END1)
+		ENDIF
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_IMT_END1C)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_IMT_END1)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (END_POSE)
+;
+;FOLD GetCorr
+CASE IS_FnctID_IMT_GetCorr1
+	IF (IS_iExternErrors>0) THEN
+			IS_MSG_ERR(IS_MSG_ERR_GETCORR1)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR1A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR1B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR1)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_GetCorr2
+	IF (IS_iExternErrors>0) THEN
+			IS_MSG_ERR(IS_MSG_ERR_GETCORR2)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR2A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR2B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR2)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_GetCorr3
+	IF (IS_iExternErrors>0) THEN
+			IS_MSG_ERR(IS_MSG_ERR_GETCORR3)
+	ELSE
+		SWITCH IS_iInternErrors
+			CASE IS_Err_ID_Drain
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR3A)
+			CASE IS_Err_ID_Timeout
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR3B)
+			DEFAULT
+				IS_MSG_ERR(IS_MSG_ERR_GETCORR3)
+		ENDSWITCH
+	ENDIF
+CASE IS_FnctID_IMT_GetCorr4
+	IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+		IS_MSG_ERR(IS_MSG_ERR_GETCORR4A)
+	ELSE
+		IS_MSG_ERR(IS_MSG_ERR_GETCORR4)
+	ENDIF
+;ENDFOLD (GetCorr)
+;
+;FOLD RF_INIT
+CASE IS_FnctID_RF_Init1
+	IS_MSG_ERR(IS_MSG_ERR_RF_INIT1A)
+CASE IS_FnctID_RF_Init2
+	IS_MSG_ERR(IS_MSG_ERR_RF_INIT2A)
+;ENDFOLD (RF_INIT)
+;
+;FOLD RF_Prepare
+CASE IS_FnctID_RF_Prepare1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE1A, IS_TYP, IS_SUBTYP)
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE1B, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE1, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Prepare2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE2A, IS_TYP, IS_SUBTYP)
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE2B, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE2, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Prepare3
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Prepare)==IS_ErrBit_Prepare) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE3A, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE3B, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE3C, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_PREPARE3, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+;ENDFOLD (RF_Prepare)
+;
+;FOLD RF_APPLY
+CASE IS_FnctID_RF_Apply1
+	IS_MSG_ERR(IS_MSG_ERR_RF_APPLY1, IS_TYP, IS_SUBTYP)
+CASE IS_FnctID_RF_Apply2
+	IF (IS_iExternErrors>0) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY2B, IS_TYP, IS_SUBTYP)
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY2A, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY2, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Apply3
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Feature)==IS_ErrBit_Feature) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3C, IS_TYP, IS_SUBTYP)
+			;IS_iFnctID = 0
+			;RETURN
+		ELSE
+			IF ((IS_iExternErrors b_and IS_ErrBit_Tol)==IS_ErrBit_Tol) THEN
+				IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3D, IS_TYP, IS_SUBTYP)
+				;IS_iFnctID = 0
+				;RETURN
+			ELSE
+				IF ((IS_iExternErrors b_and IS_ErrBit_Deadly)==IS_ErrBit_Deadly) THEN
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3E, IS_TYP, IS_SUBTYP)
+					;IS_iFnctID = 0
+					;RETURN
+				ELSE
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3B, IS_TYP, IS_SUBTYP)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3A, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Apply4
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Feature)==IS_ErrBit_Feature) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4C, IS_TYP, IS_SUBTYP)
+			;IS_iFnctID = 0
+			;RETURN
+		ELSE
+			IF ((IS_iExternErrors b_and IS_ErrBit_Tol)==IS_ErrBit_Tol) THEN
+				IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4D, IS_TYP, IS_SUBTYP)
+				;IS_iFnctID = 0
+				;RETURN
+			ELSE
+				IF ((IS_iExternErrors b_and IS_ErrBit_Deadly)==IS_ErrBit_Deadly) THEN
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4E, IS_TYP, IS_SUBTYP)
+					;IS_iFnctID = 0
+					;RETURN
+				ELSE
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4B, IS_TYP, IS_SUBTYP)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4A, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY4, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Apply5
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Feature)==IS_ErrBit_Feature) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5C, IS_TYP, IS_SUBTYP)
+			;IS_iFnctID = 0
+			;RETURN
+		ELSE
+			IF ((IS_iExternErrors b_and IS_ErrBit_Tol)==IS_ErrBit_Tol) THEN
+				IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5D, IS_TYP, IS_SUBTYP)
+				;IS_iFnctID = 0
+				;RETURN
+			ELSE
+				IF ((IS_iExternErrors b_and IS_ErrBit_Deadly)==IS_ErrBit_Deadly) THEN
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5E, IS_TYP, IS_SUBTYP)
+					;IS_iFnctID = 0
+					;RETURN
+				ELSE
+					IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5B, IS_TYP, IS_SUBTYP)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5A, IS_TYP, IS_SUBTYP)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY5, IS_TYP, IS_SUBTYP)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_Apply6
+	IS_MSG_ERR(IS_MSG_ERR_RF_APPLY6)
+;ENDFOLD (RF_APPLY)
+;
+;FOLD RF_ENDPOSE
+CASE IS_FnctID_RF_End1
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Feature)==IS_ErrBit_Feature) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_END1B)
+			;IS_iFnctID = 0
+			;RETURN
+		ELSE
+			IF ((IS_iExternErrors b_and IS_ErrBit_Tol)==IS_ErrBit_Tol) THEN
+				IS_MSG_ERR(IS_MSG_ERR_RF_END1C)
+				;IS_iFnctID = 0
+				;RETURN
+			ELSE
+				IF ((IS_iExternErrors b_and IS_ErrBit_Deadly)==IS_ErrBit_Deadly) THEN
+					IS_MSG_ERR(IS_MSG_ERR_RF_END1E)
+					;IS_iFnctID = 0
+					;RETURN
+				ELSE
+					IS_MSG_ERR(IS_MSG_ERR_RF_END1A)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_END1D)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_END1)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_End2
+	IF (IS_iExternErrors>0) THEN
+		IF ((IS_iExternErrors b_and IS_ErrBit_Feature)==IS_ErrBit_Feature) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_END2B)
+			;IS_iFnctID = 0
+			;RETURN
+		ELSE
+			IF ((IS_iExternErrors b_and IS_ErrBit_Tol)==IS_ErrBit_Tol) THEN
+				IS_MSG_ERR(IS_MSG_ERR_RF_END2C)
+				;IS_iFnctID = 0
+				;RETURN
+			ELSE
+				IF ((IS_iExternErrors b_and IS_ErrBit_Deadly)==IS_ErrBit_Deadly) THEN
+					IS_MSG_ERR(IS_MSG_ERR_RF_END2E)
+					;IS_iFnctID = 0
+					;RETURN
+				ELSE
+					IS_MSG_ERR(IS_MSG_ERR_RF_END2A)
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_END2D)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_END2)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_End2
+	IS_MSG_ERR(IS_MSG_ERR_RF_END3)
+;ENDFOLD (RF_ENDPOSE)
+;
+;FOLD RF_GETGORR
+CASE IS_FnctID_RF_GCorr1
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_RF_CORR1B)
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_CORR1A)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_END1)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_GCorr2
+	IF (IS_iExternErrors>0) THEN
+		IS_MSG_ERR(IS_MSG_ERR_RF_CORR2B)
+	ELSE
+		IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+			IS_MSG_ERR(IS_MSG_ERR_RF_CORR2A)
+		ELSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_END2)
+		ENDIF
+	ENDIF
+CASE IS_FnctID_RF_GCorr3
+	IS_MSG_ERR(IS_MSG_ERR_RF_CORR3)
+;ENDFOLD (RF_GETGORR)
+;
+;FOLD Service
+CASE IS_FnctID_IMT_Service
+	IF (IS_iInternErrors == IS_Err_ID_Timeout) THEN
+		SWITCH IS_iServiceMode
+			CASE IS_iSENSOR_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1a)
+			CASE IS_iTOOL_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1b)
+			CASE IS_iROBOT_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1c)
+			CASE IS_iSENSOR_CHANGE_IMT
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1d)
+		ENDSWITCH
+	ELSE
+		SWITCH IS_iServiceMode
+			CASE IS_iSENSOR_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1e)
+			CASE IS_iTOOL_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1f)
+			CASE IS_iROBOT_CHANGE
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1g)
+			CASE IS_iSENSOR_CHANGE_IMT
+				IS_MSG_ERR(IS_MSG_ERR_SERVICE1h)
+		ENDSWITCH
+	ENDIF
+;ENDFOLD (Service)
+;
+;FOLD ProcessState
+CASE IS_FnctID_IMT_GetExtStat
+	IS_MSG_ERR(IS_MSG_ERR_IMT_APPLY, IS_SUBTYP)
+;ENDFOLD (ProcessState)
+;
+ENDSWITCH
+;
+IS_iFnctID = 0
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Ergebnis-Zustand abfragen
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_GetExternState (iStateResult:OUT, iStateWarning:OUT)
+DECL INT iStateResult
+DECL INT iStateWarning
+DECL BOOL b_RetVal
+;
+IS_iFnctID = IS_FnctID_IMT_GetExtStat
+;
+IS_TX8_DATA_ID 				= 58			;Zustandsabfrage
+IS_TX1_DATA_REQUEST 	= TRUE
+IS_TX1_HANDSHAKE 			= IS_ToggleHandshake()
+;
+IF (IS_Wait(#IS_ERROR_ID, TRUE, 0) == FALSE) THEN
+	$FLAG[IS_FLAG_ERROR] = TRUE
+	IS_SetInternError(IS_IntErr_StReq1)
+	RETURN FALSE
+ENDIF
+;
+IS_iErrorSource  	= IS_RX8_ERR_SYS_ID
+IS_iExternErrors 	= IS_RX8_ERRORS
+iStateResult  		= IS_RX8_STATE_RESULT
+iStateWarning 		= IS_RX8_STATE_WARNING
+;
+IS_TX1_DATA_REQUEST 	= FALSE
+IS_TX1_DATA_ACCEPTED 	= TRUE
+IS_TX1_HANDSHAKE 			= IS_ToggleHandshake()
+;
+b_RetVal = IS_Wait(#IS_ERROR_ID, FALSE, 0)
+;
+IF (b_RetVal == FALSE) THEN
+	$FLAG[IS_FLAG_ERROR] = TRUE
+	IS_SetInternError(IS_IntErr_StReq2)
+ENDIF
+;
+IS_TX8_DATA_ID 				= 0
+IS_TX1_DATA_ACCEPTED 	= FALSE
+;
+RETURN b_RetVal
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Ergebniszustand auf Roboter Flags abbilden
+;---------------------------------------------------------------------------------------------
+DEFFCT BOOL IS_IMT_ProcessExtState (iExternStateResult:IN, iExternStateWarning:IN)
+DECL INT iExternStateResult
+DECL INT iExternStateWarning
+;
+IF (iExternStateResult B_AND IS_STATE_RESULT_OK) == IS_STATE_RESULT_OK THEN
+	$FLAG[IS_FLAG_RESULT_OK]  = TRUE
+	$FLAG[IS_FLAG_RESULT_NOK] = FALSE
+ELSE
+	$FLAG[IS_FLAG_RESULT_OK]	= FALSE
+ENDIF
+;
+IF (iExternStateResult B_AND IS_STATE_RESULT_NOK) == IS_STATE_RESULT_NOK THEN
+	$FLAG[IS_FLAG_RESULT_NOK] = TRUE
+	$FLAG[IS_FLAG_RESULT_OK]  = FALSE
+  IS_MSG_ERR(IS_MSG_RESULT_NOK)
+  RETURN FALSE
+ELSE
+	$FLAG[IS_FLAG_RESULT_NOK]	= FALSE
+  $FLAG[IS_FLAG_RESULT_OK]  = TRUE
+ENDIF
+;
+IF (iExternStateWarning B_AND IS_STATE_WARN_TOL) == IS_STATE_WARN_TOL THEN
+ 	$FLAG[IS_FLAG_WARN_TOL] = TRUE
+ELSE
+  $FLAG[IS_FLAG_WARN_TOL] = FALSE
+ENDIF
+;
+RETURN TRUE
+ENDFCT
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Systemdiagnose durchfuehren
+;---------------------------------------------------------------------------------------------
+DEF  IS_SYSTEM_DIAG ()
+DECL BOOL bFlag
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+	IF $IS_LIVE_SIGNAL THEN
+		IS_MSG(IS_MSG_I_SYS_DIAG_1, IS_MSG_TYPE_NOTIFY)
+	ELSE
+		IS_MSG(IS_MSG_I_SYS_DIAG_2, IS_MSG_TYPE_NOTIFY)
+		RETURN
+	ENDIF
+	;
+	IF $IS_COMMUNICATE THEN
+		IS_MSG(IS_MSG_I_SYS_DIAG_3, IS_MSG_TYPE_NOTIFY)
+	ELSE
+		IS_MSG(IS_MSG_I_SYS_DIAG_4, IS_MSG_TYPE_NOTIFY)
+	ENDIF
+	;
+	;IS_MSG(0,7)
+	IS_MSG(IS_MSG_I_SYNC, IS_MSG_TYPE_DIALOG)
+	;
+	IF (IS_ANSWER==1) THEN
+		$IS_COMMUNICATE = TRUE
+		IF IS_IMT_SyncHandshake() THEN
+			IS_MSG(IS_MSG_I_SYS_DIAG_5, IS_MSG_TYPE_NOTIFY)
+		ELSE
+			IS_MSG(IS_MSG_I_SYS_DIAG_6, IS_MSG_TYPE_NOTIFY)
+		ENDIF
+	ELSE
+		IS_MSG(IS_MSG_I_SYS_DIAG_7, IS_MSG_TYPE_NOTIFY)
+	ENDIF
+	;
+ENDIF
+;
+IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+	IF $IS_COMMUNICATE THEN
+		IS_MSG(IS_MSG_I_SYS_DIAG_3, IS_MSG_TYPE_NOTIFY)
+	ELSE
+		IS_MSG(IS_MSG_I_SYS_DIAG_4, IS_MSG_TYPE_NOTIFY)
+	ENDIF
+	;
+	;IS_MSG (0,7)
+	IS_MSG(IS_MSG_I_SYNC, IS_MSG_TYPE_DIALOG)
+	;
+	IF (IS_ANSWER==1) THEN
+		$IS_COMMUNICATE = TRUE
+		;
+		ISRA_PG_INIT()
+		;
+		IF IS_State_OK() THEN
+			IS_MSG(IS_MSG_I_SYS_DIAG_5, IS_MSG_TYPE_NOTIFY)
+		ELSE
+			IS_MSG(IS_MSG_I_SYS_DIAG_6, IS_MSG_TYPE_NOTIFY)
+		ENDIF
+	ELSE
+		IS_MSG(IS_MSG_I_SYS_DIAG_7, IS_MSG_TYPE_NOTIFY)
+	ENDIF
+ENDIF
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;
+;FOLD HW über separate Messung prüfen
+;---------------------------------------------------------------------------------------------
+DEF IS_CheckHW()
+	IF ((NOT IS_STATE_OK()) AND (NOT IS_bHWCheckMode) AND $IS_LIVE_SIGNAL) THEN
+		;MsgNotify("IS_CheckHW", "Executing")
+		; Fehlerflags speichern
+		IS_SaveErrorFlags()
+		;
+		ISRA_PG_INIT()
+		IS_bHWCheckMode = TRUE
+		;
+    IS_RF_Prepare(99, 0, 0)
+    IS_RF_Apply(0)
+    IS_RF_EndPose()
+		;
+		IF (NOT IS_STATE_OK()) AND (IS_RX1_RF_ERR_FEAT == TRUE) THEN
+			$FLAG[IS_FLAG_ERR_ACQ] = TRUE
+			$FLAG[IS_FLAG_ERROR] = TRUE
+			IS_bHWCheckMode = FALSE
+			IS_MSG_ERR(IS_MSG_ERR_RF_APPLY3E)
+			;MsgNotify("IS_CheckHW","HW Error detected")
+		ELSE
+			IS_RestoreErrorFlags()
+		ENDIF
+	ENDIF
+	IS_bHWCheckMode = FALSE
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Speichern der Fehlerflags
+;---------------------------------------------------------------------------------------------
+DEF IS_SaveErrorFlags()
+;
+IS_FLAGS_SAVED[1] = $FLAG[IS_FLAG_ERR_SPS]
+IS_FLAGS_SAVED[2] = $FLAG[IS_FLAG_ERR_ROBOT]
+IS_FLAGS_SAVED[3] = $FLAG[IS_FLAG_ERR_PREPARE]
+IS_FLAGS_SAVED[4] = $FLAG[IS_FLAG_ERR_ACQ]
+IS_FLAGS_SAVED[5] = $FLAG[IS_FLAG_ERR_FEATURE]
+IS_FLAGS_SAVED[6] = $FLAG[IS_FLAG_ERR_EVAL]
+IS_FLAGS_SAVED[7] = $FLAG[IS_FLAG_ERR_TOL]
+IS_FLAGS_SAVED[8] = $FLAG[IS_FLAG_WARN_TOL]
+IS_FLAGS_SAVED[9] = $FLAG[IS_FLAG_KAL1_HLP]
+IS_FLAGS_SAVED[10] = $FLAG[IS_FLAG_KAL2_HLP]
+IS_FLAGS_SAVED[11] = $FLAG[IS_FLAG_RESULT_OK]
+IS_FLAGS_SAVED[12] = $FLAG[IS_FLAG_RESULT_NOK]
+IS_FLAGS_SAVED[13] = $FLAG[IS_FLAG_ERROR]
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Wiederherstellen der Fehlerflags
+;---------------------------------------------------------------------------------------------
+DEF IS_RestoreErrorFlags()
+;
+$FLAG[IS_FLAG_ERR_SPS] 		= IS_FLAGS_SAVED[1] 
+$FLAG[IS_FLAG_ERR_ROBOT] 	= IS_FLAGS_SAVED[2] 
+$FLAG[IS_FLAG_ERR_PREPARE]= IS_FLAGS_SAVED[3]
+$FLAG[IS_FLAG_ERR_ACQ]		= IS_FLAGS_SAVED[4] 
+$FLAG[IS_FLAG_ERR_FEATURE]= IS_FLAGS_SAVED[5] 
+$FLAG[IS_FLAG_ERR_EVAL]		= IS_FLAGS_SAVED[6] 
+$FLAG[IS_FLAG_ERR_TOL]		= IS_FLAGS_SAVED[7] 
+$FLAG[IS_FLAG_WARN_TOL]		= IS_FLAGS_SAVED[8] 
+$FLAG[IS_FLAG_KAL1_HLP]		= IS_FLAGS_SAVED[9] 
+$FLAG[IS_FLAG_KAL2_HLP]		= IS_FLAGS_SAVED[10] 
+$FLAG[IS_FLAG_RESULT_OK]	= IS_FLAGS_SAVED[11]
+$FLAG[IS_FLAG_RESULT_NOK]	= IS_FLAGS_SAVED[12] 
+$FLAG[IS_FLAG_ERROR]			= IS_FLAGS_SAVED[13]
+;
+END
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;
+;FOLD Fehlermeldungen deutsch
+;---------------------------------------------------------------------------------------------
+DEF  IS_MSG_ERR (iMsgNr:IN, iParam1:IN, iParam2:IN)
+; Meldung die in allen Betriebsarten ausgegeben wird.
+DECL INT iMsgNr
+DECL INT MSG_QUIT_FLAG  ;Messages muessen quittiert werden.
+DECL INT nHandle
+DECL INT OFFSET
+DECL STATE_T STATE
+DECL CHAR MELDUNG[80]
+DECL CHAR PARAM[10]
+DECL INT IS_UserInstruction
+CHAR ch_KXRKey[100]
+CHAR ch_KXRKey_Btn1[10]
+CHAR ch_KXRKey_Btn2[10]
+DECL INT iParam1, iParam2
+DECL KRLMSGPAR_T par1, par2
+
+IS_UserInstruction=-1
+;
+IF IS_bHWCheckMode THEN
+	RETURN
+ENDIF
+;
+IF ($MODE_OP==#T1) OR ($MODE_OP==#T2) OR ((iMsgNr>=IS_IntErr_Param1) AND (iMsgNr<=IS_IntErr_Param6)) THEN
+	MSG_QUIT_FLAG = 1
+ELSE
+	MSG_QUIT_FLAG = 2 ;Keine Quittierung in Automatik
+ENDIF
+;
+;For Testing:
+;MSG_QUIT_FLAG = 2
+;
+; Prepare the additional parameters
+par1.par_type = #value
+par2.par_type = #value
+;
+IF NOT (Varstate ("iParam1")==#initialized) then
+   iParam1 = 0;
+ENDIF
+;
+IF NOT (Varstate ("iParam2")==#initialized) then
+   iParam2 = 0;
+ENDIF
+;
+SWITCH iMsgNr
+;Sync
+CASE IS_MSG_ERR_SYNC1A
+	ch_KXRKey[] = "IS_MSG_ERR_SYNC1A"
+CASE IS_MSG_ERR_SYNC1B
+	ch_KXRKey[] = "IS_MSG_ERR_SYNC1B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SYNC2A
+	ch_KXRKey[] = "IS_MSG_ERR_SYNC2A"
+CASE IS_MSG_ERR_SYNC2B
+	ch_KXRKey[] = "IS_MSG_ERR_SYNC2B"
+	IS_UserInstruction = IS_Instr_Response
+;
+;Select
+CASE IS_MSG_ERR_SELECT1
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT1"
+	IS_UserInstruction = IS_Instr_ModelCmp
+CASE IS_MSG_ERR_SELECT1A
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT1A"
+	IS_UserInstruction = IS_Instr_ModelChk
+CASE IS_MSG_ERR_SELECT1B
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT1B"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_SELECT1C
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT1C"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SELECT2
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT2"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SELECT2A
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT2A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_SELECT2B
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT2B"
+CASE IS_MSG_ERR_SELECT3
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT3"
+	IS_UserInstruction = IS_Instr_RoutCheck
+CASE IS_MSG_ERR_SELECT3A
+	ch_KXRKey[] = "IS_MSG_ERR_SELECT3A"
+	IS_UserInstruction = IS_Instr_Response
+;
+;IMT Prepare
+CASE IS_MSG_ERR_IMT_PREPARE1
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_PREPARE1"
+CASE IS_MSG_ERR_IMT_PREPARE1A
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_PREPARE1A"
+	IS_UserInstruction = IS_Instr_PntChk
+CASE IS_MSG_ERR_IMT_PREPARE1B
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_PREPARE1B"
+	IS_UserInstruction = IS_Instr_Response
+;
+;IMT_APPLY
+CASE IS_MSG_ERR_IMT_APPLY
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_APPLY"
+;
+;Achsen senden
+CASE IS_MSG_ERR_AXIS1
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS1"
+CASE IS_MSG_ERR_AXIS1A
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS1A"
+CASE IS_MSG_ERR_AXIS1B
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS1B"
+CASE IS_MSG_ERR_AXIS1C
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS1C"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS1D
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS1D"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_AXIS2
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS2A
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS2A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS2B
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS2B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_AXIS3
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS3"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS3A
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS3A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS3B
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS3B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_AXIS4
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS4"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS4A
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS4A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_AXIS4B
+	ch_KXRKey[] = "IS_MSG_ERR_AXIS4B"
+	IS_UserInstruction = IS_Instr_Response
+;
+;Base senden
+CASE IS_MSG_ERR_BASE1
+	ch_KXRKey[] = "IS_MSG_ERR_BASE1"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE1A
+	ch_KXRKey[] = "IS_MSG_ERR_BASE1A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE1B
+	ch_KXRKey[] = "IS_MSG_ERR_BASE2B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_BASE2
+	ch_KXRKey[] = "IS_MSG_ERR_BASE2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE2A
+	ch_KXRKey[] = "IS_MSG_ERR_BASE2A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE2B
+	ch_KXRKey[] = "IS_MSG_ERR_BASE2B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_BASE3
+	ch_KXRKey[] = "IS_MSG_ERR_BASE3"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE3A
+	ch_KXRKey[] = "IS_MSG_ERR_BASE3A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_BASE3B
+	ch_KXRKey[] = "IS_MSG_ERR_BASE3B"
+	IS_UserInstruction = IS_Instr_Response
+;
+;IMT EndPose
+CASE IS_MSG_ERR_IMT_END1
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_END1"
+CASE IS_MSG_ERR_IMT_END1A
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_END1A"
+CASE IS_MSG_ERR_IMT_END1B
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_END1B"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_IMT_END1C
+	ch_KXRKey[] = "IS_MSG_ERR_IMT_END1C"
+	IS_UserInstruction = IS_Instr_Response
+;
+;GetCorr
+CASE IS_MSG_ERR_GETCORR1
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR1"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR1A
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR1A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR1B
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR1B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_GETCORR2
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR2A
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR2A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR2B
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR2B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_GETCORR3
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR3"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR3A
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR3A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR3B
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR3B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_GETCORR4
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR4"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_GETCORR4A
+	ch_KXRKey[] = "IS_MSG_ERR_GETCORR4A"
+	IS_UserInstruction = IS_Instr_Response
+;
+CASE IS_MSG_ERR_TOL_EXCEEDED
+	ch_KXRKey[] = "IS_MSG_ERR_TOL_EXCEEDED"
+	IS_UserInstruction = IS_Instr_RobTol
+;
+;RF_Reset
+CASE IS_MSG_ERR_RF_INIT1A
+  ch_KXRKey[] = "IS_MSG_ERR_RF_INIT1A"
+CASE IS_MSG_ERR_RF_INIT2A
+  ch_KXRKey[] = "IS_MSG_ERR_RF_INIT2A"
+;
+;RF_Prepare
+CASE IS_MSG_ERR_RF_PREPARE1
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE1"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE1A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE1A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE1B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE1B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_PREPARE2
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE2A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE2A"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE2B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE2B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_PREPARE3
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE3"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE3A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE3A"
+	IS_UserInstruction = IS_Instr_TypeChk
+CASE IS_MSG_ERR_RF_PREPARE3B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE3B"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_PREPARE3C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_PREPARE3C"
+	IS_UserInstruction = IS_Instr_Response	
+;
+;RF_APPLY
+CASE IS_MSG_ERR_RF_APPLY1
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY1"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+;
+CASE IS_MSG_ERR_RF_APPLY2
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_APPLY2A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY2A"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_APPLY2B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY2B"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+;
+CASE IS_MSG_ERR_RF_APPLY3
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_APPLY3A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3A"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_APPLY3B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3B"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_APPLY3C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3C"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_APPLY3D
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3D"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_RF_APPLY3E
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY3E"
+	IS_UserInstruction = IS_Instr_HWChk
+;
+CASE IS_MSG_ERR_RF_APPLY4
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_APPLY4A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4A"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_APPLY4B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4B"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_APPLY4C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4C"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_APPLY4D
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4D"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_RF_APPLY4E
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY4E"
+	IS_UserInstruction = IS_Instr_HWChk
+;
+CASE IS_MSG_ERR_RF_APPLY5
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_APPLY5A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5A"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_APPLY5B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5B"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_APPLY5C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5C"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_APPLY5D
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5D"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_RF_APPLY5E
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY5E"
+	IS_UserInstruction = IS_Instr_HWChk
+;
+CASE IS_MSG_ERR_RF_APPLY6
+	ch_KXRKey[] = "IS_MSG_ERR_RF_APPLY6"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+;
+;RF_ENDPOSE
+CASE IS_MSG_ERR_RF_END1
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END1"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_END1A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END1A"
+	IS_UserInstruction = IS_Instr_MsgChk
+CASE IS_MSG_ERR_RF_END1B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END1B"
+	IS_UserInstruction = IS_Instr_ImgMsgChk
+CASE IS_MSG_ERR_RF_END1C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END1C"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_RF_END1D
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END1D"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_END1E
+  ch_KXRKey[] = "IS_MSG_ERR_RF_END1E"
+  IS_UserInstruction = IS_Instr_HWChk
+;
+CASE IS_MSG_ERR_RF_END2
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END2"
+	IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_END2A
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END2A"
+	IS_UserInstruction = IS_Instr_MsgChk
+CASE IS_MSG_ERR_RF_END2B
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END2B"
+	IS_UserInstruction = IS_Instr_MsgChk
+CASE IS_MSG_ERR_RF_END2C
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END2C"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_RF_END2D
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END2D"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_END2E
+  ch_KXRKey[] = "IS_MSG_ERR_RF_END2E"
+  IS_UserInstruction = IS_Instr_HWChk
+;
+CASE IS_MSG_ERR_RF_END3
+	ch_KXRKey[] = "IS_MSG_ERR_RF_END3"
+	IS_UserInstruction = IS_Instr_RobProg
+;
+;RF_GETCORRECTION
+CASE IS_MSG_ERR_RF_CORR1
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR1"
+  IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_CORR1A
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR1A"
+  IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_CORR1B
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR1B"
+CASE IS_MSG_ERR_RF_CORR2
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR2"
+  IS_UserInstruction = IS_Instr_DeadlyErr
+CASE IS_MSG_ERR_RF_CORR2A
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR2A"
+  IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_RF_CORR2B
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR2B"
+CASE IS_MSG_ERR_RF_CORR3
+  ch_KXRKey[] = "IS_MSG_ERR_RF_CORR3"
+;
+;Service
+CASE IS_MSG_ERR_SERV_SENS1
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_SENS1"
+	IS_UserInstruction = 0
+	IS_Apply_Service(3) ;3
+CASE IS_MSG_ERR_SERV_SENS2
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_SENS2"
+	IS_UserInstruction = 0
+CASE IS_MSG_ERR_SERV_TOOL
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_TOOL"
+	IS_UserInstruction = 0
+CASE IS_MSG_ERR_SERV_TOOL_T
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_TOOL_T"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_SERV_ROB
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_ROB"
+	IS_UserInstruction = 0
+CASE IS_MSG_ERR_SERV_ROB_T
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_ROB_T"
+	IS_UserInstruction = IS_Instr_TolChk
+CASE IS_MSG_ERR_SERV_SENSIMT
+	ch_KXRKey[] = "IS_MSG_ERR_SERV_SENSIMT"
+CASE IS_MSG_ERR_SERVICE1A
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1A"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SERVICE1B
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1B"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SERVICE1C
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1C"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SERVICE1D
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1D"
+	IS_UserInstruction = IS_Instr_Response
+CASE IS_MSG_ERR_SERVICE1E
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1E"
+CASE IS_MSG_ERR_SERVICE1F
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1F"
+CASE IS_MSG_ERR_SERVICE1G
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1G"
+CASE IS_MSG_ERR_SERVICE1H
+	ch_KXRKey[] = "IS_MSG_ERR_SERVICE1H"
+;
+CASE IS_MSG_ERR_RTC
+	ch_KXRKey[] = "IS_MSG_ERR_RTC"
+	IS_UserInstruction = IS_Instr_CalChk
+CASE IS_MSG_ERR_RTC_CALIB
+	ch_KXRKey[] = "IS_MSG_ERR_RTC_CALIB"
+CASE IS_MSG_ERR_RTC_CALC_TOOL
+	ch_KXRKey[] = "IS_MSG_ERR_RTC_CALC_TOOL"
+CASE IS_MSG_ERR_RTC_CALC_BASE
+	ch_KXRKey[] = "IS_MSG_ERR_RTC_CALC_BASE"
+CASE IS_MSG_ERR_REQUEST
+	ch_KXRKey[] = "IS_MSG_ERR_REQUEST"
+CASE IS_MSG_ERR_BASE
+	ch_KXRKey[] = "IS_MSG_ERR_BASE"
+CASE IS_MSG_ERR_BIT_TRNS
+	ch_KXRKey[] = "IS_MSG_ERR_BIT_TRNS"
+CASE IS_MSG_ERR_TRANSM
+	ch_KXRKey[] = "IS_MSG_ERR_TRANSM"
+CASE IS_MSG_PP_WARN
+	ch_KXRKey[] = "IS_MSG_PP_WARN"
+CASE IS_MSG_PP_MOVEMODE
+	ch_KXRKey[] = "IS_MSG_PP_MOVEMODE"
+CASE IS_MSG_PP_TOL
+	ch_KXRKey[] = "IS_MSG_PP_TOL"
+CASE IS_MSG_PP_INVERSE
+	ch_KXRKey[] = "IS_MSG_PP_INVERSE"
+CASE IS_MSG_PP_FORWARD
+	ch_KXRKey[] = "IS_MSG_PP_FORWARD"
+CASE IS_MSG_PP_TEST_POSA
+	ch_KXRKey[] = "IS_MSG_PP_TEST_POSA"
+CASE IS_MSG_PP_TEST_POSK
+	ch_KXRKey[] = "IS_MSG_PP_TEST_POSK"
+CASE IS_MSG_DEBUG
+	ch_KXRKey[] = "IS_MSG_DEBUG"
+;
+;Zustand/Warnung
+CASE IS_MSG_RESULT_OK
+  ch_KXRKey[] = "IS_MSG_RESULT_OK"
+CASE IS_MSG_RESULT_NOK
+  ch_KXRKey[] = "IS_MSG_RESULT_NOK"
+CASE IS_MSG_WARN_TOL
+  ch_KXRKey[] = "IS_MSG_WARN_TOL"
+;
+; Fehler und Meldungen von intern
+CASE IS_IntErr_Param1
+  ch_KXRKey[] = "IS_IntErr_Param1"
+CASE IS_IntErr_Param2
+  ch_KXRKey[] = "IS_IntErr_Param2"
+CASE IS_IntErr_Param3
+  ch_KXRKey[] = "IS_IntErr_Param3"
+CASE IS_IntErr_Param4
+  ch_KXRKey[] = "IS_IntErr_Param4"
+CASE IS_IntErr_Param5
+  ch_KXRKey[] = "IS_IntErr_Param5"
+CASE IS_IntErr_Param6
+  ch_KXRKey[] = "IS_IntErr_Param6"
+;
+CASE IS_IntErr_Com
+	ch_KXRKey[] = "IS_IntErr_Com"
+CASE IS_IntErr_ERequest
+ ch_KXRKey[] = "IS_IntErr_ERequest"
+CASE IS_IntErr_Meas
+  ch_KXRKey[] = "IS_IntErr_Meas"
+CASE IS_IntErr_Retry
+  ch_KXRKey[] = "IS_IntErr_Retry"
+CASE IS_IntErr_Data
+  ch_KXRKey[] = "IS_IntErr_Data"
+CASE IS_IntErr_Base
+  ch_KXRKey[] = "IS_IntErr_Base"
+CASE IS_IntErr_Tool
+  ch_KXRKey[] = "IS_IntErr_Tool"
+CASE IS_IntErr_ESendBit
+ ch_KXRKey[] = "IS_IntErr_ESendBit"
+CASE IS_IntErr_Specif
+  ch_KXRKey[] = "IS_IntErr_Specif"
+CASE IS_IntErr_SrvcExp
+ 	ch_KXRKey[] = "IS_IntErr_SrvcExp"
+CASE IS_IntErr_StReq1
+  ch_KXRKey[] = "IS_IntErr_StReq1"
+CASE IS_IntErr_StReq2
+  ch_KXRKey[] = "IS_IntErr_StReq2"
+CASE IS_IntErr_ESend
+ 	ch_KXRKey[] = "IS_IntErr_ESend"
+CASE IS_IntErr_IQRWait
+ 	ch_KXRKey[] = "IS_IntErr_IQRWait"
+ 	MSG_QUIT_FLAG = 3
+CASE IS_IntErr_PCWait
+ 	ch_KXRKey[] = "IS_IntErr_PCWait"
+ 	MSG_QUIT_FLAG = 3
+CASE IS_IntErr_TolRob
+ 	ch_KXRKey[] = "IS_IntErr_TolRob"
+CASE IS_IntErr_RFAState
+  ch_KXRKey[] = "IS_IntErr_RFAState"
+CASE IS_IntErr_MeasPosNo
+  ch_KXRKey[] = "IS_IntErr_MeasPosNo"
+CASE IS_IntErr_RFGCSt
+	ch_KXRKey[] = "IS_IntErr_RFGCSt"
+CASE IS_IntErr_RFEPSt
+	ch_KXRKey[] = "IS_IntErr_RFEPSt"
+;
+DEFAULT
+   ch_KXRKey[] = "IS_MSG_ERR_DEFAULT"
+ENDSWITCH
+;
+;Set Parameters:
+par1.par_int = iParam1
+par2.par_int = iParam2
+;
+SWITCH MSG_QUIT_FLAG
+CASE 1
+	IF (iMsgNr == IS_IntErr_Com) THEN
+		;Dauerschleife bis Verbindung wieder da ist und der Ablauf normal weiter geht oder Option zum simulieren:
+		IS_RF_ReconnectLoop()
+	ELSE
+ 		OFFSET = 0
+ 		;
+ 		;Liegt eine Handlungsanweisung vor?
+ 		IF (IS_UserInstruction <> -1) THEN
+	 	  REPEAT
+	 	  	; Solange wiederholen bis Dialog mit OK/Weiter bestätigt wird.
+	 	  	IF (IS_iServiceMode == IS_iSERVICE_NONE) THEN
+	 	  		; Wenn nicht in Serviceprogramm, dann Button Info&Weiter, da Frage nach Messwiederholung folgt
+	 	  		ch_KXRKey_Btn1[]="INFO"
+					ch_KXRKey_Btn2[]="FORWARD"
+	 	  		IS_ShowDialog(IS_ANSWER,ch_KXRKey_Btn1[],ch_KXRKey_Btn2[]," "," "," "," "," ",ch_KXRKey[], "vw_isr_usr_r", TRUE, par1, par2)
+	 	  	ELSE
+	 	  		; Wenn in Serviceprogramm, dann Button Info&OK
+	 	  		ch_KXRKey_Btn1[]="INFO"
+					ch_KXRKey_Btn2[]="OK"
+	 	  		IS_ShowDialog(IS_ANSWER,ch_KXRKey_Btn1[],ch_KXRKey_Btn2[]," "," "," "," "," ",ch_KXRKey[], "vw_isr_usr_r", TRUE, par1, par2)
+	 	  	ENDIF
+		 		IS_ANSWER = 8-IS_ANSWER
+				IF (IS_ANSWER == 1) THEN
+					;'Info': Handlungsanweisung anzeigen
+					IS_GetUserInstruction(IS_UserInstruction)
+				ELSE
+					;'OK': Beenden ohne Handlungsanweisung
+				ENDIF
+			UNTIL (IS_ANSWER <> 1)
+ 		ELSE
+ 			; Dialog ohne Info-Button anzeigen
+ 			ch_KXRKey_Btn2[]="OK"
+ 			IS_ShowDialog(IS_ANSWER," ",ch_KXRKey_Btn2[]," "," "," "," "," ",ch_KXRKey[], "vw_isr_usr_r", TRUE, par1, par2)
+ 		ENDIF
+	ENDIF
+CASE 2
+  IS_ShowMessage(nHandle, #notify, ch_KXRKey[], "vw_isr_usr_r", iMsgNr, TRUE, par1, par2)
+ENDSWITCH
+;
+END ;of IS_MSG_ERR
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Meldungsausgabe (Info, Quittierung und Dialog)
+;---------------------------------------------------------------------------------------------
+DEF  IS_MSG(iMsgNr: IN, iMsgType: IN, iParam: IN)
+DECL INT iMsgNr, iMsgType, iParam
+DECL KRLMSGPAR_T par1
+DECL INT nHandle
+CHAR ch_KXRKey[100]
+CHAR ch_KXRKey_btn1[10]
+CHAR ch_KXRKey_btn2[10]
+;
+; Prepare the additional parameter
+par1.par_type = #value
+
+IF NOT (Varstate ("iParam")==#initialized) then
+   iParam = 0;
+ENDIF
+;
+IF (($MODE_OP==#T2) OR ($MODE_OP==#T1) OR (IS_iServiceMode <> IS_iSERVICE_NONE)) THEN
+	SWITCH iMsgNr
+	CASE IS_MSG_I_SERV_SENS_CHK
+ 	  ch_KXRKey[] = "IS_Info_Serv_Sens_Chk"
+ 	CASE IS_MSG_I_SERV_SENS
+ 		ch_KXRKey[] = "IS_Info_Serv_Sens"
+ 	CASE IS_MSG_I_SERV_TOOL
+		ch_KXRKey[] = "IS_Info_Serv_Tool"
+ 	CASE IS_MSG_I_SERV_TOOL_PATH1
+ 		ch_KXRKey[] = "IS_Info_Serv_Tool_Path"
+ 	CASE IS_MSG_I_SERV_ROB
+ 	  ch_KXRKey[] = "IS_Info_Serv_Rob"
+ 	CASE IS_MSG_I_SERV_ROB_PATH1
+ 	  ch_KXRKey[] = "IS_Info_Serv_Rob_Path"
+ 	CASE IS_MSG_I_SERV_SENSIMT
+ 		ch_KXRKey[] = "IS_Info_Serv_Sens_IMT"
+ 	CASE IS_MSG_I_TRANS_AXES
+ 		ch_KXRKey[] = "IS_Info_Transfer_Axes"
+	CASE IS_MSG_I_TRANS_BASE
+		ch_KXRKey[] = "IS_Info_Transfer_Base"
+	CASE IS_MSG_I_SYS_DIAG_1
+		ch_KXRKey[] = "IS_Info_Sys_Diag_1"
+	CASE IS_MSG_I_SYS_DIAG_2
+		ch_KXRKey[] = "IS_Info_Sys_Diag_2"
+	CASE IS_MSG_I_SYS_DIAG_3
+		ch_KXRKey[] = "IS_Info_Sys_Diag_3"
+	CASE IS_MSG_I_SYS_DIAG_4
+		ch_KXRKey[] = "IS_Info_Sys_Diag_4"
+	CASE IS_MSG_I_SYS_DIAG_5
+		ch_KXRKey[] = "IS_Info_Sys_Diag_5"
+  CASE IS_MSG_I_SYS_DIAG_6
+		ch_KXRKey[] = "IS_Info_Sys_Diag_6"
+	CASE IS_MSG_I_SYS_DIAG_7
+ 		ch_KXRKey[] = "IS_Info_Sys_Diag_7"
+	CASE IS_MSG_I_SYNC
+	  IF (IS_SYS_TYPE == IS_SYS_TYPE_IMT) THEN
+	  	ch_KXRKey[] = "IS_Info_Sync_IMT"
+	  ENDIF
+	  IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+	  	ch_KXRKey[] = "IS_Info_Sync_RF"
+	  ENDIF  
+		ch_KXRKey_btn1[]= "YES"
+		ch_KXRKey_btn2[]= "NO"
+	CASE IS_MSG_I_MEAS_FAILED
+	  IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+			ch_KXRKey[] = "IS_Info_Meas_Failed"
+			ch_KXRKey_btn1[]= "REPEAT"
+			ch_KXRKey_btn2[]= "CANCEL"
+		ENDIF
+	CASE IS_MSG_I_SERV_TOOL_PATH2
+	  IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+			ch_KXRKey_btn1[]= "OK"
+			ch_KXRKey_btn2[]= " "
+			ch_KXRKey[] = "IS_Info_Tool_Path_2"
+	  ENDIF
+	CASE IS_MSG_I_SERV_ROB_PATH2
+	  IF (IS_SYS_TYPE == IS_SYS_TYPE_RF) THEN
+			ch_KXRKey_btn1[]= "OK"
+			ch_KXRKey_btn2[]= " "
+			ch_KXRKey[] = "IS_Info_Tool_Path_2"
+	  ENDIF  
+	ENDSWITCH
+	;
+	; Set parameter
+	par1.par_int = iParam
+	;	
+	SWITCH iMsgType
+		CASE IS_MSG_TYPE_DIALOG
+			IS_ShowDialog(IS_ANSWER,ch_KXRKey_btn1[],ch_KXRKey_btn2[]," "," "," "," "," ",ch_KXRKey[], "vw_isr_usr_r", TRUE, par1)
+			IS_ANSWER = 8-IS_ANSWER
+		CASE IS_MSG_TYPE_NOTIFY
+			IS_ShowMessage(nHandle, #notify, ch_KXRKey[], "vw_isr_usr_r", iMsgNr, TRUE, par1)
+		CASE IS_MSG_TYPE_QUIT
+			IS_ShowMessage(nHandle, #quit, ch_KXRKey[], "vw_isr_usr_r", iMsgNr, TRUE, par1)
+		CASE IS_MSG_TYPE_STATE
+			IS_ShowMessage(nHandle, #state, ch_KXRKey[], "vw_isr_usr_r", iMsgNr, TRUE, par1)
+		DEFAULT
+			IS_ShowMessage(nHandle, #notify, ch_KXRKey[], "vw_isr_usr_r", iMsgNr, TRUE, par1)
+	ENDSWITCH
+ENDIF
+;
+END ;of IS_MSG
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD Framemessage
+;---------------------------------------------------------------------------------------------
+DEF IS_MSG_FRAME2 (TYPE:IN, NR:IN, INFRAME:IN)
+DECL FRAME INFRAME
+DECL INT TYPE, NR
+DECL INT OFFSET
+DECL STATE_T STATE
+DECL INT nHandle
+DECL CHAR NAME[20]
+DECL CHAR MELDUNG[80]
+DECL CHAR ch_KXRkey[100]
+DECL CHAR ABS[20]
+;
+SWITCH TYPE
+  CASE 1
+    NAME[]="Baseoffset"
+    ABS[]="Differenz Basedaten"
+  CASE 2
+    NAME[]="Tooloffset"
+    ABS[]="Differenz Tooldaten"
+  CASE 3	;
+    NAME[]="Base"
+    ABS[]="Alte Basedaten"
+  CASE 4
+    NAME[]="Base"
+    ABS[]="Neue Basedaten"
+  CASE 5
+    NAME[]="Tool"
+    ABS[]="Alte Tooldaten"
+  CASE 6
+    NAME[]="Tool"
+    ABS[]="Neue Tooldaten"
+  CASE 7 
+    NAME[]="Base"
+    ABS[]="Korrekturdaten"
+  CASE 8
+    NAME[]="Tool"
+    ABS[]="Korrekturdaten"
+  CASE 9
+    NAME[]="Grenzwert"
+    ABS[]="Korrekturdaten"
+ENDSWITCH
+;
+	OFFSET=0
+	IF (NR>0) THEN
+  	SWRITE(MELDUNG[],STATE,OFFSET,"%s%d: X:%.1f,Y:%.1f,Z:%.1f,A:%.3f,B:%.3f,C:%.3f",NAME[],NR,INFRAME.x,INFRAME.y,INFRAME.z,INFRAME.a,INFRAME.b,INFRAME.c)
+  	;SWRITE(MELDUNG[],STATE,OFFSET,"X:%.1f,Y:%.1f,Z:%.1f,A:%.3f,B:%.3f,C:%.3f",INFRAME.x,INFRAME.y,INFRAME.z,INFRAME.a,INFRAME.b,INFRAME.c)
+  ELSE
+  	SWRITE(MELDUNG[],STATE,OFFSET,"%s: X:%.1f,Y:%.1f,Z:%.1f,A:%.3f,B:%.3f,C:%.3f",NAME[],INFRAME.x,INFRAME.y,INFRAME.z,INFRAME.a,INFRAME.b,INFRAME.c)
+ 	ENDIF
+;
+  ;MsgState(nHandle, MELDUNG[], ABS[])
+  IS_ShowMessage(nHandle, #state, MELDUNG[], ABS[], 1, TRUE)
+;
+END ;of IS_MSG_FRAME2()
+;---------------------------------------------------------------------------------------------
+;ENDFOLD
+;
+;FOLD ShowDialog
+DEF IS_ShowDialog(nAnswer:OUT, sDialogSK1[]:IN,sDialogSK2[]:IN,sDialogSK3[]:IN,sDialogSK4[]:IN,sDialogSK5[]:IN,sDialogSK6[]:IN,sDialogSK7[]:IN,sText[]:IN, sModul[]:IN, bLog:IN, Par1:IN,Par2:IN,Par3:IN) 
+;************************************************************
+;Function: Executes a dialog
+;************************************************************
+DECL KrlMsg_T Msg
+DECL KrlMsgDlgSK_T Msg_SOFTKEY[7]
+DECL INT nHandle,nMsgSel,nApplNum,nMsgTNr,count, len, nAnswer, nMsgNr
+DECL BOOL bLog,Clear
+DECL KrlMsgPar_T Par1,Par2,Par3, MsgPar[3]
+DECL EKrlMsgType MsgType
+DECL KrlMsgOpt_T MsgOpt
+DECL CHAR sModul[], sText[], sDialogSK1[], sDialogSK2[], sDialogSK3[], sDialogSK4[], sDialogSK5[], sDialogSK6[], sDialogSK7[]
+
+;set Parameter (if existent (otherwise "empty"))
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+MsgPar[1]=Par1
+IF ($Err.Number<>0)THEN
+  MsgPar[1].par_type=#empty
+ENDIF
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+MsgPar[2]=Par2
+IF ($Err.Number<>0)THEN
+  MsgPar[2].par_type=#empty
+ENDIF
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+MsgPar[3]=Par3
+IF ($Err.Number<>0)THEN
+  MsgPar[3].par_type=#empty
+ENDIF
+
+;set Option
+;Vorlaufstopp
+MsgOpt.Vl_Stop=FALSE		
+;Clear message on program reset
+MsgOpt.Clear_P_Reset=TRUE	
+;Clear message on block selection
+MsgOpt.Clear_p_SAW=FALSE	
+;Log message
+MsgOpt.Log_To_DB=bLog	
+
+;Standard aus MSGLIB
+Msg.Nr=1
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+Msg.Nr=nMsgNr
+len=Strlen(sText[])
+IF len>0 THEN
+  IF len>80 THEN
+    len=80
+  ENDIF
+  FOR count=1 TO len
+    Msg.Msg_txt[count]=sText[count]
+  ENDFOR
+ELSE
+  Msg.Msg_txt[]="parameter sText[] is missing"
+ENDIF
+
+len=Strlen(sModul[])
+IF len>0 THEN
+  IF len>24 THEN
+    len=24
+  ENDIF
+  FOR count=1 TO len
+    Msg.Modul[count]=sModul[count]
+  ENDFOR
+ELSE
+  Msg.Modul[]="Appl" 
+ENDIF
+
+;Set softkey text (1)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK1[])
+IF $Err.Number==0 THEN
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[7].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[7].Sk_txt[count] = sDialogSK1[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[7].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (2)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK2[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK2[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[6].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[6].Sk_txt[count] = sDialogSK2[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[6].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (3)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK3[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK3[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[5].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[5].Sk_txt[count] = sDialogSK3[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[5].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (4)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK4[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK4[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[4].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[4].Sk_txt[count] = sDialogSK4[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[4].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (5)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK5[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK5[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[3].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[3].Sk_txt[count] = sDialogSK5[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[3].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (6)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK6[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK6[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[2].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[2].Sk_txt[count] = sDialogSK6[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[2].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+;Set softkey text (7)
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+len=Strlen(sDialogSK7[])
+IF $Err.Number==0 THEN
+  len=Strlen(sDialogSK7[])
+  IF len > 0 THEN
+    IF len>24 THEN
+      len=24
+    ENDIF
+    Msg_SOFTKEY[1].Sk_Type = #KEY
+    FOR count=1 TO len
+      Msg_SOFTKEY[1].Sk_txt[count] = sDialogSK7[count]
+    ENDFOR
+  ENDIF
+ELSE
+  FOR count=1 TO 24
+    Msg_SOFTKEY[1].Sk_txt[count] = " "
+  ENDFOR
+ENDIF
+
+CONTINUE
+nHandle=SET_KRLDLG(Msg, MsgPar[], Msg_SOFTKEY[], MsgOpt)
+
+If (nHandle > 0) THEN
+  REPEAT
+  CONTINUE
+  WAIT SEC 0.5
+  UNTIL((NOT Exists_KrlDlg(nHandle, nAnswer)))
+  Clear=Clear_KrlMsg(nHANDLE)
+ENDIF
+;
+END
+;
+;
+DEF IS_ShowMessage(nHandle:OUT, MsgType:IN, sText[]:IN, sModul[]:IN, nMsgNr:IN, bLog:IN, Par1:IN, Par2:IN, Par3:IN)
+;************************************************************
+;Function: Executes a Message Send of the notify message
+;************************************************************
+DECL CHAR sText[], sModul[]  
+DECL KrlMsg_T Msg
+DECL EKrlMsgType MsgType
+DECL KrlMsgPar_T Par1, Par2, Par3, MsgPar[3]
+DECL KrlMsgOpt_T MsgOpt
+DECL BOOL bLog
+DECL INT count, len, nHandle, nMsgNr
+
+;set Parameter (if existent (otherwise "empty"))
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+MsgPar[1]=Par1
+if ($Err.Number<>0)Then
+  MsgPar[1].par_type=#empty
+endif
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+  MsgPar[2]=Par2
+if ($Err.Number<>0)Then
+MsgPar[2].par_type=#empty
+endif
+ERR_CLEAR($Err)
+ON_ERROR_PROCEED
+  MsgPar[3]=Par3
+if ($Err.Number<>0)Then
+  MsgPar[3].par_type=#empty
+endif
+
+;set Option
+;Vorlaufstopp
+MsgOpt.Vl_Stop=FALSE		
+;Clear message on program reset
+MsgOpt.Clear_P_Reset=TRUE	
+;Clear message on block selection
+MsgOpt.Clear_p_SAW=FALSE	
+;Log message
+MsgOpt.Log_To_DB=bLog		
+
+;set MessagNumber
+Msg.Nr=nMsgNr
+;set Msgtext
+len=Strlen(sText[])
+if len>0 then
+	if len>80 then
+		len=80
+	endif
+	for count=1 to len
+		Msg.Msg_txt[count]=sText[count]
+	endfor
+else
+	Msg.Msg_txt[]="Message text is missing"
+endif
+;setMsg-Modul
+len=Strlen(sModul[])
+if len>0 then
+	if len>24 then
+		len=24
+	endif
+	for count=1 to len
+		Msg.Modul[count]=sModul[count]
+	endfor
+else
+	Msg.Modul[]="Module name missing" 
+endif
+
+CONTINUE
+nHandle=Set_KrlMsg (MsgType, Msg, MsgPar[], MsgOpt)
+
+END 
+;
+;ENDFOLD (ISRA)

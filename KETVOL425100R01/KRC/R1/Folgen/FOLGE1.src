@@ -1,0 +1,1601 @@
+&ACCESS RV1
+&REL 20
+&COMMENT VW316_6 new greifer
+&PARAM EDITMASK = Folge999[1-999]
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\vorgabe
+&PARAM DISKPATH = KRC:\R1\Folgen
+DEF FOLGE1()
+   ; FOLD ;%{H} %MKUKATPVW
+   SPS_N=-1
+   VW (#VW_AUE_INIT,TRUE)
+   PENTER:
+   INTERRUPT DECL 10 WHEN $CYCFLAG[254]==FALSE DO VW(#FB_STOP,TRUE)
+   INTERRUPT ON 10
+   INT10=TRUE
+   ; ENDFOLD
+   ;FOLD PTP VB=10% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:10, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:0, 20:-1, 21:1
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: TECH3 Roboter GRDST-Folge Techaufruf=EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH3.Roboter CN=307 P1=1 P2=0 P3=0 P4=0 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN,3:USER
+      ;ENDFOLD
+      ;FOLD {H}
+         SPS_FERTIG=FALSE
+         INTERRUPT DECL 10 WHEN $CYCFLAG[254]==FALSE DO VW(#FB_STOP,TRUE)
+         INTERRUPT ON 10
+         INT10=TRUE
+         VW(#VW_INIT,TRUE)
+         VW_USR_R (#USR_INIT)
+         TRIGGER  WHEN DISTANCE=1 DELAY=-0.1 DO P0_MERKER=TRUE
+         VW_MPARA_ACT=P0_D
+         Act_P1 = P0
+         Act_P2 = P0
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(1) PRIO=-1
+         VW_USER(#USR_ADV,307,1,0,0,0,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_ADV,307,1,0,0,0,0,0,0,0,0,TRUE)
+         PTP P0
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         VW_USER(#USR_MAIN,307,1,0,0,0,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_MAIN,307,1,0,0,0,0,0,0,0,0,TRUE)
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD Warte auf Folgenstart ;%{SE}%MKUKATPVW,%C,%V
+      VW(#VW_AUE_WAIT,TRUE )
+      IF N_VW==TRUE THEN
+         GOTO PEXIT
+      ENDIF
+   ;ENDFOLD
+   ;FOLD -- ********************************************** -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:**********************************************
+      ;FOLD {H}
+         M_COMMENT("**********************************************")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Modell :  VW316/6 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Modell :  VW316/6
+      ;FOLD {H}
+         M_COMMENT("Modell :  VW316/6")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Line   :  TVOL -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Line   :  TVOL
+      ;FOLD {H}
+         M_COMMENT("Line   :  TVOL")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Robot  :  5100R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Robot  :  5100R01
+      ;FOLD {H}
+         M_COMMENT("Robot  :  5100R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Arbeit :  ARBEITSFOLGE -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Arbeit :  ARBEITSFOLGE
+      ;FOLD {H}
+         M_COMMENT("Arbeit :  ARBEITSFOLGE")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- ********************************************** -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:**********************************************
+      ;FOLD {H}
+         M_COMMENT("**********************************************")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] PU ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: PU, 19:1, 20:-1, 21:2
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: F996 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F996 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 3: t1 ( EIN ) = 0[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t1 ( EIN ) = 0[1/10Sek],3:TASG
+      ;ENDFOLD
+      ;FOLD 4: -- Initialisierung Merker -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Initialisierung Merker --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: SPSMAKRO50 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO50 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 6: -- Profilfrei -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Profilfrei --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 7: SPSMAKRO46 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO46 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 8: -- Verriegelungen Freigabe -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelungen Freigabe --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 9: SPSMAKRO45 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO45 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 10: -- Grundstellung ausschalten -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Grundstellung ausschalten --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 11: A15 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A15 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 12: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 13: FB PSPS = M30 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD UP81 = M174 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP81 = M174,3:UP
+      ;ENDFOLD
+      ;FOLD UP85 = M175 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP85 = M175,3:UP
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P1_D
+         Act_P1 = P1
+         Act_P2 = P1
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(2) PRIO=-1
+         PTP P1
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         SEL_RES=SELECT(#UP,81,$CYCFLAG[174])
+         SEL_RES=SELECT(#UP,85,$CYCFLAG[175])
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Warte Freigabe Entnahme OP.5085 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Warte Freigabe Entnahme OP.5085
+      ;FOLD {H}
+         M_COMMENT("Warte Freigabe Entnahme OP.5085")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] PU ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: PU, 19:2, 20:-1, 21:3
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Warte korrektes Werkzeug -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte korrektes Werkzeug --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: WARTE BIS M173 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M173,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 4: -- Initialisierung Merker -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Initialisierung Merker --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: SPSMAKRO51 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO51 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 6: -- USER FLAG INIT -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- USER FLAG INIT --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 7: F930 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F930 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 8: F931 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F931 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 9: F932 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F932 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 10: F933 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F933 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 11: F934 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F934 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 12: F935 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F935 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 13: -- Greifer Initialisieren -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Greifer Initialisieren --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 14: F4 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F4 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 15: SPSMAKRO343 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO343 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 16: WARTE BIS M38 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M38,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 17: F1 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F1 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 18: F2 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F2 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 19: F3 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F3 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 20: F17 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F17 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 21: M190 = E605 + E603 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:M190 = E605 + E603,3:BOASG
+      ;ENDFOLD
+      ;FOLD 22: SPSMAKRO342 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO342 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 23: SPSMAKRO340 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO340 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 24: WARTE BIS M31 & M33 & M35 & M1 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M31 & M33 & M35 & M1,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 25: -- Warte Freigabe Entnahme OP.5085 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte Freigabe Entnahme OP.5085 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 26: WARTE BIS (E80 & !E77 + !E80 & E77) & (E64 + E62 & E63) ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS (E80 & !E77 + !E80 & E77) & (E64 + E62 & E63),3:WBOASG
+      ;ENDFOLD
+      ;FOLD 27: -- Freigabe Entnahme OP.5085 BH1 Hi -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Entnahme OP.5085 BH1 Hi --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 28: F930 = E80 & !E77 & E64 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F930 = E80 & !E77 & E64,3:BOASG
+      ;ENDFOLD
+      ;FOLD 29: -- Freigabe Entnahme OP.5085 BH1 Low -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Entnahme OP.5085 BH1 Low --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 30: F931 = E80 & !E77 & E62 & E63 & !F930 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F931 = E80 & !E77 & E62 & E63 & !F930,3:BOASG
+      ;ENDFOLD
+      ;FOLD 31: -- Freigabe Entnahme OP.5085 BH2 Hi -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Entnahme OP.5085 BH2 Hi --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 32: F932 = !E80 & E77 & E64 & !F930 & !F931 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F932 = !E80 & E77 & E64 & !F930 & !F931,3:BOASG
+      ;ENDFOLD
+      ;FOLD 33: -- Freigabe Entnahme OP.5085 BH2 Low -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Entnahme OP.5085 BH2 Low --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 34: F933 = !E80 & E77 & E62 & E63 & !F930 & !F931 & !F932 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F933 = !E80 & E77 & E62 & E63 & !F930 & !F931 & !F932,3:BOASG
+      ;ENDFOLD
+      ;FOLD 35: WARTE BIS F930 + F931 + F932 + F933 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS F930 + F931 + F932 + F933,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 36: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 37: FB PSPS = M30 & M31 & M33 & M35 & M38 & M1 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M31 & M33 & M35 & M38 & M1 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD UP1 = F930 & AUS ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP1 = F930 & AUS,3:UP
+      ;ENDFOLD
+      ;FOLD UP5 = F930 & EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP5 = F930 & EIN,3:UP
+      ;ENDFOLD
+      ;FOLD UP2 = F931 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP2 = F931,3:UP
+      ;ENDFOLD
+      ;FOLD UP3 = F932 & EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP3 = F932 & EIN,3:UP
+      ;ENDFOLD
+      ;FOLD UP303 = F932 & AUS ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP303 = F932 & AUS,3:UP
+      ;ENDFOLD
+      ;FOLD UP7 = F932 & AUS ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP7 = F932 & AUS,3:UP
+      ;ENDFOLD
+      ;FOLD UP4 = F933 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP4 = F933,3:UP
+      ;ENDFOLD
+      ;FOLD UP304 = F933 & AUS ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP304 = F933 & AUS,3:UP
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P2_D
+         Act_P1 = P2
+         Act_P2 = P2
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(3) PRIO=-1
+         PTP P2
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         SEL_RES=SELECT(#UP,1,$FLAG[930] AND FALSE)
+         SEL_RES=SELECT(#UP,5,$FLAG[930] AND TRUE)
+         SEL_RES=SELECT(#UP,2,$FLAG[931])
+         SEL_RES=SELECT(#UP,3,$FLAG[932] AND TRUE)
+         SEL_RES=SELECT(#UP,303,$FLAG[932] AND FALSE)
+         SEL_RES=SELECT(#UP,7,$FLAG[932] AND FALSE)
+         SEL_RES=SELECT(#UP,4,$FLAG[933])
+         SEL_RES=SELECT(#UP,304,$FLAG[933] AND FALSE)
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:3, 20:-1, 21:4
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 3: FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P3_D
+         Act_P1 = P3
+         Act_P2 = P3
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(4) PRIO=-1
+         PTP P3
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- test -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:test
+      ;FOLD {H}
+         M_COMMENT("test")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:4, 20:-1, 21:5
+      ;FOLD 1: FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P4_D
+         Act_P1 = P4
+         Act_P2 = P4
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10005) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P4 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- test -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:test
+      ;FOLD {H}
+         M_COMMENT("test")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:5, 20:-1, 21:6
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P5_D
+         Act_P1 = P5
+         Act_P2 = P5
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(10006) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P5 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Roboter im Wartungsbereich -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Roboter im Wartungsbereich
+      ;FOLD {H}
+         M_COMMENT("Roboter im Wartungsbereich")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:6, 20:-1, 21:7
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 3: SPSLabel 1 ;%{SE}%MKUKATPVW %CCONTROL %VLABEL %P 2:SPSLabel 1,3:LABEL
+      ;ENDFOLD
+      ;FOLD 4: -- Roboter im Wartungsbereich -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Roboter im Wartungsbereich --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: A18 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A18 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 6: -- FRG Teil Ablegen Oder Wartung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG Teil Ablegen Oder Wartung --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 7: WARTE BIS (E74) & !E18 + E19 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS (E74) & !E18 + E19,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 8: GOTO SPSLabel 3 = E 19 ;%{SE}%MKUKATPVW %CCONTROL %VJUMP %P 2:GOTO SPSLabel 3 = E 19,3:JUMP
+      ;ENDFOLD
+      ;FOLD 9: GOTO SPSLabel 2 = EIN ;%{SE}%MKUKATPVW %CCONTROL %VJUMP %P 2:GOTO SPSLabel 2 = EIN,3:JUMP
+      ;ENDFOLD
+      ;FOLD 10: SPSLabel 3 ;%{SE}%MKUKATPVW %CCONTROL %VLABEL %P 2:SPSLabel 3,3:LABEL
+      ;ENDFOLD
+      ;FOLD 11: -- Roboter ist in Wartungsstellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Roboter ist in Wartungsstellung --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 12: A17 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A17 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 13: -- Prozessgeraet BMS -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Prozessgeraet BMS --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 14: TECH4 Prozessgeraet Handling Greifer=Nr1 in Wartungsstellung Techaufruf=EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.Prozessgeraet CN=403 P1=1 P2=0 P3=11 P4=20 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN,3:USER
+      ;ENDFOLD
+      ;FOLD 15: -- Warte Wartungsstellung Ende -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte Wartungsstellung Ende --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 16: WARTE BIS E17 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E17,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 17: -- Wartungsstellung Ende -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Wartungsstellung Ende --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 18: A17 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A17 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 19: -- Prozessgeraet BMS -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Prozessgeraet BMS --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 20: bin19 ( EIN ) = 0 ;%{SE}%MKUKATPVW %CVW_SPS %VARIASG %P 2:bin19 ( EIN ) = 0,3:ARIASG
+      ;ENDFOLD
+      ;FOLD 21: -- Nicht Anwahl Wartung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Nicht Anwahl Wartung --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 22: WARTE BIS !E19 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS !E19,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 23: GOTO SPSLabel 1 = EIN ;%{SE}%MKUKATPVW %CCONTROL %VJUMP %P 2:GOTO SPSLabel 1 = EIN,3:JUMP
+      ;ENDFOLD
+      ;FOLD 24: SPSLabel 2 ;%{SE}%MKUKATPVW %CCONTROL %VLABEL %P 2:SPSLabel 2,3:LABEL
+      ;ENDFOLD
+      ;FOLD 25: -- Roboter in Wartungsbereich -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Roboter in Wartungsbereich --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 26: A18 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A18 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 27: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 28: FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M63 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M2 & M32 & M33 & M36 & M37 & M63 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P6_D
+         Act_P1 = P6
+         Act_P2 = P6
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(7) PRIO=-1
+         VW_USER(#USR_ADV,403,1,0,11,20,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_ADV,403,1,0,11,20,0,0,0,0,0,TRUE)
+         PTP P6
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         VW_USER(#USR_MAIN,403,1,0,11,20,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_MAIN,403,1,0,11,20,0,0,0,0,0,TRUE)
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Warte Freigabe Ablegen OP.5104 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Warte Freigabe Ablegen OP.5104
+      ;FOLD {H}
+         M_COMMENT("Warte Freigabe Ablegen OP.5104")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung 1 5101R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung 1 5101R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung 1 5101R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung 3 5105R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung 3 5105R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung 3 5105R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung 5 5104R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung 5 5104R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung 5 5104R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung 7 5105R02 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung 7 5105R02
+      ;FOLD {H}
+         M_COMMENT("Verriegelung 7 5105R02")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung 11 5110R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung 11 5110R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung 11 5110R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:7, 20:-1, 21:8
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Warte Freigabe Ablegen OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte Freigabe Ablegen OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: WARTE BIS E74 & E59 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E74 & E59,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 4: -- Freigabe Einfahrt OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Einfahrt OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: A74 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A74 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 6: -- Greifer Auf -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Greifer Auf --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 7: F4 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F4 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 8: SPSMAKRO343 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO343 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 9: WARTE BIS M38 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M38,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 10: -- Verriegelung 1 5101R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung 1 5101R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 11: A81 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A81 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 12: -- Verriegelung 3 5105R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung 3 5105R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 13: A83 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A83 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 14: -- Verriegelung 5 5104R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung 5 5104R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 15: A85 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A85 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 16: -- Verriegelung 7 5105R02 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung 7 5105R02 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 17: A87 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A87 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 18: -- Verriegelung 11 5110R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung 11 5110R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 19: A91 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A91 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 20: SPSMAKRO20 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO20 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 21: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 22: FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P7_D
+         Act_P1 = P7
+         Act_P2 = P7
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(8) PRIO=-1
+         PTP P7
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- 666666666 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:666666666
+      ;FOLD {H}
+         M_COMMENT("666666666")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:8, 20:-1, 21:9
+      ;FOLD 1: FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P8_D
+         Act_P1 = P8
+         Act_P2 = P8
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10009) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P8 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:9, 20:-1, 21:10
+      ;FOLD 1: FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P9_D
+         Act_P1 = P9
+         Act_P2 = P9
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10010) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P9 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:10, 20:-1, 21:11
+      ;FOLD 1: FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 & E59,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P10_D
+         Act_P1 = P10
+         Act_P2 = P10
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10011) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P10 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:11, 20:-1, 21:12
+      ;FOLD 1: FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M2 & M8 & M173 & E74,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P11_D
+         Act_P1 = P11
+         Act_P2 = P11
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10012) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P11 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=80% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:80, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:12, 20:-1, 21:13
+      ;FOLD 1: FB PSPS = M30 & M32 & M33 & M36 & M38 & M8 & M173 & E74 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M32 & M33 & M36 & M38 & M8 & M173 & E74,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P12_D
+         Act_P1 = P12
+         Act_P2 = P12
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10013) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P12 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- In Position Ablegen OP.5104 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:In Position Ablegen OP.5104
+      ;FOLD {H}
+         M_COMMENT("In Position Ablegen OP.5104")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Teil Fertigmeldungen 2 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Teil Fertigmeldungen 2
+      ;FOLD {H}
+         M_COMMENT("Teil Fertigmeldungen 2")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD LIN VB=120[mm/s] VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VLIN,%P 1:2, 2: VB=, 3:120, 4:[mm/s], 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:13, 20:-1, 21:14
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- In Position Ablegen OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- In Position Ablegen OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: A60 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A60 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 4: -- Greifer Auf -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Greifer Auf --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: F1 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F1 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 6: F3 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F3 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 7: F17 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F17 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 8: SPSMAKRO342 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO342 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 9: SPSMAKRO340 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VMAKRO %P 2:SPSMAKRO340 = EIN,3:MAKRO
+      ;ENDFOLD
+      ;FOLD 10: WARTE BIS M31 & M35 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M31 & M35,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 11: -- Freigabe Ausfahrt OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Ausfahrt OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 12: A73 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A73 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 13: -- Warte Freigabe Ausfahrt OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte Freigabe Ausfahrt OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 14: WARTE BIS E73 & E60 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E73 & E60,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 15: -- Freigabe Ausfahrt OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Freigabe Ausfahrt OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 16: A73 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A73 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 17: -- Teil Fertigmeldungen 2 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Teil Fertigmeldungen 2 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 18: TECH4 Prozessgeraet Handling Greifer=Nr1 Teilarbeitsfertigmeldung 2 Techaufruf=EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.Prozessgeraet CN=403 P1=1 P2=0 P3=11 P4=2 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN,3:USER
+      ;ENDFOLD
+      ;FOLD 19: -- Roboter in Position -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Roboter in Position --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 20: A60 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A60 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 21: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 22: FB PSPS = M30 & M31 & M33 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M31 & M33 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P13_D
+         Act_P1 = P13
+         Act_P2 = P13
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(14) PRIO=-1
+         VW_USER(#USR_ADV,403,1,0,11,2,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_ADV,403,1,0,11,2,0,0,0,0,0,TRUE)
+         LIN P13
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         VW_USER(#USR_MAIN,403,1,0,11,2,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_MAIN,403,1,0,11,2,0,0,0,0,0,TRUE)
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Warte Greifer ohne teil -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Warte Greifer ohne teil
+      ;FOLD {H}
+         M_COMMENT("Warte Greifer ohne teil")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD LIN VB=200[mm/s] VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VLIN,%P 1:2, 2: VB=, 3:200, 4:[mm/s], 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:14, 20:-1, 21:15
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Warte Greifer ohne teil -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Warte Greifer ohne teil --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: WARTE BIS M1 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS M1,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 4: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 5: FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P14_D
+         Act_P1 = P14
+         Act_P2 = P14
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(15) PRIO=-1
+         LIN P14
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:15, 20:-1, 21:16
+      ;FOLD 1: FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P15_D
+         Act_P1 = P15
+         Act_P2 = P15
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10016) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P15 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:16, 20:-1, 21:17
+      ;FOLD 1: FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P16_D
+         Act_P1 = P16
+         Act_P2 = P16
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10017) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P16 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:17, 20:-1, 21:18
+      ;FOLD 1: FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P17_D
+         Act_P1 = P17
+         Act_P2 = P17
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10018) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P17 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=100% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:100, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:18, 20:-1, 21:19
+      ;FOLD 1: FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M1 & M30 & M31 & S1 & M35 & M38 & E73 & E60 & M8 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P18_D
+         Act_P1 = P18
+         Act_P2 = P18
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(10019) PRIO=-1 UP_TIME_OUT=SPS_TIMEOUT
+         PTP P18 C_PTP C_VEL
+         $ADVANCE=1
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung Freigabe 3 5105R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung Freigabe 3 5105R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung Freigabe 3 5105R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Stationsfreigabe OP.5104 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Stationsfreigabe OP.5104
+      ;FOLD {H}
+         M_COMMENT("Stationsfreigabe OP.5104")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:19, 20:-1, 21:20
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Verriegelung freigeben 3 425105R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung freigeben 3 425105R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: A43 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A43 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 4: -- Stationsfreigabe OP.5104 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Stationsfreigabe OP.5104 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: A74 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A74 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 6: FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173 & E41 & E45 & E47 & E51 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173 & E41 & E45 & E47 & E51,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P19_D
+         Act_P1 = P19
+         Act_P2 = P19
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(20) PRIO=-1
+         PTP P19
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- 666666666 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:666666666
+      ;FOLD {H}
+         M_COMMENT("666666666")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung Freigabe 1 5101R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung Freigabe 1 5101R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung Freigabe 1 5101R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung Freigabe 5 5104R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung Freigabe 5 5104R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung Freigabe 5 5104R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung Freigabe 7 5105R02 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung Freigabe 7 5105R02
+      ;FOLD {H}
+         M_COMMENT("Verriegelung Freigabe 7 5105R02")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- Verriegelung Freigabe 11 5110R01 -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:Verriegelung Freigabe 11 5110R01
+      ;FOLD {H}
+         M_COMMENT("Verriegelung Freigabe 11 5110R01")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=5[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:5, 17:[1/100s], 18: P, 19:20, 20:-1, 21:21
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Verriegelung freigeben 1 425101R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung freigeben 1 425101R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: A41 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A41 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 4: -- Verriegelung freigeben 5 425104R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung freigeben 5 425104R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 5: A45 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A45 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 6: -- Verriegelung freigeben 7 425105R02 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung freigeben 7 425105R02 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 7: A47 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A47 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 8: -- Verriegelung freigeben 11 425110R01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Verriegelung freigeben 11 425110R01 --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 9: A51 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A51 = EIN,3:BOASG
+      ;ENDFOLD
+      ;FOLD 10: FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P20_D
+         Act_P1 = P20
+         Act_P2 = P20
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=-50 DO SPS_TRIG(21) PRIO=-1
+         PTP P20
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:21, 20:-1, 21:22
+      ;FOLD 1: FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P21_D
+         Act_P1 = P21
+         Act_P2 = P21
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(22) PRIO=-1
+         PTP P21
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:22, 20:-1, 21:23
+      ;FOLD 1: FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M1 & M31 & M33 & M35 & M38 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P22_D
+         Act_P1 = P22
+         Act_P2 = P22
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(23) PRIO=-1
+         PTP P22
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- GESAMTFERTIGMELDUNG -- ;%{PSE}%MKUKATPVW,%CVW_COM,%VCOMMENT,%P 1:Comment:, 2:GESAMTFERTIGMELDUNG
+      ;FOLD {H}
+         M_COMMENT("GESAMTFERTIGMELDUNG")
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] PU ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: PU, 19:23, 20:-1, 21:24
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: -- Gesamtfertigmeldung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Gesamtfertigmeldung --,3:VW_COMMENT
+      ;ENDFOLD
+      ;FOLD 3: TECH4 Prozessgeraet Gesamtarbeitsfertigmeldung 15 Techaufruf=EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH4.Prozessgeraet CN=403 P1=0 P2=0 P3=0 P4=15 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN,3:USER
+      ;ENDFOLD
+      ;FOLD 4: t1 ( EIN ) = STOP ;%{SE}%MKUKATPVW %CVW_SPS %VTSTOP %P 2:t1 ( EIN ) = STOP,3:TSTOP
+      ;ENDFOLD
+      ;FOLD 5: t2 ( EIN ) = t1[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t2 ( EIN ) = t1[1/10Sek],3:TASG
+      ;ENDFOLD
+      ;FOLD 6: t2 ( EIN ) = STOP ;%{SE}%MKUKATPVW %CVW_SPS %VTSTOP %P 2:t2 ( EIN ) = STOP,3:TSTOP
+      ;ENDFOLD
+      ;FOLD 7: WARTE BIS E23 ;%{SE}%MKUKATPVW %CVW_SPS %VWBOASG %P 2:WARTE BIS E23,3:WBOASG
+      ;ENDFOLD
+      ;FOLD 8: FB PSPS = M30 & M1 & M173 ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = M30 & M1 & M173,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD UP82 = !E233 & E234 & !E235 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP82 = !E233 & E234 & !E235,3:UP
+      ;ENDFOLD
+      ;FOLD UP83 = !E233 & !E234 & E235 ;%{SE}%MKUKATPVW %CVW_SPS %VUP %P 2:UP83 = !E233 & !E234 & E235,3:UP
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P23_D
+         Act_P1 = P23
+         Act_P2 = P23
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(24) PRIO=-1
+         VW_USER(#USR_ADV,403,0,0,0,15,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_ADV,403,0,0,0,15,0,0,0,0,0,TRUE)
+         PTP P23
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         VW_USER(#USR_MAIN,403,0,0,0,15,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_MAIN,403,0,0,0,15,0,0,0,0,0,TRUE)
+         SEL_RES=SELECT(#UP,82,NOT $IN[233] AND $IN[234] AND NOT $IN[235])
+         SEL_RES=SELECT(#UP,83,NOT $IN[233] AND NOT $IN[234] AND $IN[235])
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD PTP VB=100% VE=0% ACC=100% RobWzg=1 Base=0 SPSTrig=0[1/100s] P ;%{P}%MKUKATPVW,%CMOVE8,%VPTP,%P 1:1, 2: VB=, 3:100, 4:%, 5: VE=, 6:0, 7:%, 8: ACC=, 9:100, 10:%, 11: RobWzg=, 12:1, 13: Base=, 14:0, 15: SPSTrig=, 16:0, 17:[1/100s], 18: P, 19:24, 20:-1, 21:25
+      ;FOLD 1: FB PSPS = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VFBPSPS %P 2:FB PSPS = EIN,3:FBPSPS
+      ;ENDFOLD
+      ;FOLD 2: F996 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F996 = AUS,3:BOASG
+      ;ENDFOLD
+      ;FOLD 3: TECH3 Roboter LPTK-Folge Techaufruf=EIN ;%{SE}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH3.Roboter CN=307 P1=2 P2=0 P3=0 P4=0 P5=0 P6=0 P7=0 P8=0 P9=0 P10=EIN,3:USER
+      ;ENDFOLD
+      ;FOLD {H}
+         VW_MPARA_ACT=P24_D
+         Act_P1 = P24
+         Act_P2 = P24
+         VW(#MPARA,TRUE)
+         SPS_FERTIG=FALSE
+         TRIGGER WHEN DISTANCE=1 DELAY=0 DO SPS_TRIG(25) PRIO=-1
+         VW_USER(#USR_ADV,307,2,0,0,0,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_ADV,307,2,0,0,0,0,0,0,0,0,TRUE)
+         PTP P24
+         $ADVANCE=1
+         WAIT FOR SPS_FERTIG
+         VW_USER(#USR_MAIN,307,2,0,0,0,0,0,0,0,0,TRUE)
+         VW_USR_R(#USR_MAIN,307,2,0,0,0,0,0,0,0,0,TRUE)
+      ;ENDFOLD
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   VW (#VW_AUE_END,TRUE)
+   GOTO PENTER
+   PEXIT:
+END
+DEF SPS_TRIG(NO :IN)
+   INT NO
+   INT VW_STOP
+   BOOL UES
+   BOOL ANA_UES
+   BOOL ANA_TRIG
+   VW_STOP=$VW_PSPS_STOP
+   UES=FALSE
+   ANA_UES=FALSE
+   ANA_TRIG=FALSE
+   IF ((NO>10000) AND (NO<20000)) THEN
+      NO=NO-10000
+      UES=TRUE
+   ENDIF
+   IF ((NO>20000) AND (NO<30000)) THEN
+      NO=NO-20000
+      ANA_TRIG=TRUE
+   ENDIF
+   IF NO>30000 THEN
+      NO=NO-30000
+      ANA_UES=TRUE
+      ANA_TRIG=TRUE
+   ENDIF
+   ; FOLD ;%{H}
+   IF ((VW_STOP B_AND 'B0001') > 0) THEN
+      ;-- Trigger vorzeitig geschaltet (delay < 0) oder MStep
+      IF (((VW_STOP B_AND 'B0110') > 0) AND ($MODE_OP<>#EX)) THEN
+         ;-- MStep oder BCO Bewegung
+         HALT
+      ENDIF
+   ENDIF
+   ; ENDFOLD
+   IF (SEARCH_END) THEN
+      SEARCH_END = FALSE
+      INTERRUPT OFF 39
+   ENDIF
+   SWITCH NO
+      CASE 1
+         ;FOLD SPS_TRIG1 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            VW_USER(#USR_TRIG,307,1,0,0,0,0,0,0,0,0,TRUE)
+            VW_USR_R(#USR_TRIG,307,1,0,0,0,0,0,0,0,0,TRUE)
+         ;ENDFOLD
+      CASE 2
+         ;FOLD SPS_TRIG2 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $FLAG[996] = TRUE
+            VW(#SET_TIME,TRUE,1,0,0)
+            SEL_RES=SELECT(#MAKRO,50,TRUE,,,,,FALSE)
+            SEL_RES=SELECT(#MAKRO,46,TRUE,,,,,FALSE)
+            SEL_RES=SELECT(#MAKRO,45,TRUE,,,,,FALSE)
+            $OUT[15] = FALSE
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 3
+         ;FOLD SPS_TRIG3 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $LOOP_MSG[]="M173"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[173]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            SEL_RES=SELECT(#MAKRO,51,TRUE,,,,,FALSE)
+            $FLAG[930] = FALSE
+            $FLAG[931] = FALSE
+            $FLAG[932] = FALSE
+            $FLAG[933] = FALSE
+            $FLAG[934] = FALSE
+            $FLAG[935] = FALSE
+            $FLAG[4] = TRUE
+            SEL_RES=SELECT(#MAKRO,343,TRUE,,,,,FALSE)
+            $LOOP_MSG[]="M38"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[38]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $FLAG[1] = TRUE
+            $FLAG[2] = TRUE
+            $FLAG[3] = TRUE
+            $FLAG[17] = TRUE
+            $CYCFLAG[190] = $IN[605] OR $IN[603]
+            SEL_RES=SELECT(#MAKRO,342,TRUE,,,,,FALSE)
+            SEL_RES=SELECT(#MAKRO,340,TRUE,,,,,FALSE)
+            $LOOP_MSG[]="M31 & M33 & M35 & M1"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[1]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $LOOP_MSG[]="(E80 & !E77 + !E80 & E77) & (E64 + E62 & E63)"
+            $LOOP_CONT=TRUE
+            WAIT FOR (($IN[80] AND NOT $IN[77] OR NOT $IN[80] AND $IN[77]) AND ($IN[64] OR $IN[62] AND $IN[63])) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $FLAG[930] = $IN[80] AND NOT $IN[77] AND $IN[64]
+            $FLAG[931] = $IN[80] AND NOT $IN[77] AND $IN[62] AND $IN[63] AND NOT $FLAG[930]
+            $FLAG[932] = NOT $IN[80] AND $IN[77] AND $IN[64] AND NOT $FLAG[930] AND NOT $FLAG[931]
+            $FLAG[933] = NOT $IN[80] AND $IN[77] AND $IN[62] AND $IN[63] AND NOT $FLAG[930] AND NOT $FLAG[931] AND NOT $FLAG[932]
+            $LOOP_MSG[]="F930 + F931 + F932 + F933"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($FLAG[930] OR $FLAG[931] OR $FLAG[932] OR $FLAG[933]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $CYCFLAG[1] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 4
+         ;FOLD SPS_TRIG4 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[2] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[37] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 5
+         ;FOLD SPS_TRIG5 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[2] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[37] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 6
+         ;FOLD SPS_TRIG6 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[2] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[37] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 7
+         ;FOLD SPS_TRIG7 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            SPSLabel1_C7:
+            $OUT[18] = TRUE
+            $LOOP_MSG[]="(E74) & !E18 + E19"
+            $LOOP_CONT=TRUE
+            WAIT FOR (($IN[74]) AND NOT $IN[18] OR $IN[19]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            IF $IN[19] THEN
+               GOTO SPSLabel3_C7
+            ENDIF
+            IF TRUE THEN
+               GOTO SPSLabel2_C7
+            ENDIF
+            SPSLabel3_C7:
+            $OUT[17] = TRUE
+            VW_USER(#USR_TRIG,403,1,0,11,20,0,0,0,0,0,TRUE)
+            VW_USR_R(#USR_TRIG,403,1,0,11,20,0,0,0,0,0,TRUE)
+            $LOOP_MSG[]="E17"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[17]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $OUT[17] = FALSE
+            VW(#BINOUT,TRUE,19,0)
+            $LOOP_MSG[]="!E19"
+            $LOOP_CONT=TRUE
+            WAIT FOR (NOT $IN[19]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            IF TRUE THEN
+               GOTO SPSLabel1_C7
+            ENDIF
+            SPSLabel2_C7:
+            $OUT[18] = FALSE
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[2] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[37] AND $CYCFLAG[63] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 8
+         ;FOLD SPS_TRIG8 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $LOOP_MSG[]="E74 & E59"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[74] AND $IN[59]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $OUT[74] = FALSE
+            $FLAG[4] = TRUE
+            SEL_RES=SELECT(#MAKRO,343,TRUE,,,,,FALSE)
+            $LOOP_MSG[]="M38"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[38]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $OUT[81] = TRUE
+            $OUT[83] = TRUE
+            $OUT[85] = TRUE
+            $OUT[87] = TRUE
+            $OUT[91] = TRUE
+            SEL_RES=SELECT(#MAKRO,20,TRUE,,,,,FALSE)
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[2] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74] AND $IN[59]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 9
+         ;FOLD SPS_TRIG9 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[2] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74] AND $IN[59]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 10
+         ;FOLD SPS_TRIG10 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[2] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74] AND $IN[59]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 11
+         ;FOLD SPS_TRIG11 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[2] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74] AND $IN[59]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 12
+         ;FOLD SPS_TRIG12 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[2] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 13
+         ;FOLD SPS_TRIG13 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[32] AND $CYCFLAG[33] AND $CYCFLAG[36] AND $CYCFLAG[38] AND $CYCFLAG[8] AND $CYCFLAG[173] AND $IN[74]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 14
+         ;FOLD SPS_TRIG14 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $OUT[60] = TRUE
+            $FLAG[1] = TRUE
+            $FLAG[3] = TRUE
+            $FLAG[17] = TRUE
+            SEL_RES=SELECT(#MAKRO,342,TRUE,,,,,FALSE)
+            SEL_RES=SELECT(#MAKRO,340,TRUE,,,,,FALSE)
+            $LOOP_MSG[]="M31 & M35"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[31] AND $CYCFLAG[35]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $OUT[73] = TRUE
+            $LOOP_MSG[]="E73 & E60"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[73] AND $IN[60]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $OUT[73] = FALSE
+            VW_USER(#USR_TRIG,403,1,0,11,2,0,0,0,0,0,TRUE)
+            VW_USR_R(#USR_TRIG,403,1,0,11,2,0,0,0,0,0,TRUE)
+            $OUT[60] = FALSE
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 15
+         ;FOLD SPS_TRIG15 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $LOOP_MSG[]="M1"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($CYCFLAG[1]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[1] AND $CYCFLAG[30] AND $CYCFLAG[31] AND S[1] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 16
+         ;FOLD SPS_TRIG16 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[1] AND $CYCFLAG[30] AND $CYCFLAG[31] AND S[1] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 17
+         ;FOLD SPS_TRIG17 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[1] AND $CYCFLAG[30] AND $CYCFLAG[31] AND S[1] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 18
+         ;FOLD SPS_TRIG18 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[1] AND $CYCFLAG[30] AND $CYCFLAG[31] AND S[1] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 19
+         ;FOLD SPS_TRIG19 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[1] AND $CYCFLAG[30] AND $CYCFLAG[31] AND S[1] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $IN[73] AND $IN[60] AND $CYCFLAG[8] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 20
+         ;FOLD SPS_TRIG20 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $OUT[43] = TRUE
+            $OUT[74] = TRUE
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[1] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $CYCFLAG[173] AND $IN[41] AND $IN[45] AND $IN[47] AND $IN[51]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 21
+         ;FOLD SPS_TRIG21 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $OUT[41] = TRUE
+            $OUT[45] = TRUE
+            $OUT[47] = TRUE
+            $OUT[51] = TRUE
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[1] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 22
+         ;FOLD SPS_TRIG22 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[1] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 23
+         ;FOLD SPS_TRIG23 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[1] AND $CYCFLAG[31] AND $CYCFLAG[33] AND $CYCFLAG[35] AND $CYCFLAG[38] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 24
+         ;FOLD SPS_TRIG24 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            VW_USER(#USR_TRIG,403,0,0,0,15,0,0,0,0,0,TRUE)
+            VW_USR_R(#USR_TRIG,403,0,0,0,15,0,0,0,0,0,TRUE)
+            VW(#SET_TIME,TRUE,1,1,0)
+            VW(#SET_TIME,TRUE,2,0,$TIMER[1]*0.01)
+            VW(#SET_TIME,TRUE,2,1,0)
+            $LOOP_MSG[]="E23"
+            $LOOP_CONT=TRUE
+            WAIT FOR ($IN[23]) OR (NOT $LOOP_CONT AND ($MODE_OP<>#EX))
+            $LOOP_MSG[]="                                                                                                                                "
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=($CYCFLAG[30] AND $CYCFLAG[1] AND $CYCFLAG[173]) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+         ;ENDFOLD
+      CASE 25
+         ;FOLD SPS_TRIG25 {H}
+            VALCYCFL30=$CYCFLAG[254]
+            $CYCFLAG[254]=(TRUE) AND $CYCFLAG[255] OR ($TIMER[61]<0)
+            VW(#FB_CHECK,TRUE)
+            $FLAG[996] = FALSE
+            VW_USER(#USR_TRIG,307,2,0,0,0,0,0,0,0,0,TRUE)
+            VW_USR_R(#USR_TRIG,307,2,0,0,0,0,0,0,0,0,TRUE)
+         ;ENDFOLD
+      CASE 26
+         ;FOLD SPS_TRIG26 {H}
+         ;ENDFOLD
+      CASE 27
+         ;FOLD SPS_TRIG27 {H}
+         ;ENDFOLD
+      CASE 28
+         ;FOLD SPS_TRIG28 {H}
+         ;ENDFOLD
+      CASE 29
+         ;FOLD SPS_TRIG29 {H}
+         ;ENDFOLD
+      CASE 30
+         ;FOLD SPS_TRIG30 {H}
+         ;ENDFOLD
+      CASE 31
+         ;FOLD SPS_TRIG31 {H}
+         ;ENDFOLD
+      CASE 32
+         ;FOLD SPS_TRIG32 {H}
+         ;ENDFOLD
+      CASE 33
+         ;FOLD SPS_TRIG33 {H}
+         ;ENDFOLD
+      CASE 34
+         ;FOLD SPS_TRIG34 {H}
+         ;ENDFOLD
+      CASE 35
+         ;FOLD SPS_TRIG35 {H}
+         ;ENDFOLD
+      CASE 36
+         ;FOLD SPS_TRIG36 {H}
+         ;ENDFOLD
+      CASE 37
+         ;FOLD SPS_TRIG37 {H}
+         ;ENDFOLD
+      CASE 38
+         ;FOLD SPS_TRIG38 {H}
+         ;ENDFOLD
+      CASE 39
+         ;FOLD SPS_TRIG39 {H}
+         ;ENDFOLD
+      CASE 40
+         ;FOLD SPS_TRIG40 {H}
+         ;ENDFOLD
+      CASE 41
+         ;FOLD SPS_TRIG41 {H}
+         ;ENDFOLD
+      CASE 42
+         ;FOLD SPS_TRIG42 {H}
+         ;ENDFOLD
+      CASE 43
+         ;FOLD SPS_TRIG43 {H}
+         ;ENDFOLD
+      CASE 44
+         ;FOLD SPS_TRIG44 {H}
+         ;ENDFOLD
+      CASE 45
+         ;FOLD SPS_TRIG45 {H}
+         ;ENDFOLD
+      CASE 46
+         ;FOLD SPS_TRIG46 {H}
+         ;ENDFOLD
+      CASE 47
+         ;FOLD SPS_TRIG47 {H}
+         ;ENDFOLD
+      CASE 48
+         ;FOLD SPS_TRIG48 {H}
+         ;ENDFOLD
+      CASE 49
+         ;FOLD SPS_TRIG49 {H}
+         ;ENDFOLD
+      CASE 50
+         ;FOLD SPS_TRIG50 {H}
+         ;ENDFOLD
+      CASE 51
+         ;FOLD SPS_TRIG51 {H}
+         ;ENDFOLD
+      CASE 52
+         ;FOLD SPS_TRIG52 {H}
+         ;ENDFOLD
+      CASE 53
+         ;FOLD SPS_TRIG53 {H}
+         ;ENDFOLD
+      CASE 54
+         ;FOLD SPS_TRIG54 {H}
+         ;ENDFOLD
+      CASE 55
+         ;FOLD SPS_TRIG55 {H}
+         ;ENDFOLD
+      CASE 56
+         ;FOLD SPS_TRIG56 {H}
+         ;ENDFOLD
+      CASE 57
+         ;FOLD SPS_TRIG57 {H}
+         ;ENDFOLD
+      CASE 58
+         ;FOLD SPS_TRIG58 {H}
+         ;ENDFOLD
+      CASE 59
+         ;FOLD SPS_TRIG59 {H}
+         ;ENDFOLD
+      CASE 60
+         ;FOLD SPS_TRIG60 {H}
+         ;ENDFOLD
+      CASE 61
+         ;FOLD SPS_TRIG61 {H}
+         ;ENDFOLD
+      CASE 62
+         ;FOLD SPS_TRIG62 {H}
+         ;ENDFOLD
+      CASE 63
+         ;FOLD SPS_TRIG63 {H}
+         ;ENDFOLD
+      CASE 64
+         ;FOLD SPS_TRIG64 {H}
+         ;ENDFOLD
+      CASE 65
+         ;FOLD SPS_TRIG65 {H}
+         ;ENDFOLD
+      CASE 66
+         ;FOLD SPS_TRIG66 {H}
+         ;ENDFOLD
+      CASE 67
+         ;FOLD SPS_TRIG67 {H}
+         ;ENDFOLD
+      CASE 68
+         ;FOLD SPS_TRIG68 {H}
+         ;ENDFOLD
+      CASE 69
+         ;FOLD SPS_TRIG69 {H}
+         ;ENDFOLD
+      CASE 70
+         ;FOLD SPS_TRIG70 {H}
+         ;ENDFOLD
+      CASE 71
+         ;FOLD SPS_TRIG71 {H}
+         ;ENDFOLD
+      CASE 72
+         ;FOLD SPS_TRIG72 {H}
+         ;ENDFOLD
+      CASE 73
+         ;FOLD SPS_TRIG73 {H}
+         ;ENDFOLD
+      CASE 74
+         ;FOLD SPS_TRIG74 {H}
+         ;ENDFOLD
+      CASE 75
+         ;FOLD SPS_TRIG75 {H}
+         ;ENDFOLD
+      CASE 76
+         ;FOLD SPS_TRIG76 {H}
+         ;ENDFOLD
+      CASE 77
+         ;FOLD SPS_TRIG77 {H}
+         ;ENDFOLD
+      CASE 78
+         ;FOLD SPS_TRIG78 {H}
+         ;ENDFOLD
+      CASE 79
+         ;FOLD SPS_TRIG79 {H}
+         ;ENDFOLD
+      CASE 80
+         ;FOLD SPS_TRIG80 {H}
+         ;ENDFOLD
+      CASE 81
+         ;FOLD SPS_TRIG81 {H}
+         ;ENDFOLD
+      CASE 82
+         ;FOLD SPS_TRIG82 {H}
+         ;ENDFOLD
+      CASE 83
+         ;FOLD SPS_TRIG83 {H}
+         ;ENDFOLD
+      CASE 84
+         ;FOLD SPS_TRIG84 {H}
+         ;ENDFOLD
+      CASE 85
+         ;FOLD SPS_TRIG85 {H}
+         ;ENDFOLD
+      CASE 86
+         ;FOLD SPS_TRIG86 {H}
+         ;ENDFOLD
+      CASE 87
+         ;FOLD SPS_TRIG87 {H}
+         ;ENDFOLD
+      CASE 88
+         ;FOLD SPS_TRIG88 {H}
+         ;ENDFOLD
+      CASE 89
+         ;FOLD SPS_TRIG89 {H}
+         ;ENDFOLD
+      CASE 90
+         ;FOLD SPS_TRIG90 {H}
+         ;ENDFOLD
+      CASE 91
+         ;FOLD SPS_TRIG91 {H}
+         ;ENDFOLD
+      CASE 92
+         ;FOLD SPS_TRIG92 {H}
+         ;ENDFOLD
+      CASE 93
+         ;FOLD SPS_TRIG93 {H}
+         ;ENDFOLD
+      CASE 94
+         ;FOLD SPS_TRIG94 {H}
+         ;ENDFOLD
+      CASE 95
+         ;FOLD SPS_TRIG95 {H}
+         ;ENDFOLD
+      CASE 96
+         ;FOLD SPS_TRIG96 {H}
+         ;ENDFOLD
+      CASE 97
+         ;FOLD SPS_TRIG97 {H}
+         ;ENDFOLD
+      CASE 98
+         ;FOLD SPS_TRIG98 {H}
+         ;ENDFOLD
+      CASE 99
+         ;FOLD SPS_TRIG99 {H}
+         ;ENDFOLD
+      CASE 100
+         ;FOLD SPS_TRIG100 {H}
+         ;ENDFOLD
+      CASE 101
+         ;FOLD SPS_TRIG101 {H}
+         ;ENDFOLD
+      CASE 102
+         ;FOLD SPS_TRIG102 {H}
+         ;ENDFOLD
+      CASE 103
+         ;FOLD SPS_TRIG103 {H}
+         ;ENDFOLD
+      CASE 104
+         ;FOLD SPS_TRIG104 {H}
+         ;ENDFOLD
+      CASE 105
+         ;FOLD SPS_TRIG105 {H}
+         ;ENDFOLD
+      CASE 106
+         ;FOLD SPS_TRIG106 {H}
+         ;ENDFOLD
+      CASE 107
+         ;FOLD SPS_TRIG107 {H}
+         ;ENDFOLD
+      CASE 108
+         ;FOLD SPS_TRIG108 {H}
+         ;ENDFOLD
+      CASE 109
+         ;FOLD SPS_TRIG109 {H}
+         ;ENDFOLD
+      CASE 110
+         ;FOLD SPS_TRIG110 {H}
+         ;ENDFOLD
+      CASE 111
+         ;FOLD SPS_TRIG111 {H}
+         ;ENDFOLD
+      CASE 112
+         ;FOLD SPS_TRIG112 {H}
+         ;ENDFOLD
+      CASE 113
+         ;FOLD SPS_TRIG113 {H}
+         ;ENDFOLD
+      CASE 114
+         ;FOLD SPS_TRIG114 {H}
+         ;ENDFOLD
+      CASE 115
+         ;FOLD SPS_TRIG115 {H}
+         ;ENDFOLD
+      CASE 116
+         ;FOLD SPS_TRIG116 {H}
+         ;ENDFOLD
+      CASE 117
+         ;FOLD SPS_TRIG117 {H}
+         ;ENDFOLD
+      CASE 118
+         ;FOLD SPS_TRIG118 {H}
+         ;ENDFOLD
+      CASE 119
+         ;FOLD SPS_TRIG119 {H}
+         ;ENDFOLD
+      CASE 120
+         ;FOLD SPS_TRIG120 {H}
+         ;ENDFOLD
+      CASE 121
+         ;FOLD SPS_TRIG121 {H}
+         ;ENDFOLD
+      CASE 122
+         ;FOLD SPS_TRIG122 {H}
+         ;ENDFOLD
+      CASE 123
+         ;FOLD SPS_TRIG123 {H}
+         ;ENDFOLD
+      CASE 124
+         ;FOLD SPS_TRIG124 {H}
+         ;ENDFOLD
+      CASE 125
+         ;FOLD SPS_TRIG125 {H}
+         ;ENDFOLD
+      CASE 126
+         ;FOLD SPS_TRIG126 {H}
+         ;ENDFOLD
+   DEFAULT
+   ENDSWITCH
+   ; FOLD ;%{H}
+   IF ($MODE_OP<>#EX) THEN
+      ;-- Trigger erst nach Wiederanstart geschaltet --
+      IF ((((VW_STOP B_AND 'B10010') >0) AND ((VW_STOP B_AND 'B0001')<=0))) THEN
+         ;-- MStep Bewegung --
+         HALT
+      ENDIF
+   ENDIF
+   ; ENDFOLD
+   IF (NOT UES AND NOT ANA_TRIG) THEN
+      SPS_FERTIG=TRUE
+   ENDIF
+   IF (NOT ANA_UES AND ANA_TRIG) THEN
+      SPS_FERTIG_ANA=TRUE
+   ENDIF
+END
+; ENDFOLD

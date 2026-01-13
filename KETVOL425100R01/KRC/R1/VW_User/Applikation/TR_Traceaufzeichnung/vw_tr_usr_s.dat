@@ -1,0 +1,17 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/TR_Traceaufzeichnung
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  VW_TR_USR_S PUBLIC
+;
+;***************************************************
+;*Technologiepaket TR Traceaufzeichnung            *
+;*                                                 *
+;*Konzernstandard                                  *
+;*                                                 *
+;***************************************************
+;
+;
+;***************************************************
+ENDDAT

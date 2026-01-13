@@ -1,0 +1,127 @@
+&ACCESS  RV
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/BU_Buersten
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_bu_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket Buersten                        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2014.09.25 CE                                   *
+;*                                                 *
+;* 2015.01.08 LE  Vorb. Meldungsausg im INIT entf. *
+;***************************************************
+; 
+;Tech_Version
+STRUC _Tech_BU CHAR Name[20],INT Datum
+DECL _Tech_BU Tech_BU
+; 
+;BU
+;VARIABLEN INTEGER
+GLOBAL INT BU_Result=0
+GLOBAL INT BU_Schwellwert=140
+GLOBAL INT BU_Erhoehung=160
+GLOBAL INT TOOL_NR=0
+GLOBAL INT Default_BU_BASE_SL=193
+GLOBAL INT CF_BU_BASE_SL=449
+GLOBAL INT CF_ACF_BASE_SL=449
+GLOBAL INT Timer_BUFeh=0
+;VARIABLEN REAL
+GLOBAL REAL MESS_P_Z=0.0
+GLOBAL REAL DELTA_Z=0.0
+GLOBAL REAL DELTA=0.0
+GLOBAL REAL BU_Verschleiss=0.0
+GLOBAL REAL SUCH_WEG=0.0
+GLOBAL REAL SUCH_VEL=0.01000000 ;max. Suchgeschwindigkeit [m/s]
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_BU=FALSE
+GLOBAL BOOL Messen_aktiv=FALSE
+GLOBAL BOOL Messfehler=FALSE
+GLOBAL BOOL Referenzfahrt=FALSE
+GLOBAL BOOL BU_AutoReset=FALSE
+;FLAGS
+GLOBAL INT F_BU_EIN=620
+GLOBAL INT F_BU_IBN=621
+;BU SLAVE ADRESSIERUNG
+GLOBAL INT BU_BASE_SL=449 ;BU Indirekte Slave Adressen
+;Slave Eingaenge
+GLOBAL INT I_BU_o_Proz=0
+;Slave Ausgaenge
+GLOBAL INT O_BU_Proz_aktiv=0
+GLOBAL INT O_BU_Messen_aktiv=1
+GLOBAL INT O_BU_Vw_Standmenge=2
+GLOBAL INT O_BU_max_Standmenge=3
+GLOBAL INT O_BU_Messfehler=5
+GLOBAL INT O_BU_Stoer=6
+GLOBAL INT O_BU_Sammel=7
+;Master Eingaenge
+GLOBAL INT I_BU_Proz_aktiv=2952
+GLOBAL INT I_BU_Sammel=2960
+;Master Ausgaenge
+GLOBAL INT O_BU_ANT_EIN=2952
+; 
+;ACF
+;VARIABLEN REAL
+GLOBAL REAL ACF_Result_1=0.0
+GLOBAL REAL ACF_Result_2=0.0
+GLOBAL REAL ACF_Result_3=0.0
+GLOBAL REAL ACF_Result_4=0.0
+GLOBAL REAL ACF_Result_5=0.0
+GLOBAL REAL ACF_Result_6=0.0
+GLOBAL REAL ACF_istkraft_Hilf=0.0
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_ACF=FALSE
+GLOBAL BOOL ACF110=FALSE
+GLOBAL BOOL ACF111=FALSE
+GLOBAL BOOL ACF12x=FALSE
+GLOBAL BOOL ACF131=FALSE
+;VARIABLEN INTEGER
+GLOBAL INT ACF_max_WEG=0
+;Slave Eingaenge
+GLOBAL INT I_ACF_oh_Kra=1
+;Master Eingaenge
+GLOBAL INT I_ACF_LBit=2947
+GLOBAL INT I_ACF_R_Hand=2949
+GLOBAL INT I_ACF_R_Auto=2950
+GLOBAL INT I_ACF_teach=2951
+GLOBAL INT I_ACF_Kontakt=2953
+GLOBAL INT ACF_istneg=2976
+GLOBAL INT I_ACF_Sammel=2960
+;Master Ausgaenge
+GLOBAL INT O_ACF_Reset=2945
+GLOBAL INT O_ACF_oh_Kra=2946
+GLOBAL INT O_ACF_Teach=2951
+GLOBAL INT O_ACF_LBit=2947
+GLOBAL INT O_ACF_R_Hand=2949
+GLOBAL INT O_ACF_R_Auto=2950
+; 
+SIGNAL SI_ACF_Istpos $IN[2977]  TO $IN[2992]
+SIGNAL SI_ACF_IstKraft $IN[2961]  TO $IN[2975]
+SIGNAL ACF_ZCode $OUT[2957]  TO $OUT[2959]
+; 
+;Lebensbit ACF
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL ACF_LBitFeh[2]
+ACF_LBitFeh[1]=FALSE
+ACF_LBitFeh[2]=FALSE
+; 
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrACFNr=-1
+; 
+;Meldungsausgabe
+ENUM BUS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_BUS_Handle[100]
+GLOBAL INT n_BUR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+; 
+ENDDAT

@@ -1,0 +1,15 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/VMT
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 141
+DEFDAT  vw_vmt_usr_r PUBLIC
+;
+;***************************************************
+;* VMT Vision Machine Technic GmbH                 *
+;*                                                 *
+;* Bearbeitet am:                                  *
+;* 01.09.2015 FH  Erstellt                         *
+;***************************************************
+;
+ENDDAT

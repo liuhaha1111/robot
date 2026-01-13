@@ -1,0 +1,1308 @@
+&ACCESS RE
+&REL 24
+&COMMENT KS26 (Tech_Basic)
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Zeiss
+DEF vw_zai_usr_r( )
+;
+;***************************************************
+;* Techpaket Carl Zeiss Automated Inspection GmbH  *
+;*                                                 *
+;* Konzernstandard 26                              *
+;* Bearbeiter: Peter Hofmann                       *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 23.08.2017 Version 0.8                          *
+;***************************************************
+;
+END
+;
+;FOLD CZAI_Interface
+;
+GLOBAL DEF ZAI_Interface(USER_CMD:IN,CMD_SEL:IN,CZAI_COMMAND:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN) ;Variante mit 9 Parametern (PAR1-PAR9)
+	DECL VW_USER_CMD USER_CMD
+	DECL INT  CMD_SEL,CZAI_COMMAND,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+;
+	DECL INT i, upNummer, upIndex, result, OFFSET
+	DECL BOOL valueOot
+	DECL STATE_T Stat
+   DECL CHAR Text[80]
+;
+	SWITCH USER_CMD
+;***************************************************
+		CASE #USR_INIT
+			;FOLD Init
+			;ENDFOLD (Init)
+;***************************************************
+		CASE #USR_ADV
+			;FOLD Advance
+			;ENDFOLD (Advance)
+;***************************************************
+		CASE #USR_TRIG
+			;FOLD Trig
+			;ENDFOLD (Trig)
+;***************************************************
+		CASE #USR_MAIN
+			;FOLD Main
+         IF ($IN[ProdOhneTeil] == TRUE) THEN
+				CZAI_Msg(#NotifyMsg, CZAI_INFO, "Produktion ohne Teil aktiv")
+				RETURN
+			ENDIF
+
+			SWITCH CMD_SEL
+				CASE CZAI_MEAS_GRP, CZAI_SERVICE_GRP
+					;FOLD MeasureGroup and ServiceGroup
+           				SWITCH CZAI_COMMAND
+           
+						CASE CZAI_ZYKLUS_START
+							;FOLD ZYKLUS_START
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Messung. Modell=", PAR2)
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_MEASURE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START, , PAR2)
+            					ENDIF
+							;ENDFOLD (ZYKLUS_START)
+
+						CASE CZAI_SENSORTAUSCH
+							;FOLD SENSORTAUSCH
+							CZAI_StopAtPointError = TRUE
+							CZAI_StopCode = CZAI_ERR_TOOLCHG
+							CZAI_CalculationRequired = FALSE
+     							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Sensortausch")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_TOOL_CHANGE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START_TOOLCHG)
+            					ENDIF
+							;ENDFOLD (SENSORTAUSCH)
+            
+						CASE CZAI_ROBOTERTAUSCH
+							;FOLD ROBOTERTAUSCH
+							CZAI_StopAtPointError = TRUE
+							CZAI_StopCode = CZAI_ERR_ROBCHG
+		     					CZAI_CalculationRequired = TRUE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Robotertausch")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_ACALIB )) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START_ROBCHG)
+            					ENDIF
+							;ENDFOLD (ROBOTERTAUSCH)
+            
+						CASE CZAI_ARTEFAKTTAUSCH
+							;FOLD ARTEFAKTTAUSCH
+							CZAI_StopAtPointError = TRUE
+							CZAI_StopCode = CZAI_ERR_ARTCHG
+		     					CZAI_CalculationRequired = TRUE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Artefakttausch")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_ARTEFACT_CHG)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START_ARTCHG)
+            					ENDIF
+							;ENDFOLD (ARTEFAKTTAUSCH)
+            
+						CASE CZAI_UP_Holen
+							;FOLD UP_Holen
+							IF PAR2 >= 100 THEN  ; Temperature compensation - full or sequential?
+								CZAI_StopAtPointError = FALSE
+								CZAI_StopCode = CZAI_ERR_TCALIB
+			     					CZAI_CalculationRequired = TRUE
+								IF $FLAG[F_CZAI_FlagStart + F_TeilKomp] THEN   ;sequential
+									upIndex= CZAI_UpHolen( 101 )
+									CZAI_TCalib = TRUE
+									; check value
+									IF( (upIndex > 0 ) AND ( upIndex <= 20 ) ) THEN
+										upNummer = CZAI_TCAL_UP_START + upIndex
+										CZAI_Msg( #NotifyMsg, CZAI_INFO, "UP Holen. UP=", upNummer)
+										result = SELECT( #UP, upNummer, TRUE ) ;UP selektieren
+									ELSE
+										CZAI_Msg( #NotifyMsg, CZAI_ERR_PROGID )
+										CZAI_SetErrorFlags()
+									ENDIF
+								ELSE   ;full
+									upIndex = CZAI_UpHolen( 100 )
+									CZAI_TCalib = TRUE
+									; check value
+									IF( upIndex == 20 ) THEN
+										upNummer = CZAI_TCAL_UP_START
+										CZAI_Msg( #NotifyMsg, CZAI_INFO, "UP Holen. UP=", upNummer)
+										result = SELECT( #UP, upNummer, TRUE ) ;UP selektieren
+									ELSE
+										CZAI_Msg( #NotifyMsg, CZAI_ERR_PROGID )
+										CZAI_SetErrorFlags()
+									ENDIF
+								ENDIF
+							ELSE   ;Messprogramm-Routine holen
+								CZAI_StopAtPointError = FALSE
+			     					CZAI_CalculationRequired = FALSE
+								upIndex = CZAI_UpHolen( PAR2 )
+								; check value
+								IF( ( upIndex  > 0 ) AND ( upIndex <= 20 ) ) THEN
+									upNummer = 10 * PAR2 + upIndex - 1
+									CZAI_Msg( #NotifyMsg, CZAI_INFO, "UP Holen. UP=", upNummer)
+									result = SELECT( #UP, upNummer, TRUE ) ;UP selektieren
+								ELSE
+									CZAI_Msg( #NotifyMsg, CZAI_ERR_PROGID )
+									CZAI_SetErrorFlags()
+								ENDIF				
+							ENDIF					
+							;ENDFOLD (UP_Holen)
+
+						CASE CZAI_TRIGGER_MESSPUNKT, CZAI_LETZTER_MESSPUNKT, CZAI_LT_TRIGGER_MP, CZAI_LT_LETZTER_MP
+							;FOLD MESSPUNKT
+							;CZAI_Msg( #NotifyMsg, CZAI_INFO, "Trigger MP", PAR3)
+							WAIT SEC CZAI_InPosWaitTime
+							IF ((CZAI_COMMAND == CZAI_LT_TRIGGER_MP) OR (CZAI_COMMAND == CZAI_LT_LETZTER_MP)) THEN
+								result = CZAI_Trigger(PAR3, TRUE)
+							ELSE
+								result = CZAI_Trigger(PAR3, FALSE)
+							ENDIF
+							IF CZAI_StopAtPointError THEN
+								WHILE (result <> 0) 
+									CZAI_Msg(#DlgMsg, CZAI_ERR_MEASURE, , PAR3)
+									IF ((CZAI_COMMAND == CZAI_LT_TRIGGER_MP) OR (CZAI_COMMAND == CZAI_LT_LETZTER_MP)) THEN
+										result = CZAI_Trigger(PAR3, TRUE)
+									ELSE
+										result = CZAI_Trigger(PAR3, FALSE)
+									ENDIF
+								ENDWHILE
+								CZAI_Msg( #NotifyMsg, CZAI_INFO, "Trigger OK MP", PAR3)
+							ELSE
+								IF (result <> 0) THEN
+									CZAI_Msg(#NotifyMsg, CZAI_ERR_MEASURE, ,PAR3)
+								ELSE
+									CZAI_Msg( #NotifyMsg, CZAI_INFO, "Trigger OK MP", PAR3)
+								ENDIF
+							ENDIF
+
+							IF ((CZAI_COMMAND == CZAI_LETZTER_MESSPUNKT) OR (CZAI_COMMAND == CZAI_LT_LETZTER_MP)) THEN	
+								IF (NOT CZAI_End()) THEN
+									IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+										CZAI_Msg(#DlgMsg, CZAI_StopCode)
+									ENDIF
+									IF (CZAI_CalculationRequired) THEN
+										CZAI_Msg(#NotifyMsg, CZAI_StopCode)
+									ENDIF
+								ELSE
+									CZAI_Msg( #NotifyMsg, CZAI_INFO, "ZyklusEnde OK")
+								ENDIF
+							ENDIF
+							;ENDFOLD (MESSPUNKT)
+									        
+						CASE CZAI_ZYKLUS_ENDE
+							;FOLD ZYKLUS_ENDE
+							IF (NOT CZAI_End()) THEN
+								IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+									CZAI_Msg(#DlgMsg, CZAI_StopCode)
+								ENDIF
+								IF (CZAI_CalculationRequired) THEN
+									CZAI_Msg(#NotifyMsg, CZAI_StopCode)
+								ENDIF
+							ELSE
+								CZAI_Msg( #NotifyMsg, CZAI_INFO, "ZyklusEnde OK")
+							ENDIF
+							;ENDFOLD (ZYKLUS_ENDE)
+
+						CASE CZAI_BASE_KORR_HOLEN
+							;FOLD BASE_KORR_HOLEN
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Basekorr. holen")
+							IF NOT CZAI_ReadFrame(BaseIndex) THEN
+								IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+									CZAI_Msg(#DlgMsg, CZAI_ERR_FRAME)
+								ELSE
+									CZAI_Msg(#NotifyMsg, CZAI_ERR_FRAME)
+								ENDIF
+								CZAI_SetErrorFlags()
+							ENDIF
+                                          CZAI_AdjustBaseFrame()
+							;ENDFOLD (BASE_KORR_HOLEN)
+
+						CASE CZAI_BASE_KORR_AUSF
+							;FOLD BASE_KORR_AUSF
+                                          IF NOT CZAI_CheckFrame(BaseIndex) THEN
+								IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+									CZAI_Msg(#DlgMsg, CZAI_ERR_FRAME_LIMIT)
+								ELSE
+									CZAI_Msg(#NotifyMsg, CZAI_ERR_FRAME_LIMIT)
+								ENDIF
+								CZAI_SetErrorFlags()              
+                                          ELSE
+                                                IF ((PAR4 < 1) OR (PAR4 > 32) OR (PAR5 < 1) OR (PAR5 > 32)) THEN
+                                                      IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+							      		CZAI_Msg(#DlgMsg, CZAI_ERR_TOOL_BASE_INDEX)
+								      ELSE
+									      CZAI_Msg(#NotifyMsg, CZAI_ERR_TOOL_BASE_INDEX)
+								      ENDIF                 
+									CZAI_SetErrorFlags()              
+                                                ELSE
+						      	      CZAI_Msg(#NotifyMsg, CZAI_INFO, "BaseKorrektur BASE=", PAR4)
+                                                      BASE_DATA[PAR4] = BASE_DATA[PAR5] : AVF_CZAI_Korr1
+                                                      IF (NOT CZAI_Start(0, CZAI_MODE_SAVE_LAST_BASE)) THEN
+		      					      	IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+			      					      	CZAI_Msg(#DlgMsg, CZAI_ERR_BASE_SAVE)
+				      				      ELSE
+					      				CZAI_Msg(#NotifyMsg, CZAI_ERR_BASE_SAVE)
+						      	      	ENDIF                 
+										CZAI_SetErrorFlags() 
+                                                      ELSE
+							                  CZAI_Msg(#NotifyMsg, CZAI_INFO, "Messungen speichern")
+                                                      ENDIF
+                                                ENDIF
+                                          ENDIF
+							;ENDFOLD (BASE_KORR_AUSF)
+
+						CASE CZAI_TOOL_KORR_HOLEN
+							;FOLD TOOL_KORR_HOLEN
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Toolkorr. holen")
+							IF NOT CZAI_ReadFrame(ToolIndex) THEN
+								IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+									CZAI_Msg(#DlgMsg, CZAI_ERR_FRAME)
+								ELSE
+									CZAI_Msg(#NotifyMsg, CZAI_ERR_FRAME)
+								ENDIF
+								CZAI_SetErrorFlags()
+							ENDIF
+                                          CZAI_AdjustToolFrame()
+							;ENDFOLD (TOOL_KORR_HOLEN)
+
+						CASE CZAI_TOOL_KORR_AUSF
+							;FOLD TOOL_KORR_AUSF
+                                          IF NOT CZAI_CheckFrame(ToolIndex) THEN
+								IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+									CZAI_Msg(#DlgMsg, CZAI_ERR_FRAME_LIMIT)
+								ELSE
+									CZAI_Msg(#NotifyMsg, CZAI_ERR_FRAME_LIMIT)
+								ENDIF
+								CZAI_SetErrorFlags()              
+                                          ELSE
+                                                IF ((PAR4 < 1) OR (PAR4 > 32)) THEN
+                                                      IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+							      		CZAI_Msg(#DlgMsg, CZAI_ERR_TOOL_BASE_INDEX)
+								      ELSE
+									      CZAI_Msg(#NotifyMsg, CZAI_ERR_TOOL_BASE_INDEX)
+								      ENDIF                 
+									CZAI_SetErrorFlags()              
+                                                ELSE
+						      	      CZAI_Msg(#NotifyMsg, CZAI_INFO, "ToolKorrektur TOOL=", PAR4)
+                                                      CZAI_ApplyToolFrame(PAR5)
+                                                      IF (NOT CZAI_Start(0, CZAI_MODE_SAVE_LAST_TOOL)) THEN
+		      					      	IF (CZAI_StopAtPointError AND CZAI_CalculationRequired) THEN
+			      					      	CZAI_Msg(#DlgMsg, CZAI_ERR_TCP_SAVE)
+				      				      ELSE
+					      				CZAI_Msg(#NotifyMsg, CZAI_ERR_TCP_SAVE)
+						      	      	ENDIF                 
+										CZAI_SetErrorFlags() 
+                                                      ELSE
+							                  CZAI_Msg(#NotifyMsg, CZAI_INFO, "Messungen speichern")
+                                                      ENDIF
+                                                ENDIF
+                                          ENDIF
+                                          ;ENDFOLD (TOOL_KORR_AUSF)
+
+						CASE CZAI_TCP_MEASURE
+							;FOLD TCP_MEASURE
+							CZAI_StopAtPointError = TRUE
+							CZAI_CalculationRequired = TRUE
+							CZAI_StopCode = CZAI_ERR_TCP_MEAS
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start TCP messen")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_TOOL_MEASURE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START_TCP_MEAS)
+            					ENDIF
+							;ENDFOLD (TCP_MEASURE)
+            
+						CASE CZAI_TCP_SAVE
+							;FOLD TCP_SAVE
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "TCP speichern")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_SAVE_LAST_TOOL)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_TCP_SAVE)
+            					ENDIF
+							;ENDFOLD (TCP_SAVE)
+            
+						CASE CZAI_BASE_MEASURE
+							;FOLD BASE_MEASURE
+							CZAI_StopAtPointError = TRUE
+							CZAI_CalculationRequired = TRUE
+							CZAI_StopCode = CZAI_ERR_BASE_MEAS
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Base messen")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_BASE_MEASURE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_START_BASE_MEAS)
+            					ENDIF
+							;ENDFOLD (BASE_MEASURE)
+
+						CASE CZAI_BASE_SAVE
+							;FOLD BASE_SAVE
+							CZAI_StopAtPointError = TRUE
+							CZAI_CalculationRequired = TRUE
+							CZAI_StopCode = CZAI_ERR_BASE_SAVE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Base peichern")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_SAVE_LAST_BASE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_BASE_SAVE)
+            					ENDIF
+							;ENDFOLD (BASE_SAVE)
+
+						CASE CZAI_LT_BASE1_SAVE
+							;FOLD BASE11_SAVE
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "LT_Base1 speichern")
+							BASE_DATA[13] = BASE_DATA[11]
+							;ENDFOLD (BASE11_SAVE)
+
+						CASE CZAI_LT_BASE2_SAVE
+							;FOLD BASE12_SAVE
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "LT_Base2 speichern")
+							BASE_DATA[14] = BASE_DATA[12]
+							;ENDFOLD (BASE12_SAVE)
+
+						CASE CZAI_LT_BASE1_RESTORE
+							;FOLD BASE11_RESTORE
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "LT_Base1 restaurieren")
+							BASE_DATA[11] = BASE_DATA[13]
+							;ENDFOLD (BASE11_RESTORE)
+
+						CASE CZAI_LT_BASE2_RESTORE
+							;FOLD BASE12_RESTORE
+							CZAI_StopAtPointError = FALSE
+							CZAI_CalculationRequired = FALSE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "LT_Base2 restaurieren")
+							BASE_DATA[12] = BASE_DATA[14]
+							;ENDFOLD (BASE12_RESTORE)
+            
+						CASE CZAI_TCP_PREPARE
+							;FOLD TCP_PREPARE
+							CZAI_StopAtPointError = TRUE
+							CZAI_CalculationRequired = TRUE
+							CZAI_StopCode = CZAI_ERR_TCP_MEAS_SAVE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start TCP vorbereiten")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_TOOL_MEAS_SAVE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_ST_TCP_MS_SAVE)
+            					ENDIF
+							;ENDFOLD (TCP_PREPARE)
+
+						CASE CZAI_BASE_PREPARE
+							;FOLD BASE_PREPARE
+							CZAI_StopAtPointError = TRUE
+							CZAI_CalculationRequired = TRUE
+							CZAI_StopCode = CZAI_ERR_BASE_MEAS_SAVE
+							CZAI_Msg(#NotifyMsg, CZAI_INFO, "Start Base vorbereiten")
+							IF (NOT CZAI_Start(PAR2, CZAI_MODE_BASE_MEAS_SAVE)) THEN
+								CZAI_Msg(#NotifyMsg, CZAI_ERR_ST_BASE_MS_SAVE)
+            					ENDIF
+							;ENDFOLD (BASE_PREPARE)
+
+						DEFAULT
+							CZAI_Msg( #QuitMsg, CZAI_ERR_COMMAND, "CZAI_Cmd", CZAI_COMMAND )
+
+					ENDSWITCH
+					;ENDFOLD (MeasureGroup and ServiceGroup)
+
+				DEFAULT
+					CZAI_Msg( #QuitMsg, CZAI_ERR_GROUP, "CMD", CMD_SEL )	
+
+			ENDSWITCH
+			;ENDFOLD (Main)
+;-----------------------------------------------------------
+		CASE #USR_MAKRO
+			;FOLD MAKRO
+			;Hier werden Konfigurationen gesetzt
+			;User-Aufruf aus Makro57
+			;(ersetzt die ehemaligen Konfigurationsflags im Makro 50/57) 
+			SWITCH CMD_SEL
+				CASE CZAI_CONFIG1_GRP, CZAI_CONFIG2_GRP
+					;FOLD ConfigGroups
+           				SWITCH CZAI_COMMAND
+           
+						CASE CZAI_SET_MSG_LEVEL
+							;FOLD ERRORLEVEL
+							IF ( PAR4 > 1 ) THEN
+								CZAI_ErrorLevel = PAR4
+								CZAI_Msg ( #NotifyMsg, CZAI_CONFIG_INFO, "Setze ErrorLevel auf ", CZAI_ErrorLevel )
+							ELSE
+								CZAI_Msg ( #NotifyMsg, CZAI_VALUE_OOT )
+							ENDIF
+							;ENDFOLD (ERRORLEVEL)
+           
+						CASE CZAI_SET_T1_MSG_LEVEL
+							;FOLD MAN_ERRORLEVEL
+							IF ( PAR4 > 1 ) THEN
+								CZAI_ManualErrorLevel = PAR4
+								CZAI_Msg ( #NotifyMsg, CZAI_CONFIG_INFO, "Setze ManualErrorLevel auf ", CZAI_ManualErrorLevel)
+							ELSE
+								CZAI_Msg ( #NotifyMsg, CZAI_VALUE_OOT )
+							ENDIF
+							;ENDFOLD (MAN_ERRORLEVEL)
+
+						CASE CZAI_SET_UP_START
+							;FOLD UP_Start
+							IF ( PAR5 > 1 ) THEN
+								CZAI_TCAL_UP_START = PAR5
+								CZAI_Msg ( #NotifyMsg, CZAI_CONFIG_INFO, "Setze TempComp UP auf ", CZAI_TCAL_UP_START )
+							ELSE
+								CZAI_Msg ( #NotifyMsg, CZAI_VALUE_OOT )
+							ENDIF
+							;ENDFOLD (UP_Start)
+
+						CASE CZAI_SET_FLAGS_START
+							;FOLD FLAGS_START
+							IF ( PAR2 > 0 ) THEN
+								F_CZAI_FlagStart = PAR2
+								CZAI_Msg ( #NotifyMsg, CZAI_CONFIG_INFO, "Setze erstes VisionFlag auf ", F_CZAI_FlagStart )
+							ELSE
+								CZAI_Msg ( #NotifyMsg, CZAI_VALUE_OOT )
+							ENDIF
+							;ENDFOLD (FLAGS_START)
+
+						CASE CZAI_SET_INPOSWAIT
+							;FOLD INPOSWAIT
+							IF (PAR3 < 0) THEN
+					      		CZAI_Msg(#NotifyMsg, CZAI_VALUE_OOT)
+							ELSE
+								CZAI_Msg(#NotifyMsg, CZAI_CONFIG_INFO, "Setze globale Beruhigungszeit [ms] auf ", PAR3)
+								CZAI_InPosWaitTime = 0.001 * PAR3
+							ENDIF
+							;ENDFOLD (INPOSWAIT)
+
+						CASE CZAI_SET_BASE_TOLERANCE
+							;FOLD BASE_TOLERANCE
+							valueOot = FALSE
+							IF ((PAR4 < 0) OR (PAR5 < 0) OR (PAR6 < 0)) THEN
+					      		CZAI_Msg(#NotifyMsg, CZAI_VALUE_OOT)
+								valueOot = TRUE
+							ENDIF
+							IF ((PAR7 < 0) OR (PAR8 < 0) OR (PAR9 < 0)) THEN
+					      		CZAI_Msg(#NotifyMsg, CZAI_VALUE_OOT)
+								valueOot = TRUE
+							ENDIF
+							IF NOT valueOot THEN
+								OFFSET = 0
+								swrite(Text[], STAT, OFFSET, "Setze BaseKorr Limit +-{X %d Y %d Z %d A %d B %d C %d}", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_Msg(#NotifyMsg, CZAI_CONFIG_INFO, Text[])
+								VF_CZAI_Min1.X = -PAR4
+								VF_CZAI_Max1.X = PAR4
+								VF_CZAI_Min1.Y = -PAR5
+								VF_CZAI_Max1.Y = PAR5
+								VF_CZAI_Min1.Z = -PAR6
+								VF_CZAI_Max1.Z = PAR6
+								VF_CZAI_Min1.A = -PAR7
+								VF_CZAI_Max1.A = PAR7
+								VF_CZAI_Min1.B = -PAR8
+								VF_CZAI_Max1.B = PAR8
+								VF_CZAI_Min1.C = -PAR9
+								VF_CZAI_Max1.C = PAR9
+							ENDIF
+							;ENDFOLD (BASE_TOLERANCE)
+
+						CASE CZAI_SET_TOOL_TOLERANCE
+							;FOLD TOOL_TOLERANCE
+							valueOot = FALSE
+							IF ((PAR4 < 0) OR (PAR4 > 10) OR (PAR5 < 0) OR (PAR5 > 10) OR (PAR6 < 0) OR (PAR6 > 10)) THEN
+					      		CZAI_Msg(#NotifyMsg, CZAI_VALUE_OOT)
+								valueOot = TRUE
+							ENDIF
+							IF ((PAR7 < 0) OR (PAR7 > 5) OR (PAR8 < 0) OR (PAR8 > 5) OR (PAR9 < 0) OR (PAR9 > 5)) THEN
+					      		CZAI_Msg(#NotifyMsg, CZAI_VALUE_OOT)
+								valueOot = TRUE
+							ENDIF
+							IF NOT valueOot THEN
+								OFFSET = 0
+								swrite(Text[], STAT, OFFSET, "Setze ToolKorr Limit +-{X %d Y %d Z %d A %d B %d C %d}", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_Msg(#NotifyMsg, CZAI_CONFIG_INFO, Text[])
+								VF_CZAI_Min2.X = -PAR4
+								VF_CZAI_Max2.X = PAR4
+								VF_CZAI_Min2.Y = -PAR5
+								VF_CZAI_Max2.Y = PAR5
+								VF_CZAI_Min2.Z = -PAR6
+								VF_CZAI_Max2.Z = PAR6
+								VF_CZAI_Min2.A = -PAR7
+								VF_CZAI_Max2.A = PAR7
+								VF_CZAI_Min2.B = -PAR8
+								VF_CZAI_Max2.B = PAR8
+								VF_CZAI_Min2.C = -PAR9
+								VF_CZAI_Max2.C = PAR9
+							ENDIF
+							;ENDFOLD (TOOL_TOLERANCE)
+
+						CASE CZAI_SET_KORR_TO_TOOL
+							;FOLD KORR_TO_TOOL
+							OFFSET = 0
+							CZAI_TrafoKorrToTool.X = PAR4
+							CZAI_TrafoKorrToTool.Y = PAR5
+							CZAI_TrafoKorrToTool.Z = PAR6
+							CZAI_TrafoKorrToTool.A = PAR7
+							CZAI_TrafoKorrToTool.B = PAR8
+							CZAI_TrafoKorrToTool.C = PAR9
+							IF (PAR3 == 1) THEN
+								swrite(Text[], STAT, OFFSET, "Setze KorrToTool {X %d Y %d Z %d A %d B %d C %d} RHS", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_KorrToTool_Right = TRUE
+							ELSE
+								swrite(Text[], STAT, OFFSET, "Setze KorrToTool {X %d Y %d Z %d A %d B %d C %d} LHS", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_KorrToTool_Right = FALSE
+							ENDIF
+							CZAI_Msg(#NotifyMsg, CZAI_CONFIG_INFO, Text[])
+							;ENDFOLD (KORR_TO_TOOL)
+
+						CASE CZAI_SET_KORR_TO_BASE
+							;FOLD KORR_TO_BASE
+							OFFSET = 0
+							CZAI_TrafoKorrToBase.X = PAR4
+							CZAI_TrafoKorrToBase.Y = PAR5
+							CZAI_TrafoKorrToBase.Z = PAR6
+							CZAI_TrafoKorrToBase.A = PAR7
+							CZAI_TrafoKorrToBase.B = PAR8
+							CZAI_TrafoKorrToBase.C = PAR9
+							IF (PAR3 == 1) THEN
+								swrite(Text[], STAT, OFFSET, "Setze KorrToBase {X %d Y %d Z %d A %d B %d C %d} RHS", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_KorrToBase_Right = TRUE
+							ELSE
+								swrite(Text[], STAT, OFFSET, "Setze KorrToBase {X %d Y %d Z %d A %d B %d C %d} LHS", PAR4, PAR5, PAR6, PAR7, PAR8, PAR9)
+								CZAI_KorrToBase_Right = FALSE
+							ENDIF
+							CZAI_Msg(#NotifyMsg, CZAI_CONFIG_INFO, Text[])
+							;ENDFOLD (KORR_TO_BASE)
+
+					ENDSWITCH
+
+					;ENDFOLD (ConfigGroups)
+
+			ENDSWITCH
+			;ENDFOLD (MAKRO)
+    
+	ENDSWITCH
+END
+;
+;ENDFOLD (CZAI_Interface)
+;
+;FOLD Meldungen
+;
+GLOBAL DEF CZAI_Msg(MsgTyp :IN, msg_nr :IN, StringPar[]: IN, IntPar: IN, RealPar: IN)
+	DECL CZAI_MsgType MsgTyp	
+	DECL INT Msg_nr
+	DECL CHAR StringPar[]
+	DECL INT IntPar
+	DECL REAL RealPar
+
+	DECL KrlMsg_T USER_MSG
+	DECL KrlMsgPar_T Par[3]
+	DECL KrlMsgOpt_T Opt
+	DECL STATE_T Stat 
+	DECL INT handle
+	DECL CHAR Info1[20], Info2[20]
+	DECL INT OFFSET
+	DECL KrlMsgDlgSK_T SK[7]
+	DECL INT i
+	DECL INT dlgAnswer
+	DECL INT length, OFFSET1
+
+	;In Automatik ausgegeben?
+	IF ($mode_op <> #T1) AND ($mode_op <> #T2) THEN
+		IF ((MsgTyp == #DlgMsg) OR (MsgTyp == #QuitMsg)) THEN  ;keine Dialog- oder Quittierungs-Message in Automatik!
+			RETURN
+		ENDIF
+		IF ( Msg_nr >= CZAI_ErrorLevel ) THEN  ;in Automatik nur Fehlermeldung < CZAI_ErrorLevel
+			RETURN
+		ENDIF
+	ELSE
+		IF ( Msg_nr >= CZAI_ManualErrorLevel ) THEN  ;in T1/2 nur Fehlermeldung < CZAI_ManualErrorLevel
+			RETURN
+		ENDIF
+	ENDIF
+
+	
+	SK[1] = {Sk_Type #Value, Sk_Txt[] "OK"}
+	FOR i = 2 TO 7
+		SK[i] = {Sk_Type #Empty}
+	ENDFOR
+
+    	USER_MSG={Modul[] "CZAI_Msg", Nr -1, Msg_txt[] " "}
+	Opt={VL_Stop FALSE, Clear_P_Reset True, Log_To_DB False}
+	Par[1]={Par_type #Value,Par_txt[] " "}
+;
+	USER_MSG.Nr = msg_nr
+	SWITCH msg_nr
+		CASE CZAI_ERR_GROUP
+			USER_MSG.MSG_TXT[]="Unbekannte Gruppe oder Untergruppe" 
+
+		CASE CZAI_ERR_COMMAND
+			USER_MSG.MSG_TXT[]="Unbekannte Meldung"
+
+		CASE CZAI_ERR_WAIT
+			USER_MSG.MSG_TXT[]="Timeout MR" 
+
+		CASE CZAI_ERR_ACK
+			USER_MSG.MSG_TXT[]="Kein ACK vom MR" 
+
+		CASE CZAI_ERR_STATUS
+			USER_MSG.MSG_TXT[]="MR meldet Fehler" 
+
+		CASE CZAI_ERR_CALC
+			USER_MSG.MSG_TXT[]="Fehler beim Berechnen" 
+
+		CASE CZAI_ERR_START
+			USER_MSG.MSG_TXT[]="Fehler beim Starten der Messung. Modell=" 
+
+		CASE CZAI_ERR_START_TOOLCHG
+			USER_MSG.MSG_TXT[]="Fehler bei Tooltausch" 
+
+		CASE CZAI_ERR_START_ROBCHG
+			USER_MSG.MSG_TXT[]="Fehler beim Robotertausch" 
+
+		CASE CZAI_ERR_START_ARTCHG
+			USER_MSG.MSG_TXT[]="Fehler beim Artefakttausch" 
+
+		CASE CZAI_INFO, CZAI_CONFIG_INFO
+
+		CASE CZAI_ERR_PROGID 
+			USER_MSG.MSG_TXT[]="ProgID ungueltig" 
+
+		CASE CZAI_ERR_MEASURE
+			USER_MSG.MSG_TXT[]="Messfehler MP" 
+
+		CASE CZAI_ERR_TOOLCHG 
+			USER_MSG.MSG_TXT[]="Fehler beim Tooltausch" 
+
+		CASE CZAI_ERR_ROBCHG 
+			USER_MSG.MSG_TXT[]="Fehler beim Robotertausch" 
+
+		CASE CZAI_ERR_ARTCHG 
+			USER_MSG.MSG_TXT[]="Fehler beim Artefakttausch" 
+
+		CASE CZAI_ERR_TCALIB 
+			USER_MSG.MSG_TXT[]="Kompensationsfehler" 
+
+		CASE CZAI_ERR_START_TCP_MEAS 
+			USER_MSG.MSG_TXT[]="Fehler beim TCP einmessen" 
+
+		CASE CZAI_ERR_TCP_MEAS 
+			USER_MSG.MSG_TXT[]="Fehler beim TCP einmessen" 
+
+		CASE CZAI_ERR_ST_TCP_MS_SAVE 
+			USER_MSG.MSG_TXT[]="Fehler beim TCP vorbereiten" 
+
+		CASE CZAI_ERR_TCP_MEAS_SAVE
+			USER_MSG.MSG_TXT[]="Fehler beim TCP vorbereiten"
+
+		CASE CZAI_ERR_START_BASE_MEAS
+			USER_MSG.MSG_TXT[]="Fehler beim Base messen" 
+ 
+		CASE CZAI_ERR_BASE_MEAS
+			USER_MSG.MSG_TXT[]="Fehler beim Base messen" 
+
+		CASE CZAI_ERR_ST_BASE_MS_SAVE 
+			USER_MSG.MSG_TXT[]="Fehler beim Base vorbereiten" 
+
+		CASE CZAI_ERR_BASE_MEAS_SAVE 
+			USER_MSG.MSG_TXT[]="Fehler beim Base vorbereiten" 
+
+		CASE CZAI_ERR_TCP_SAVE 
+			USER_MSG.MSG_TXT[]="Fehler beim TCP speichern" 
+
+		CASE CZAI_ERR_BASE_SAVE 
+			USER_MSG.MSG_TXT[]="Fehler beim Base speichern" 
+
+		CASE CZAI_ERR_FRAME 
+			USER_MSG.MSG_TXT[]="Fehler beim Einlesen des Korrekturframes" 
+
+		CASE CZAI_ERR_FRAME_LIMIT 
+			USER_MSG.MSG_TXT[]="Korrekturframe OOT" 
+
+		CASE CZAI_ERR_TOOL_BASE_INDEX 
+			USER_MSG.MSG_TXT[]="Ungueltiger Index fuer Tool oder Base" 
+
+		CASE CZAI_NOT_SUPPORTED 
+			USER_MSG.MSG_TXT[]="Diese Funktion wird derzeit nicht unterstuetzt" 
+
+		CASE CZAI_VALUE_OOT
+			USER_MSG.MSG_TXT[]="Ungueltiger Wert" 
+
+		DEFAULT
+			USER_MSG.MSG_TXT[]="unbekannte Meldung"
+	ENDSWITCH
+
+	IF varState("StringPar") == #INITIALIZED THEN
+		length = STRLEN (USER_MSG.MSG_TXT[])
+		swrite (USER_MSG.MSG_TXT[], STAT, length, " %s", StringPar[])
+	ENDIF
+	IF varState("StringPar[]") == #INITIALIZED THEN
+		length = STRLEN (USER_MSG.MSG_TXT[])
+		swrite (USER_MSG.MSG_TXT[], STAT, length, " %s", StringPar[])
+	ENDIF
+	IF varState("IntPar") == #INITIALIZED THEN
+		length = STRLEN (USER_MSG.MSG_TXT[])
+      	swrite(USER_MSG.MSG_TXT[], STAT, length, " %d", IntPar)
+	ENDIF
+	IF varState("RealPar") == #INITIALIZED THEN
+		length = STRLEN (USER_MSG.MSG_TXT[])
+		swrite(USER_MSG.MSG_TXT[], STAT, length, " %f", RealPar)
+	ENDIF
+
+	SWITCH MsgTyp
+		CASE #StateMsg
+			handle = Set_KrlMsg(#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+		CASE #NotifyMsg
+			handle = Set_KrlMsg(#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+
+		CASE #DlgMsg
+			handle = Set_KrlDlg(USER_MSG, Par[], SK[], Opt) ;Ausgabe Quittierungsmeldung
+			IF (handle > 0) THEN
+				WHILE (Exists_KrlDlg(handle, dlgAnswer))  ;Warten bis der Dialog beantwortet wird
+					Wait Sec 0.1
+				ENDWHILE
+			ENDIF
+
+		DEFAULT
+			handle = Set_KrlMsg (#Quit,USER_MSG,Par[], Opt) ;Ausgabe Quittierungsmeldung
+			WHILE (Exists_KrlMsg(handle))  ;Warten bis der Anwender quittiert
+				Wait Sec 0.1
+			ENDWHILE
+	ENDSWITCH
+
+END
+;
+;ENDFOLD (Meldungen)
+;
+;FOLD SetErrorFlags
+;
+GLOBAL DEF CZAI_SetErrorFlags()
+	$FLAG[F_CZAI_FlagStart + F_CZAI_GeStr] = TRUE ; Sammel Stoerung
+	$FLAG[F_CZAI_FlagStart + F_CZAI_Err] = TRUE ; Fehler
+	$FLAG[F_CZAI_FlagStart + F_CZAI_NoErr] = FALSE ; Kein Fehler
+END
+;
+;ENDFOLD ( SetErrorFlags)
+;
+;FOLD Start
+;
+DEFFCT BOOL CZAI_Start( Model: IN, Mode: IN )
+	DECL INT Model
+	DECL INT Mode
+;
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+	;wait for start condition
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		return FALSE
+	ENDIF
+	;set mode and model
+	CZAI_IDOut = Model
+	CZAI_ModeOut = Mode
+	CZAI_CommandOut = START_CZAI
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( START_CZAI, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN FALSE
+	ENDIF
+	;check ACK
+	IF (CZAI_AckIn <> 'H80') THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN FALSE
+	ENDIF
+	;set release command
+	CZAI_ResetSignals()
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN FALSE
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN FALSE
+	ENDIF
+	;check status
+	CZAI_Status = CZAI_StatusIn
+	IF( CZAI_Status == CZAI_START_BAD ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_STATUS )
+		CZAI_SetErrorFlags()
+		RETURN FALSE
+	ENDIF
+	RETURN TRUE
+ENDFCT
+;
+;ENDFOLD (Start)
+;
+;FOLD UP_holen
+;
+DEFFCT INT CZAI_UpHolen( Model: IN )
+	DECL INT Model
+;
+	DECL INT UP_Nr, CZAI_Status
+;
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+	;wait for start condition
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		RETURN (-1)
+	ENDIF
+	;set model
+	CZAI_IDOut = Model
+	;set command
+	CZAI_CommandOut = REQUEST_UP_CZAI
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( REQUEST_UP_CZAI, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN (-1)
+	ENDIF
+	;check ACK
+	IF (CZAI_AckIn <> 'H80') THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN (-1)
+	ENDIF
+	;read in UP index
+	UP_Nr = CZAI_UPIn
+	;set release command
+	CZAI_ResetSignals()
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN (-1)
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return (-1)
+	ENDIF
+	;check status
+	CZAI_Status = CZAI_StatusIn
+	IF( CZAI_Status == CZAI_START_BAD) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_STATUS )
+		CZAI_SetErrorFlags()
+      RETURN -1
+	ENDIF
+	RETURN UP_Nr
+ENDFCT
+;
+;ENDFOLD (UP_holen)
+;
+;FOLD Trigger
+;
+DEFFCT INT CZAI_Trigger( ID: In, NoAngles: IN )
+	DECL INT ID
+	DECL BOOL NoAngles
+;
+	WAIT SEC CZAI_InPosWaitTime
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+	;wait for start condition
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		RETURN(-1)
+	ENDIF
+	;set ID and 3 angles
+	CZAI_IDOut = ID
+	IF (NoAngles) THEN
+		CZAI_Double1Out = 1000000.0
+		CZAI_Double2Out = 2000000.0
+		CZAI_Double3Out = 2000000.0
+	ELSE
+		CZAI_Double1Out = $AXIS_ACT.A1 * 1000000.0
+		CZAI_Double2Out = $AXIS_ACT.A2 * 1000000.0
+		CZAI_Double3Out = $AXIS_ACT.A3 * 1000000.0
+	ENDIF
+	;ensure signal sequence
+	WAIT SEC 0.05
+	;set command
+	CZAI_CommandOut = TRIGGER_CZAI
+	;wait for mirroring
+	IF( NOT CZAI_WaitForCommand( TRIGGER_CZAI, CZAI_CommTimeout ) ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN 1
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN 1
+	ENDIF
+	;set other 3 angles
+	IF (NoAngles) THEN
+		CZAI_Double1Out = 1000000.0
+		CZAI_Double2Out = 2000000.0
+		CZAI_Double3Out = 2000000.0
+	ELSE
+		CZAI_Double1Out = $AXIS_ACT.A4 * 1000000.0
+		CZAI_Double2Out = $AXIS_ACT.A5 * 1000000.0
+		CZAI_Double3Out = $AXIS_ACT.A6 * 1000000.0
+	ENDIF
+	;ensure signal sequence
+	WAIT SEC 0.05
+	;set second command
+	CZAI_CommandOut = TRIGGER_CZAI2
+	;wait for mirroring
+   	IF( NOT CZAI_WaitForCommand( TRIGGER_CZAI2, CZAI_CommTimeout ) ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		RETURN 1
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return 1
+	ENDIF
+	;set release command
+	CZAI_ResetSignals()
+	;wait for Release from PC
+	IF( NOT CZAI_WaitForCommand( 0, CZAI_CommTimeout ) ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		return 1
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return 1
+	ENDIF
+	;check status
+	CZAI_Status = CZAI_StatusIn
+	IF( CZAI_Status == CZAI_MEASURE_BAD ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_STATUS )
+		CZAI_SetErrorFlags()
+		return 2
+	ENDIF
+	return 0
+ENDFCT
+;
+;ENDFOLD (Trigger)
+;
+;FOLD End
+;
+DEFFCT BOOL CZAI_End()
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+	;check start condition
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		return FALSE
+	ENDIF
+	;set command
+	CZAI_CommandOut = END_CZAI
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( END_CZAI, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;set release command
+	CZAI_ResetSignals()
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( 0, CZAI_CalculateTimeout ) == FALSE) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_CALC )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;check ACK
+	IF CZAI_AckIn <> 'H80' THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_ACK )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;check status
+	CZAI_Status = CZAI_StatusIn
+	IF( CZAI_Status <> CZAI_END_OK ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_STATUS )
+		CZAI_SetErrorFlags()
+		return FALSE
+	ENDIF
+	return TRUE
+ENDFCT
+;
+;ENDFOLD (End)
+;
+;FOLD ReadFrame
+;
+DEFFCT BOOL CZAI_ReadFrame(Index: IN)
+	DECL INT Index
+;
+	CZAI_FrameIn = { x 0, y 0, z 0, a 0, b 0, c 0 }
+	IF (Index == BaseIndex) THEN
+		AVF_CZAI_Korr1 = { x 0, y 0, z 0, a 0, b 0, c 0 }
+	ELSE
+		AVF_CZAI_Korr2 = { x 0, y 0, z 0, a 0, b 0, c 0 }
+	ENDIF
+;
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+	;wait for start condition
+	IF( CZAI_WaitForCommand( 0, CZAI_CommTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		return FALSE
+	ENDIF
+	;set command
+	CZAI_CommandOut = READ_FRAME_CZAI
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( READ_FRAME_CZAI, CZAI_ReadFrameTimeout ) == FALSE ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;read in frame first part
+	CZAI_FrameIn.X = CZAI_Double1In / 1000.0
+	CZAI_FrameIn.Y = CZAI_Double2In / 1000.0
+	CZAI_FrameIn.Z = CZAI_Double3In / 1000.0
+	;set second command
+	CZAI_CommandOut = READ_FRAME_CZAI2
+	;wait for mirroring
+	IF( CZAI_WaitForCommand( READ_FRAME_CZAI2, CZAI_ReadFrameTimeout ) == FALSE ) THEN
+		CZAI_FrameIn = { x 0, y 0, z 0, a 0, b 0, c 0 }
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	;read in frame second part
+	CZAI_FrameIn.C = CZAI_Double1In / 1000000.0
+	CZAI_FrameIn.B = CZAI_Double2In / 1000000.0
+	CZAI_FrameIn.A = CZAI_Double3In / 1000000.0
+	;set release command
+	CZAI_ResetSignals()
+	;wait for mirroring
+	IF( NOT CZAI_WaitForCommand( 0, CZAI_CommTimeout ) ) THEN
+		CZAI_Msg( #NotifyMsg, CZAI_ERR_WAIT )
+		CZAI_SetErrorFlags()
+		CZAI_ResetSignals()
+		return FALSE
+	ENDIF
+	IF (Index == BaseIndex) THEN	
+		AVF_CZAI_Korr1 = CZAI_FrameIn
+	ELSE
+		AVF_CZAI_Korr2 = CZAI_FrameIn
+	ENDIF
+	CZAI_Status = CZAI_StatusIn
+	return TRUE
+ENDFCT
+;
+;ENDFOLD (ReadFrame)
+;
+;FOLD CheckFrame
+;
+DEFFCT BOOL CZAI_CheckFrame( Index: IN )
+;
+	DECL INT Index
+;
+	DECL BOOL bOK
+	DECL FRAME fCheck
+	DECL FRAME fMin, fMax
+;
+	bOK = TRUE
+	fMin = VF_CZAI_Min1
+	fMax = VF_CZAI_Max1
+	IF Index == 0 THEN
+		fCheck = CZAI_FrameIn
+	ELSE 
+		IF ((Index >= 1) AND (Index <= 20)) THEN
+			IF (Index == BaseIndex) THEN	
+				fCheck = AVF_CZAI_Korr1
+				fMin = VF_CZAI_Min1
+				fMax = VF_CZAI_Max1
+			ELSE
+				fCheck = AVF_CZAI_Korr2
+				fMin = VF_CZAI_Min2
+				fMax = VF_CZAI_Max2
+			ENDIF
+		ELSE
+			return FALSE
+		ENDIF
+	ENDIF
+		
+	IF fCheck.x < fMin.x THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.y < fMin.y THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.z < fMin.z THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.a < fMin.a THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.b < fMin.b THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.c < fMin.c THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.x > fMax.x THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.y > fMax.y THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.z > fMax.z THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.a > fMax.a THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.b > fMax.b THEN
+		bOK = FALSE
+	ENDIF
+	IF fCheck.c > fMax.c THEN
+		bOK = FALSE
+	ENDIF
+	return bOK
+ENDFCT
+;
+;ENDFOLD (CheckFrame)
+;
+;FOLD AdjustToolFrame
+;
+DEF CZAI_AdjustToolFrame()
+	IF NOT CZAI_KorrToTool_Right THEN
+		AVF_CZAI_Korr2.Z = - AVF_CZAI_Korr2.Z
+	ENDIF
+	AVF_CZAI_Korr2 = AVF_CZAI_Korr2 : CZAI_TrafoKorrToTool
+END
+;
+;ENDFOLD (AdjustToolFrame)
+;
+;FOLD ApplyToolFrame
+;
+DEF CZAI_ApplyToolFrame( ToolNr: IN )
+;
+	DECL INT ToolNr
+;
+	TOOL_DATA[TOOLNR].x = TOOL_DATA[TOOLNR].x + AVF_CZAI_Korr2.x
+	TOOL_DATA[TOOLNR].y = TOOL_DATA[TOOLNR].y + AVF_CZAI_Korr2.y
+	TOOL_DATA[TOOLNR].z = TOOL_DATA[TOOLNR].z + AVF_CZAI_Korr2.z
+END
+;
+;ENDFOLD (ApplyToolFrame)
+;
+;FOLD AdjustBaseFrame
+;
+DEF CZAI_AdjustBaseFrame()
+	IF NOT CZAI_KorrToBase_Right THEN
+		AVF_CZAI_Korr1.Z = - AVF_CZAI_Korr1.Z
+	ENDIF
+	AVF_CZAI_Korr1 = AVF_CZAI_Korr1 : CZAI_TrafoKorrToBase
+END
+;
+;ENDFOLD (AdjustBaseFrame)
+;
+;FOLD WaitForCommand
+;
+DEFFCT BOOL CZAI_WaitForCommand( CommandExpected :IN, TimeOut: IN )
+	DECL INT CommandExpected
+	DECL INT TimeOut
+;
+	DECL INT StartTime
+
+	;start timer
+	StartTime = $ROB_TIMER
+	;wait for command or timeout
+	WAIT FOR ( ( ( CZAI_CommandIn B_AND 127 ) == CommandExpected ) OR ( $ROB_TIMER - StartTime > TimeOut ) )
+
+	IF( ( CZAI_CommandIn B_AND 127 ) == WAIT_AT_POINT ) THEN
+		WAIT FOR ( ( CZAI_CommandIn B_AND 127 ) <> WAIT_AT_POINT )
+		RETURN TRUE
+	ENDIF
+
+	IF( $ROB_TIMER - StartTime > TimeOut ) THEN
+    		return FALSE
+	ENDIF
+	return TRUE
+ENDFCT
+;
+;ENDFOLD (WaitForCommand)
+;
+;;FOLD CheckParams
+;;
+;DEFFCT BOOL CZAI_CheckParams( CMD_SEL:IN, MODUS:IN, TYP:IN, SUBTYP:IN, SPECIFIER:IN, TOOLNR:IN, WIEDERHOLUNG:IN )
+;	DECL INT CMD_SEL, MODUS, TYP, SUBTYP, SPECIFIER, TOOLNR, WIEDERHOLUNG
+;;	
+;  ; Ueberprufung der Eingabeparameter
+;	SWITCH MODUS
+;;
+;		CASE CZAI_ZYKLUS_START 
+;			; TYP ist die Nummer des Modells
+;			IF TYP < 1 THEN
+;				return FALSE
+;			ENDIF
+;;
+;		CASE CZAI_UP_HOLEN
+;			; TYP ist die Nummer des Modells
+;			IF TYP < 1 THEN
+;				return FALSE
+;			ENDIF
+;			IF ( TYP > 9 ) AND ( TYP < 100 )  THEN
+;				return FALSE
+;			ENDIF
+;;
+;		CASE CZAI_TRIGGER_MESSPUNKT, CZAI_LETZTER_MESSPUNKT, CZAI_LT_TRIGGER_MP, CZAI_LT_LETZTER_MP 
+;      		; SPECIFIER ist die Nummer des Messpunkts
+;			IF SPECIFIER < 0 THEN
+;				return FALSE
+;			ENDIF
+;;
+;		CASE CZAI_ZYKLUS_ENDE 
+;		CASE CZAI_BASE_KORR_HOLEN 
+;		CASE CZAI_BASE_KORR_AUSF 
+;		CASE CZAI_LT_BASE1_SAVE 
+;		CASE CZAI_LT_BASE2_SAVE 
+;		CASE CZAI_LT_BASE1_RESTORE 
+;		CASE CZAI_LT_BASE2_RESTORE 
+;		CASE CZAI_SENSORTAUSCH 
+;		CASE CZAI_ROBOTERTAUSCH 
+;		CASE CZAI_ARTEFAKTTAUSCH
+;		CASE CZAI_TOOL_KORR_HOLEN
+;		CASE CZAI_TOOL_KORR_AUSF
+;		CASE CZAI_TCP_MEASURE
+;		CASE CZAI_TCP_SAVE
+;		CASE CZAI_BASE_MEASURE
+;		CASE CZAI_BASE_SAVE
+;		CASE CZAI_TCP_PREPARE
+;		CASE CZAI_BASE_PREPARE
+;;
+;		DEFAULT
+;			return FALSE
+;;
+;	ENDSWITCH
+;	return TRUE
+;ENDFCT
+;;
+;;ENDFOLD (CheckParams)
+;

@@ -1,0 +1,115 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/G_Handling
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_g_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket G Handling                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_G CHAR Name[20],INT Datum
+DECL _Tech_G Tech_G
+;ENDFOLD
+; 
+;***************************************************
+;FOLD G
+GLOBAL INT O_VST_aktiv=121
+GLOBAL INT Timer_G_VST=1058557795
+GLOBAL INT Verz_G_VST=5000
+;Master Ausgaenge
+GLOBAL INT O_G_VST1=577
+GLOBAL INT O_G_VST2=703
+GLOBAL INT O_G_VST3=701
+GLOBAL INT O_G_VST_res1=2137
+GLOBAL INT O_G_VST_res2=2145
+GLOBAL INT O_G_VST_res3=2153
+GLOBAL INT O_G_VST_res4=2177
+GLOBAL INT O_G_VST_res5=2185
+; 
+GLOBAL INT Greif_Timer=75487
+;Spreizmagnete
+SIGNAL SO_SPM_AN1 $OUT[3553]  TO $OUT[3568]
+SIGNAL SI_SPM_AN1 $IN[3553]  TO $IN[3568]
+;FLAGS
+GLOBAL INT F_erweitertes_Abblasen=63
+GLOBAL INT F_o_Abblasen=54
+GLOBAL INT F_G_VST[3]
+F_G_VST[1]=57
+F_G_VST[2]=56
+F_G_VST[3]=55
+GLOBAL INT F_Suchlauf_STOP=558
+;VARIABLEN BOOL
+GLOBAL BOOL G_VST[3]
+G_VST[1]=TRUE
+G_VST[2]=FALSE
+G_VST[3]=FALSE
+GLOBAL BOOL MIT_ND_Abfr_V[3]
+MIT_ND_Abfr_V[1]=FALSE
+MIT_ND_Abfr_V[2]=FALSE
+MIT_ND_Abfr_V[3]=FALSE
+GLOBAL BOOL V_TYP_SMC=TRUE
+GLOBAL BOOL V_TYP_Festo=FALSE
+GLOBAL BOOL MIT_SPM=FALSE
+GLOBAL BOOL B_SPM_S_Ein=FALSE
+GLOBAL BOOL B_SPM_Hilf=FALSE
+GLOBAL BOOL B_SPM_Hilf1=FALSE
+GLOBAL BOOL B_SPM_Hilf2=FALSE
+GLOBAL BOOL B_G_o_Abblasen=FALSE
+GLOBAL BOOL HM_G_VST=FALSE
+;VARIABLEN REAL
+GLOBAL REAL r_SPM_S_Vorg=0.0
+GLOBAL REAL r_SPM_Z_Vorg=0.0
+;VARIABLEN INTEGER
+GLOBAL INT Modus=2
+GLOBAL INT Bereich=4
+GLOBAL INT Koll_Default=10
+;FLAGS
+GLOBAL INT F_V_TYP_SMC=523
+GLOBAL INT F_V_TYP_Festo=524
+;SLAVE Eingaenge
+GLOBAL INT I_SPM_ohne_P=201
+;SLAVE Ausgaenge
+GLOBAL INT O_SPM_Proz_akt=201
+GLOBAL INT O_SPM_F_Alfa=204
+GLOBAL INT O_SPM_F_Moto=205
+GLOBAL INT O_SPM_F_Ma_h=206
+GLOBAL INT O_SPM_F_Ma_S=207
+GLOBAL INT O_SPM_F_Samm=208
+;Master Eingaenge
+GLOBAL INT I_G_ND_Vorh[3]
+I_G_ND_Vorh[1]=578
+I_G_ND_Vorh[2]=704
+I_G_ND_Vorh[3]=702
+GLOBAL INT I_SPM_F_Mot1=2945
+GLOBAL INT I_SPM_F_Mot2=2946
+GLOBAL INT I_SPM_F_Mot3=2947
+GLOBAL INT I_SPM_F_Mot4=2948
+GLOBAL INT I_SPM_F_Ma_h=2949
+GLOBAL INT I_SPM_S_Ein=2951
+GLOBAL INT I_SPM_MS_io=2952
+;Master Ausgaenge
+GLOBAL INT O_SPM_M_Ein=2952
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM GS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_GS_Handle[100]
+GLOBAL INT n_GR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

@@ -1,0 +1,139 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/SFR_SafeRobot
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_SFR_USR_S( )
+;
+;***************************************************
+;*Technologiepaket SFR SafeRobot                   *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD INIT SafeRobot 
+GLOBAL DEF SFR_INIT( )
+INT i
+;
+;FOLD Version Techpaket
+Tech_SFR.Name[]="KS26.01.000_20170424"
+;ENDFOLD
+;
+;FOLD Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_SFRS_Handle[i]=-1
+  n_SFRR_Handle[i]=-1
+ENDFOR
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW SafeRobot
+GLOBAL DEF SFR_SAW( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET SafeRobot
+GLOBAL DEF SFR_RESET( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL SafeRobot
+GLOBAL DEF SFR_CANCEL( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP SafeRobot
+GLOBAL DEF SFR_LOOP( )
+;
+IF $MasteringTest_Req_Int OR $BrakeTest_Req_Int THEN ;Anforderung Bremsen oder Justagetest an BMS
+  $OUT[O_Safe_Anf]=TRUE
+ELSE
+  $OUT[O_Safe_Anf]=FALSE
+ENDIF
+IF ($BRAKETEST_WARN==TRUE) THEN  ;Vorwarnung Verschleiss Bremsen
+  $OUT[O_Safe_VW_Br]=TRUE
+ELSE
+  $OUT[O_Safe_VW_Br]=FALSE
+ENDIF
+IF ($BRAKES_OK==FALSE) THEN  ;Bremsentest n.i.O.
+  $OUT[O_Safe_B_nio]=TRUE
+ELSE
+  $OUT[O_Safe_B_nio]=FALSE
+ENDIF
+IF ($MasteringTest_Active AND NOT $MasteringTest_Switch_OK) THEN  ; Justage Referenzierung n.i.O.
+  $OUT[O_Safe_R_nio]=TRUE
+ELSE
+  $OUT[O_Safe_R_nio]=FALSE
+ENDIF
+IF ($OUT[O_Safe_B_nio] OR $OUT[O_Safe_R_nio] OR ($MasteringTest_Active AND NOT $MasteringTest_Switch_OK)) THEN  ; Sammelstoerung
+  $OUT[O_Safe_Samm]=TRUE
+ELSE
+  $OUT[O_Safe_Samm]=FALSE
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SFR_Meldungen
+DEF SFR_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL SFRS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+INT nHandle, Answer
+;
+USER_MSG = { Modul[] "SFR_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_SFRS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="SFR: Slave Startadresse ungueltig"
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_SFRS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_SFRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_SFRS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_SFRS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (SFR_Meldungen)

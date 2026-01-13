@@ -1,0 +1,161 @@
+&ACCESS R6
+&REL 6
+&COMMENT KS26
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Zeiss
+DEF vw_zai_usr_s( )
+;
+;***************************************************
+;* Techpaket Carl Zeiss Automated Inspection GmbH  *
+;*                                                 *
+;* Konzernstandard 26                              *
+;* Bearbeiter: Peter Hofmann                       *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 29.06.2017 Testversion 0.1                      *
+;***************************************************
+;
+END
+;
+;***************************************************
+;FOLD CZAI_INIT
+;
+GLOBAL DEF ZAI_INIT()
+;
+;Version Techpaket
+Tech_ZAI.Name[]="KS26.01.000_20170904"
+;
+	CZAI_ResetVariables()
+	;Init Lebensbit
+	CZAI_LiveBit_Out = FALSE
+	CZAI_LastTime = $ROB_TIMER
+	;clear message
+	IF ( CZAI_MsgHandle >= 0 ) THEN
+		IF ( Exists_KrlMsg(CZAI_MsgHandle) ) THEN
+			IF ( Clear_KrlMsg(CZAI_MsgHandle) ) THEN
+			ENDIF
+			CZAI_MsgHandle = -1
+		ENDIF
+	ENDIF
+	CZAI_LBIT_MessageSet = FALSE;
+END
+;
+;ENDFOLD (CZAI_INIT)
+;
+;FOLD CZAI_SAW
+;
+GLOBAL DEF ZAI_SAW( )
+;
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CZAI_RESET
+GLOBAL DEF ZAI_RESET( )
+;
+	CZAI_ResetVariables()
+	CZAI_ResetSignals()
+	CZAI_ResetFlags()
+END
+;
+;ENDFOLD (CZAI_RESET)
+;
+;FOLD CZAI_CANCEL 
+;
+GLOBAL DEF ZAI_CANCEL( )
+INT i
+;
+   ZAI_INIT()
+   CZAI_ResetSignals()
+   CZAI_ResetFlags()
+END
+;
+;ENDFOLD (CZAI_CANCEL)
+;
+
+;
+;FOLD CZAI_LOOP
+;
+GLOBAL DEF ZAI_LOOP( )
+;
+	DECL KrlMsg_T USER_MSG
+	DECL KrlMsgPar_T Par[3]
+	DECL KrlMsgOpt_T Opt
+	DECL STATE_T Stat 
+
+	;check for toggle
+	IF ( $ROB_TIMER - CZAI_LastTime >= CZAI_LBIT_VALUE ) THEN ;it's time to toggle
+		IF (CZAI_LiveBit_Out == CZAI_LiveBit_In) THEN ;MR has answered
+			IF (CZAI_LiveBit_In == TRUE) THEN
+				CZAI_LiveBit_Out = FALSE
+			ELSE
+				CZAI_LiveBit_Out = TRUE    
+			ENDIF
+			CZAI_LastTime = $ROB_TIMER  ;reset timer
+			;clear message
+			IF ( CZAI_MsgHandle >= 0 ) THEN
+				IF ( Exists_KrlMsg(CZAI_MsgHandle) ) THEN
+					IF ( Clear_KrlMsg(CZAI_MsgHandle) ) THEN
+					ENDIF
+					CZAI_MsgHandle = -1
+				ENDIF
+			ENDIF
+			CZAI_LBIT_MessageSet = FALSE
+		ENDIF
+	ENDIF
+
+	;check for timeout
+	IF ( $ROB_TIMER - CZAI_LastTime >= CZAI_LBIT_MAX ) THEN
+		IF (NOT CZAI_LBIT_MessageSet) THEN
+    			USER_MSG={Modul[] "CZAI_Msg", Nr 35, Msg_txt[] "LiveBit: Keine Antort vom MR"}
+			Opt={VL_Stop FALSE, Clear_P_Reset True, Log_To_DB False}
+			Par[1]={Par_type #Value,Par_txt[] " "}
+			CZAI_MsgHandle = Set_KrlMsg(#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+			CZAI_LBIT_MessageSet = TRUE
+			CZAI_LastTime = $ROB_TIMER  ;reset timer
+		ENDIF
+	ENDIF
+;
+END
+;
+;ENDFOLD (CZAI_LOOP)
+;
+; 
+;FOLD ResetSignals
+;
+GLOBAL DEF CZAI_ResetSignals()
+	;reset Output signals
+	CZAI_CommandOut = 0
+	CZAI_SequenceOut = 0
+	CZAI_IDOut = 0
+	CZAI_ModeOut = 0
+	CZAI_Double1Out = 0
+	CZAI_Double2Out = 0
+	CZAI_Double3Out = 0
+END
+;
+;ENDFOLD ( ResetSignals )
+;
+;FOLD ResetFlags
+;
+GLOBAL DEF CZAI_ResetFlags()
+	$FLAG[F_CZAI_FlagStart + F_CZAI_GeStr] = FALSE ; Sammel Stoerung
+	$FLAG[F_CZAI_FlagStart + F_CZAI_Err] = FALSE ; Fehler
+	$FLAG[F_CZAI_FlagStart + F_CZAI_NoErr] = TRUE ; Kein Fehler
+END
+;
+;ENDFOLD (ResetFlags)
+;
+;FOLD ResetVariables
+;
+GLOBAL DEF CZAI_ResetVariables()
+	; reset communication variables
+	CZAI_FrameIn = {x 0, y 0, z 0, a 0, b 0, c 0}
+	CZAI_StopAtPointError = FALSE
+	CZAI_CalculationRequired = FALSE
+END
+;
+;ENDFOLD ( ResetVariables )
+;;

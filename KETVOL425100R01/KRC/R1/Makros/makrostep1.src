@@ -1,0 +1,912 @@
+&ACCESS RV
+&COMMENT MakroStep1-Basic
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrostepvorgabe.src
+&PARAM EDITMASK = MakroStep
+&PARAM TPVW_VERSION = 8.3.15
+DEF MAKROSTEP1(Function :IN)
+   ; FOLD Makro Schrittkette;%{SE} %MKUKATPVW
+   ; FOLD ;%{H} %MKUKATPVW
+   INT Function
+   IF Function==1 THEN
+     APP_INT_STEP[1]=1
+     Return
+   ENDIF
+   SWITCH APP_INT_STEP[1]
+   Case 0
+   ; ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 1 --INIT-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:1, 3:INIT
+      ;FOLD ;%{H}
+         Case 1
+      ;ENDFOLD
+      ;FOLD -- MakroStep1 (Basic) -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- MakroStep1 (Basic) --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- KS26 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KS26 --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- Version: 01 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Version: 01 --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- Stand: 002 -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Stand: 002 --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- letzte Aenderung 12.06.2019 LZ -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 12.06.2019 LZ --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- E/A's und Flags Ruecksetzen -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- E/A's und Flags Ruecksetzen --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgaben -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgaben --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = AUS, 3: BOASG
+         $FLAG[345] = FALSE
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD F348 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = AUS, 3: BOASG
+         $FLAG[348] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Flag KL1 Spueleimer -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Flag KL1 Spueleimer --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F352 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F352 = AUS, 3: BOASG
+         $FLAG[352] = FALSE
+      ;ENDFOLD
+      ;FOLD F353 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F353 = AUS, 3: BOASG
+         $FLAG[353] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Timer Stoppen -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Timer Stoppen --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD t13 ( EIN ) = STOP ;%{SE}%MKUKATPVW %CVW_SPS %VTSTOP %P 2:t13 ( EIN ) = STOP, 3: TSTOP
+         VW(#SET_TIME,TRUE,13,1,0)
+      ;ENDFOLD
+      ;FOLD Schritt 2 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 2 = EIN, 3: ST_CON
+         IF TRUE THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 2
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 2 -- RSK1 Grundstellung # Anwahlen-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:2, 3: RSK1 Grundstellung # Anwahlen
+      ;FOLD ;%{H}
+         Case 2
+      ;ENDFOLD
+      ;FOLD -- RSK1 in Grundstellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK1 in Grundstellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = EIN, 3: BOASG
+         $FLAG[345] = TRUE
+      ;ENDFOLD
+      ;FOLD -- KL1 Spueleimer (an Pneum. Schwenkeinheit KL1) -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KL1 Spueleimer (an Pneum. Schwenkeinheit KL1) --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- in Arbeitsstellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- in Arbeitsstellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD Schritt 3 = !F352 & F353 & !F355 & (F523 & !F524 + !F523 & F524) & !F354 & A4039 & E13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 3 = !F352 & F353 & !F355 & (F523 & !F524 + !F523 & F524) & !F354 & A4039 & E13, 3: ST_CON
+         IF NOT $FLAG[352] AND $FLAG[353] AND NOT $FLAG[355] AND ($FLAG[523] AND NOT $FLAG[524] OR NOT $FLAG[523] AND $FLAG[524]) AND NOT $FLAG[354] AND $OUT[4039] AND $IN[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 3
+         ENDIF
+      ;ENDFOLD
+      ;FOLD -- KL1 Spueleimer (an Pneum. Schwenkeinheit KL1) -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KL1 Spueleimer (an Pneum. Schwenkeinheit KL1) --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- in Ruhestellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- in Ruhestellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD Schritt 10 = F352 & !F353 & !F355 & (F523 & !F524 + !F523 & F524) & !F354 & A4039 & E13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 10 = F352 & !F353 & !F355 & (F523 & !F524 + !F523 & F524) & !F354 & A4039 & E13, 3: ST_CON
+         IF $FLAG[352] AND NOT $FLAG[353] AND NOT $FLAG[355] AND ($FLAG[523] AND NOT $FLAG[524] OR NOT $FLAG[523] AND $FLAG[524]) AND NOT $FLAG[354] AND $OUT[4039] AND $IN[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 10
+         ENDIF
+      ;ENDFOLD
+      ;FOLD -- KL1 Schwenker Motorisch -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KL1 Schwenker Motorisch --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- in Arbeitsstellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- in Arbeitsstellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD Schritt 20 = !F352 & F353 & F354 & A4039 & E13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 20 = !F352 & F353 & F354 & A4039 & E13, 3: ST_CON
+         IF NOT $FLAG[352] AND $FLAG[353] AND $FLAG[354] AND $OUT[4039] AND $IN[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 20
+         ENDIF
+      ;ENDFOLD
+      ;FOLD -- KL1 Schwenker Motorisch -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- KL1 Schwenker Motorisch --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD -- in Ruhestellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- in Ruhestellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD Schritt 30 = F352 & !F353 & F354 & A4039 & E13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 30 = F352 & !F353 & F354 & A4039 & E13, 3: ST_CON
+         IF $FLAG[352] AND NOT $FLAG[353] AND $FLAG[354] AND $OUT[4039] AND $IN[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 30
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 3 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:3, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 3
+      ;ENDFOLD
+      ;FOLD -- RSK gestartet -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK gestartet --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = AUS, 3: BOASG
+         $FLAG[345] = FALSE
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD A2115 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2115 = AUS, 3: BOASG
+         $OUT[2115] = FALSE
+      ;ENDFOLD
+      ;FOLD A2116 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2116 = AUS, 3: BOASG
+         $OUT[2116] = FALSE
+      ;ENDFOLD
+      ;FOLD A2117 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = AUS, 3: BOASG
+         $OUT[2117] = FALSE
+      ;ENDFOLD
+      ;FOLD A2118 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = AUS, 3: BOASG
+         $OUT[2118] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Ueberwachungszeit Schwenkeinheit -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ueberwachungszeit Schwenkeinheit --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD t13 ( EIN ) = -100[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t13 ( EIN ) = -100[1/10Sek], 3: TASG
+         VW(#SET_TIME,TRUE,13,0,-100)
+      ;ENDFOLD
+      ;FOLD Schritt 4 = !E2116 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 4 = !E2116 & A4039, 3: ST_CON
+         IF NOT $IN[2116] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 4
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 7 = !E2115 & E2116 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 7 = !E2115 & E2116 & A4039, 3: ST_CON
+         IF NOT $IN[2115] AND $IN[2116] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 7
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 4 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:4, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 4
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenkeinheit Ruhest. -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenkeinheit Ruhest. --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F346 = !E2115 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = !E2115, 3: BOASG
+         $FLAG[346] = NOT $IN[2115]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F346, 3: BOASG
+         $FLAG[348] = $FLAG[346]
+      ;ENDFOLD
+      ;FOLD Schritt 3 = (E26 + E27) & F346 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 3 = (E26 + E27) & F346 & A4039, 3: ST_CON
+         IF ($IN[26] OR $IN[27]) AND $FLAG[346] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 3
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 5 = (F523 & !F524 & E2113 + !F523 & F524 & !E2114) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 5 = (F523 & !F524 & E2113 + !F523 & F524 & !E2114) & A4039, 3: ST_CON
+         IF ($FLAG[523] AND NOT $FLAG[524] AND $IN[2113] OR NOT $FLAG[523] AND $FLAG[524] AND NOT $IN[2114]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 5
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 5 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:5, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 5
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- Schwenkeinheit 1 in Arbeitsstellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Schwenkeinheit 1 in Arbeitsstellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2115 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2115 = AUS, 3: BOASG
+         $OUT[2115] = FALSE
+      ;ENDFOLD
+      ;FOLD A2116 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2116 = EIN, 3: BOASG
+         $OUT[2116] = TRUE
+      ;ENDFOLD
+      ;FOLD -- FRG Bewegung EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG Bewegung EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2117 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = AUS, 3: BOASG
+         $OUT[2117] = FALSE
+      ;ENDFOLD
+      ;FOLD A2118 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = EIN, 3: BOASG
+         $OUT[2118] = TRUE
+      ;ENDFOLD
+      ;FOLD Schritt 6 = !E2115 & E2116 & A4039 + T13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 6 = !E2115 & E2116 & A4039 + T13, 3: ST_CON
+         IF NOT $IN[2115] AND $IN[2116] AND $OUT[4039] OR $TIMER_FLAG[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 6
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 6 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:6, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 6
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenkeinheit Arbeitsstellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenkeinheit Arbeitsstellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F347 = !E2116 & T13 + F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = !E2116 & T13 + F347, 3: BOASG
+         $FLAG[347] = NOT $IN[2116] AND $TIMER_FLAG[13] OR $FLAG[347]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F347, 3: BOASG
+         $FLAG[348] = $FLAG[347]
+      ;ENDFOLD
+      ;FOLD A2116 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2116 = AUS, 3: BOASG
+         $OUT[2116] = FALSE
+      ;ENDFOLD
+      ;FOLD -- FRG Bewegung AUS -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG Bewegung AUS --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2118 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = AUS, 3: BOASG
+         $OUT[2118] = FALSE
+      ;ENDFOLD
+      ;FOLD Schritt 3 = F347 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 3 = F347 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[347] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 3
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 7 = !F347 & (E2118 + E2117 & F837) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 7 = !F347 & (E2118 + E2117 & F837) & A4039, 3: ST_CON
+         IF NOT $FLAG[347] AND ($IN[2118] OR $IN[2117] AND $FLAG[837]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 7
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 7 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:7, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 7
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = T13, 3: BOASG
+         $FLAG[348] = $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD -- FRG in Endlage halten ein -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG in Endlage halten ein --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2117 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = EIN, 3: BOASG
+         $OUT[2117] = TRUE
+      ;ENDFOLD
+      ;FOLD F355 = !E2115 & E2116 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F355 = !E2115 & E2116, 3: BOASG
+         $FLAG[355] = NOT $IN[2115] AND $IN[2116]
+      ;ENDFOLD
+      ;FOLD Schritt 1 = F355 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 1 = F355 & A4039, 3: ST_CON
+         IF $FLAG[355] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 8 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:8, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 8
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 9 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:9, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 9
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 10 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:10, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 10
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK gestartet -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK gestartet --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = AUS, 3: BOASG
+         $FLAG[345] = FALSE
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD F348 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = AUS, 3: BOASG
+         $FLAG[348] = FALSE
+      ;ENDFOLD
+      ;FOLD A2115 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2115 = AUS, 3: BOASG
+         $OUT[2115] = FALSE
+      ;ENDFOLD
+      ;FOLD A2116 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2116 = AUS, 3: BOASG
+         $OUT[2116] = FALSE
+      ;ENDFOLD
+      ;FOLD A2117 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = AUS, 3: BOASG
+         $OUT[2117] = FALSE
+      ;ENDFOLD
+      ;FOLD A2118 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = AUS, 3: BOASG
+         $OUT[2118] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Ueberwachungszeit Schwenkeinheit schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ueberwachungszeit Schwenkeinheit schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD t13 ( EIN ) = -100[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t13 ( EIN ) = -100[1/10Sek], 3: TASG
+         VW(#SET_TIME,TRUE,13,0,-100)
+      ;ENDFOLD
+      ;FOLD Schritt 11 = !E2115 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 11 = !E2115 & A4039, 3: ST_CON
+         IF NOT $IN[2115] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 11
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 14 = E2115 & !E2116 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 14 = E2115 & !E2116 & A4039, 3: ST_CON
+         IF $IN[2115] AND NOT $IN[2116] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 14
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 11 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:11, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 11
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenkeinheit Arbeit. -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenkeinheit Arbeit. --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F347 = !E2116 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = !E2116, 3: BOASG
+         $FLAG[347] = NOT $IN[2116]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F347, 3: BOASG
+         $FLAG[348] = $FLAG[347]
+      ;ENDFOLD
+      ;FOLD Schritt 10 = (E26 + E27) & F347 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 10 = (E26 + E27) & F347 & A4039, 3: ST_CON
+         IF ($IN[26] OR $IN[27]) AND $FLAG[347] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 10
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 12 = (F523 & !F524 & E2113 + !F523 & F524 & !E2114) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 12 = (F523 & !F524 & E2113 + !F523 & F524 & !E2114) & A4039, 3: ST_CON
+         IF ($FLAG[523] AND NOT $FLAG[524] AND $IN[2113] OR NOT $FLAG[523] AND $FLAG[524] AND NOT $IN[2114]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 12
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 12 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:12, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 12
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- Schwenkeinheit in Ruhestellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Schwenkeinheit in Ruhestellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2115 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2115 = EIN, 3: BOASG
+         $OUT[2115] = TRUE
+      ;ENDFOLD
+      ;FOLD A2116 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2116 = AUS, 3: BOASG
+         $OUT[2116] = FALSE
+      ;ENDFOLD
+      ;FOLD -- FRG Bewegung EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG Bewegung EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2117 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = AUS, 3: BOASG
+         $OUT[2117] = FALSE
+      ;ENDFOLD
+      ;FOLD A2118 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = EIN, 3: BOASG
+         $OUT[2118] = TRUE
+      ;ENDFOLD
+      ;FOLD Schritt 13 = E2115 & !E2116 & A4039 + T13 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 13 = E2115 & !E2116 & A4039 + T13, 3: ST_CON
+         IF $IN[2115] AND NOT $IN[2116] AND $OUT[4039] OR $TIMER_FLAG[13] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 13
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 13 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:13, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 13
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenkeinheit Ruhestellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenkeinheit Ruhestellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F346 = !E2115 & T13 + F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = !E2115 & T13 + F346, 3: BOASG
+         $FLAG[346] = NOT $IN[2115] AND $TIMER_FLAG[13] OR $FLAG[346]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F346, 3: BOASG
+         $FLAG[348] = $FLAG[346]
+      ;ENDFOLD
+      ;FOLD A2115 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2115 = AUS, 3: BOASG
+         $OUT[2115] = FALSE
+      ;ENDFOLD
+      ;FOLD -- FRG Bewegung AUS -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG Bewegung AUS --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2118 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2118 = AUS, 3: BOASG
+         $OUT[2118] = FALSE
+      ;ENDFOLD
+      ;FOLD Schritt 10 = F346 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 10 = F346 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[346] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 10
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 14 = !F346 & (E2118 + E2117 & F837) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 14 = !F346 & (E2118 + E2117 & F837) & A4039, 3: ST_CON
+         IF NOT $FLAG[346] AND ($IN[2118] OR $IN[2117] AND $FLAG[837]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 14
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 14 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:14, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 14
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F348 = T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = T13, 3: BOASG
+         $FLAG[348] = $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD -- FRG in Endlage halten ein -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG in Endlage halten ein --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2117 = EIN ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = EIN, 3: BOASG
+         $OUT[2117] = TRUE
+      ;ENDFOLD
+      ;FOLD Schritt 15 = (E2117 + E2118 & F837) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 15 = (E2117 + E2118 & F837) & A4039, 3: ST_CON
+         IF ($IN[2117] OR $IN[2118] AND $FLAG[837]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 15
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 15 --KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:15, 3:KL1 Spueleimer (an Pneum. Schwenkeinheit KL1)
+      ;FOLD ;%{H}
+         Case 15
+      ;ENDFOLD
+      ;FOLD -- Steuerluft EIN -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Steuerluft EIN --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2113 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2113 = A4039, 3: BOASG
+         $OUT[2113] = $OUT[4039]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = T13, 3: BOASG
+         $FLAG[348] = $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD -- FRG in Endlage halten AUS -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- FRG in Endlage halten AUS --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2117 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2117 = AUS, 3: BOASG
+         $OUT[2117] = FALSE
+      ;ENDFOLD
+      ;FOLD F355 = E2115 & !E2116 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F355 = E2115 & !E2116, 3: BOASG
+         $FLAG[355] = $IN[2115] AND NOT $IN[2116]
+      ;ENDFOLD
+      ;FOLD Schritt 1 = F355 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 1 = F355 & A4039, 3: ST_CON
+         IF $FLAG[355] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 16 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:16, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 16
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 17 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:17, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 17
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 18 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:18, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 18
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 19 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:19, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 19
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 20 --Schwenker KL1 Motorisch Arbeitsstellung schwenken-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:20, 3:Schwenker KL1 Motorisch Arbeitsstellung schwenken
+      ;FOLD ;%{H}
+         Case 20
+      ;ENDFOLD
+      ;FOLD -- RSK gestartet -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK gestartet --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = AUS, 3: BOASG
+         $FLAG[345] = FALSE
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD F348 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = AUS, 3: BOASG
+         $FLAG[348] = FALSE
+      ;ENDFOLD
+      ;FOLD F355 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F355 = AUS, 3: BOASG
+         $FLAG[355] = FALSE
+      ;ENDFOLD
+      ;FOLD Schritt 21 = (E2276 + !E2277 + !E2278 + E2279) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 21 = (E2276 + !E2277 + !E2278 + E2279) & A4039, 3: ST_CON
+         IF ($IN[2276] OR NOT $IN[2277] OR NOT $IN[2278] OR $IN[2279]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 21
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 24 = !E2276 & E2277 & E2278 & !E2279 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 24 = !E2276 & E2277 & E2278 & !E2279 & A4039, 3: ST_CON
+         IF NOT $IN[2276] AND $IN[2277] AND $IN[2278] AND NOT $IN[2279] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 24
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 21 -- Schwenker Motorisch KL1 Arbeitsstellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:21, 3: Schwenker Motorisch KL1 Arbeitsstellung schwenken 
+      ;FOLD ;%{H}
+         Case 21
+      ;ENDFOLD
+      ;FOLD -- Ueberwachungszeit schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ueberwachungszeit schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD t13 ( EIN ) = -100[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t13 ( EIN ) = -100[1/10Sek], 3: TASG
+         VW(#SET_TIME,TRUE,13,0,-100)
+      ;ENDFOLD
+      ;FOLD Schritt 322 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 322 = A4039, 3: ST_CON
+         IF $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 322
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 22 -- Schwenker Motorisch KL1 Arbeitsstellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:22, 3: Schwenker Motorisch KL1 Arbeitsstellung schwenken 
+      ;FOLD ;%{H}
+         Case 22
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenker Motorisch Ruhest. -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenker Motorisch Ruhest. --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F346 = (!E2273 + !E2276 + E2277 + E2278 + !E2279) & !F347 + F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = (!E2273 + !E2276 + E2277 + E2278 + !E2279) & !F347 + F346, 3: BOASG
+         $FLAG[346] = (NOT $IN[2273] OR NOT $IN[2276] OR $IN[2277] OR $IN[2278] OR NOT $IN[2279]) AND NOT $FLAG[347] OR $FLAG[346]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F346 + F347 + T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F346 + F347 + T13, 3: BOASG
+         $FLAG[348] = $FLAG[346] OR $FLAG[347] OR $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD Schritt 23 = !F346 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 23 = !F346 & A4039, 3: ST_CON
+         IF NOT $FLAG[346] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 23
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 21 = F346 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 21 = F346 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[346] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 21
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 23 -- Schwenker Motorisch KL1 Arbeitsstellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:23, 3: Schwenker Motorisch KL1 Arbeitsstellung schwenken 
+      ;FOLD ;%{H}
+         Case 23
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = T13, 3: BOASG
+         $FLAG[348] = $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Schwenker Motorisch KL1 in Arbeitsstellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Schwenker Motorisch KL1 in Arbeitsstellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2280 = !E2277 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2280 = !E2277, 3: BOASG
+         $OUT[2280] = NOT $IN[2277]
+      ;ENDFOLD
+      ;FOLD Schritt 24 = (A2280 + E2277 + T13) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 24 = (A2280 + E2277 + T13) & A4039, 3: ST_CON
+         IF ($OUT[2280] OR $IN[2277] OR $TIMER_FLAG[13]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 24
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 24 -- Schwenker Motorisch KL1 Arbeitsstellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:24, 3: Schwenker Motorisch KL1 Arbeitsstellung schwenken 
+      ;FOLD ;%{H}
+         Case 24
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenker Motorisch Arbeitsstellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenker Motorisch Arbeitsstellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F347 = (!E2273 + E2276 + !E2277 + !E2278 + E2279) & T13 + F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = (!E2273 + E2276 + !E2277 + !E2278 + E2279) & T13 + F347, 3: BOASG
+         $FLAG[347] = (NOT $IN[2273] OR $IN[2276] OR NOT $IN[2277] OR NOT $IN[2278] OR $IN[2279]) AND $TIMER_FLAG[13] OR $FLAG[347]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F347, 3: BOASG
+         $FLAG[348] = $FLAG[347]
+      ;ENDFOLD
+      ;FOLD F397 = !F347 & !E2276 & E2277 & E2278 & !E2279 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F397 = !F347 & !E2276 & E2277 & E2278 & !E2279, 3: BOASG
+         $FLAG[397] = NOT $FLAG[347] AND NOT $IN[2276] AND $IN[2277] AND $IN[2278] AND NOT $IN[2279]
+      ;ENDFOLD
+      ;FOLD Schritt 23 = F347 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 23 = F347 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[347] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 23
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 1 =  F397 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 1 =  F397 & A4039, 3: ST_CON
+         IF $FLAG[397] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 25 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:25, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 25
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 26 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:26, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 26
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 27 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:27, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 27
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 28 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:28, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 28
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 29 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:29, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 29
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 30 -- Schwenker Motorisch KL1 in Ruhestellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:30, 3: Schwenker Motorisch KL1 in Ruhestellung schwenken 
+      ;FOLD ;%{H}
+         Case 30
+      ;ENDFOLD
+      ;FOLD -- RSK gestartet -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK gestartet --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F345 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F345 = AUS, 3: BOASG
+         $FLAG[345] = FALSE
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD F347 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = AUS, 3: BOASG
+         $FLAG[347] = FALSE
+      ;ENDFOLD
+      ;FOLD F348 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = AUS, 3: BOASG
+         $FLAG[348] = FALSE
+      ;ENDFOLD
+      ;FOLD F355 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F355 = AUS, 3: BOASG
+         $FLAG[355] = FALSE
+      ;ENDFOLD
+      ;FOLD Schritt 31 = (!E2276 + E2277 + E2278 + !E2279) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 31 = (!E2276 + E2277 + E2278 + !E2279) & A4039, 3: ST_CON
+         IF (NOT $IN[2276] OR $IN[2277] OR $IN[2278] OR NOT $IN[2279]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 31
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 34 = E2276 & !E2277 & !E2278 & E2279 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 34 = E2276 & !E2277 & !E2278 & E2279 & A4039, 3: ST_CON
+         IF $IN[2276] AND NOT $IN[2277] AND NOT $IN[2278] AND $IN[2279] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 34
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 31 -- Schwenker Motorisch KL1 in Ruhestellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:31, 3: Schwenker Motorisch KL1 in Ruhestellung schwenken 
+      ;FOLD ;%{H}
+         Case 31
+      ;ENDFOLD
+      ;FOLD -- Ueberwachungszeit schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Ueberwachungszeit schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD t13 ( EIN ) = -100[1/10Sek] ;%{SE}%MKUKATPVW %CVW_SPS %VTASG %P 2:t13 ( EIN ) = -100[1/10Sek], 3: TASG
+         VW(#SET_TIME,TRUE,13,0,-100)
+      ;ENDFOLD
+      ;FOLD Schritt 32 = A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 32 = A4039, 3: ST_CON
+         IF $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 32
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 32 -- Schwenker Motorisch KL1 in Ruhestellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:32, 3: Schwenker Motorisch KL1 in Ruhestellung schwenken 
+      ;FOLD ;%{H}
+         Case 32
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenker Motorisch KL1 Arbeitsstellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenker Motorisch KL1 Arbeitsstellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F347 = (!E2273 + E2276 + !E2277 + !E2278 + E2279) & !F346 + F347 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F347 = (!E2273 + E2276 + !E2277 + !E2278 + E2279) & !F346 + F347, 3: BOASG
+         $FLAG[347] = (NOT $IN[2273] OR $IN[2276] OR NOT $IN[2277] OR NOT $IN[2278] OR $IN[2279]) AND NOT $FLAG[346] OR $FLAG[347]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F347 + F346 + T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F347 + F346 + T13, 3: BOASG
+         $FLAG[348] = $FLAG[347] OR $FLAG[346] OR $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD Schritt 33 = !F347 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 33 = !F347 & A4039, 3: ST_CON
+         IF NOT $FLAG[347] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 33
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 31 = F347 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 31 = F347 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[347] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 31
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 33 -- Schwenker Motorisch KL1 in Ruhestellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:33, 3: Schwenker Motorisch KL1 in Ruhestellung schwenken 
+      ;FOLD ;%{H}
+         Case 33
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = T13 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = T13, 3: BOASG
+         $FLAG[348] = $TIMER_FLAG[13]
+      ;ENDFOLD
+      ;FOLD F346 = AUS ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = AUS, 3: BOASG
+         $FLAG[346] = FALSE
+      ;ENDFOLD
+      ;FOLD -- Schwenker Motorisch KL1 in Ruhestellung schwenken -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- Schwenker Motorisch KL1 in Ruhestellung schwenken --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD A2280 = !E2276 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:A2280 = !E2276, 3: BOASG
+         $OUT[2280] = NOT $IN[2276]
+      ;ENDFOLD
+      ;FOLD Schritt 34 = (A2280 + E2276 + T13) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 34 = (A2280 + E2276 + T13) & A4039, 3: ST_CON
+         IF ($OUT[2280] OR $IN[2276] OR $TIMER_FLAG[13]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 34
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 34 -- Schwenker KL1 Motorisch in Ruhestellung schwenken -- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:34, 3: Schwenker KL1 Motorisch in Ruhestellung schwenken 
+      ;FOLD ;%{H}
+         Case 34
+      ;ENDFOLD
+      ;FOLD -- RSK Fehlerausgabe Schwenker Motorisch KL1 Ruhestellung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Fehlerausgabe Schwenker Motorisch KL1 Ruhestellung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F346 = (!E2273 + !E2276 + E2277 + E2278 + !E2279) & T13 + F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F346 = (!E2273 + !E2276 + E2277 + E2278 + !E2279) & T13 + F346, 3: BOASG
+         $FLAG[346] = (NOT $IN[2273] OR NOT $IN[2276] OR $IN[2277] OR $IN[2278] OR NOT $IN[2279]) AND $TIMER_FLAG[13] OR $FLAG[346]
+      ;ENDFOLD
+      ;FOLD -- RSK Sammelstoerung -- ;%{SE}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- RSK Sammelstoerung --, 3: VW_COMMENT
+      ;ENDFOLD
+      ;FOLD F348 = F346 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F348 = F346, 3: BOASG
+         $FLAG[348] = $FLAG[346]
+      ;ENDFOLD
+      ;FOLD F355 = !F346 & E2276 & !E2277 & !E2278 & E2279 ;%{SE}%MKUKATPVW %CVW_SPS %VBOASG %P 2:F355 = !F346 & E2276 & !E2277 & !E2278 & E2279, 3: BOASG
+         $FLAG[355] = NOT $FLAG[346] AND $IN[2276] AND NOT $IN[2277] AND NOT $IN[2278] AND $IN[2279]
+      ;ENDFOLD
+      ;FOLD Schritt 33 = F346 & (E26 + E27) & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 33 = F346 & (E26 + E27) & A4039, 3: ST_CON
+         IF $FLAG[346] AND ($IN[26] OR $IN[27]) AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 33
+         ENDIF
+      ;ENDFOLD
+      ;FOLD Schritt 1 = F355 & A4039 ;%{SE}%MKUKATPVW %CVW_SPS %VST_CON %P 2:Schritt 1 = F355 & A4039, 3: ST_CON
+         IF $FLAG[355] AND $OUT[4039] THEN
+            PREV_STEP[1] = APP_INT_STEP[1]
+            APP_INT_STEP[1] = 1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 35 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:35, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 35
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 36 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:36, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 36
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 37 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:37, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 37
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 38 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:38, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 38
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD SCHRITT 39 --Reserviert-- ;%{P}%MKUKATPVW,%CSTEP,%VST_NR,%P 1:SCHRITT, 2:39, 3:Reserviert
+      ;FOLD ;%{H}
+         Case 39
+      ;ENDFOLD
+      ;FOLD 1:;%{SE} %MKUKATPVW
+      ;ENDFOLD
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   DEFAULT
+   HMeldung ("StepNotAvailableInModul")
+   APP_INT_STEP[1]=1
+   ENDSWITCH
+   END
+   DEF HMeldung (Meld[]:IN)
+     CHAR Meld[]
+     DECL KrlMsg_T Msg
+     DECL KrlMsgPar_T Par[3]
+     DECL KrlMsgOpt_T Opt
+     INT nHandle
+     BOOL dummy
+     dummy=STRCOPY(Msg.Msg_txt[],Meld[])
+     Msg.Modul[]="MAKROSTEP"
+     Msg.Nr=111
+     Par[1].Par_type=#Value
+     Par[1].Par_Txt[] = "1"
+     Par[2].Par_type=#Value
+     Par[2].Par_Int = PREV_STEP[1]
+     Opt = {VL_Stop TRUE, Clear_P_Reset TRUE, Log_To_DB FALSE}
+     nHandle = Set_KrlMsg (#Notify, Msg, Par[], Opt)
+     WAIT SEC 0.2
+END
+; ENDFOLD

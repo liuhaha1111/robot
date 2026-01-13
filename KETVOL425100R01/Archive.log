@@ -1,0 +1,836 @@
+30/08/2025 02:09:34.09 [Verbose] -------------------------------
+30/08/2025 02:09:34.09 [Information] Start create archive '\\10.210.193.230\Backups\KETVOL425100R01.zip' with configuration: 'All'.
+30/08/2025 02:09:34.09 [Verbose] Store files:
+30/08/2025 02:09:36.80 [Information] The Rdc data is successfully written to HD!
+30/08/2025 02:09:40.00 [Verbose] 
+30/08/2025 02:09:40.00 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\'.
+30/08/2025 02:09:40.00 [Verbose] 
+30/08/2025 02:09:40.00 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1'.
+30/08/2025 02:09:40.00 [Verbose] 
+30/08/2025 02:09:40.00 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\Folgen'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\cell.src'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\Folge1.dat'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE1.src'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE123.dat'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE123.src'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE124.dat'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE124.src'.
+30/08/2025 02:09:40.01 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE125.dat'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE125.src'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Folgen\Folge41.dat'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE41.src'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Folgen\Folge61.dat'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Folgen\FOLGE61.src'.
+30/08/2025 02:09:40.02 [Verbose] 
+30/08/2025 02:09:40.02 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\Mada'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Mada\$machine.dat'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Mada\$robcor.dat'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Mada\machine.upg'.
+30/08/2025 02:09:40.02 [Verbose] Add file: 'KRC\R1\Mada\robcor.upg'.
+30/08/2025 02:09:40.02 [Verbose] 
+30/08/2025 02:09:40.02 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\Makros'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro0.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro20.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro340.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro342.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro343.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro344.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro345.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro346.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro347.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro348.src'.
+30/08/2025 02:09:40.03 [Verbose] Add file: 'KRC\R1\Makros\Makro349.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro350.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro351.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro352.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro353.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro354.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro355.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro356.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro357.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro358.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro359.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro360.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro361.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro362.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro363.src'.
+30/08/2025 02:09:40.04 [Verbose] Add file: 'KRC\R1\Makros\Makro364.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro365.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro40.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro420.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro421.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro422.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro428.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro429.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro430.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro432.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro433.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro434.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro435.src'.
+30/08/2025 02:09:40.05 [Verbose] Add file: 'KRC\R1\Makros\Makro436.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro437.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro438.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro439.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro440.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro441.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\makro45.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\makro46.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro50.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro51.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro52.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro53.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\Makro57.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\makro59.src'.
+30/08/2025 02:09:40.06 [Verbose] Add file: 'KRC\R1\Makros\makroneustart.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosaw.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps1.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps2.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps3.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps4.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps5.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps6.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps7.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps8.src'.
+30/08/2025 02:09:40.07 [Verbose] Add file: 'KRC\R1\Makros\makrosps9.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep1.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep2.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep3.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep4.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep5.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep6.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep7.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep8.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrostep9.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrosubmit1.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrosubmit2.src'.
+30/08/2025 02:09:40.08 [Verbose] Add file: 'KRC\R1\Makros\makrosubmit3.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\Makros\makrosubmit4.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\Makros\makrosubmit5.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\Makros\makrotrigger.src'.
+30/08/2025 02:09:40.09 [Verbose] 
+30/08/2025 02:09:40.09 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\System'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\$config.dat'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\bas.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\ibgn.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\procparam.dat'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\ROB_DATA.dat'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\ROB_DATA.src'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\select.dat'.
+30/08/2025 02:09:40.09 [Verbose] Add file: 'KRC\R1\System\select.src'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\sps.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\Sps1.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\Sps2.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\Sps3.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\Sps4.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\Sps5.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\sps7.sub'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\SynchroMove.dat'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\vw.src'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\vw_config.dat'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\VW_Safety.src'.
+30/08/2025 02:09:40.10 [Verbose] Add file: 'KRC\R1\System\weav_def.src'.
+30/08/2025 02:09:40.10 [Verbose] 
+30/08/2025 02:09:40.10 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP\ServoGun'.
+30/08/2025 02:09:40.11 [Verbose] Add file: 'KRC\R1\TP\ServoGun\VW_ServoGun_Interface.dat'.
+30/08/2025 02:09:40.11 [Verbose] Add file: 'KRC\R1\TP\ServoGun\VW_ServoGun_Interface.src'.
+30/08/2025 02:09:40.11 [Verbose] Add file: 'KRC\R1\TP\ServoGun\VW_ServoGun_Interface_s.src'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP\ServoGun\Reglertool'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP\ServoGun\Userfiles'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP\ServoGun\VW_SGB_Custom'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\TP\ServoGun\WeldTimer'.
+30/08/2025 02:09:40.11 [Verbose] 
+30/08/2025 02:09:40.11 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\UPs'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\Up1.dat'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP1.src'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\Up11.dat'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\Up11.src'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP112.dat'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP112.src'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP113.dat'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP113.src'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\Up114.dat'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\UP114.src'.
+30/08/2025 02:09:40.12 [Verbose] Add file: 'KRC\R1\UPs\Up12.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up12.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up13.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up13.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up14.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up14.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up15.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP15.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP2.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP2.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up20.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up20.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP201.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP201.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP202.dat'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\UP202.src'.
+30/08/2025 02:09:40.13 [Verbose] Add file: 'KRC\R1\UPs\Up203.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP203.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP206.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP206.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up21.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP21.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up219.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up219.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up22.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP22.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up23.dat'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\UP23.src'.
+30/08/2025 02:09:40.14 [Verbose] Add file: 'KRC\R1\UPs\Up25.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up25.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up3.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP3.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up303.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP303.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up304.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP304.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up320.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP320.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up321.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP321.src'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\Up353.dat'.
+30/08/2025 02:09:40.15 [Verbose] Add file: 'KRC\R1\UPs\UP353.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up354.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\UP354.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up370.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\UP370.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up371.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\UP371.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up4.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\UP4.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up5.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up5.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up617.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\UP617.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up618.dat'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up618.src'.
+30/08/2025 02:09:40.16 [Verbose] Add file: 'KRC\R1\UPs\Up7.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up7.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up777.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP777.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up81.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP81.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP82.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP82.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up83.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP83.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up84.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP84.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up85.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP85.src'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\Up86.dat'.
+30/08/2025 02:09:40.17 [Verbose] Add file: 'KRC\R1\UPs\UP86.src'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\Up993.dat'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\Up993.src'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\Up998.dat'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\UP998.src'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\Up999.dat'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\UPs\UP999.src'.
+30/08/2025 02:09:40.18 [Verbose] 
+30/08/2025 02:09:40.18 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\VW_User\vw_user.dat'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\VW_User\vw_user.src'.
+30/08/2025 02:09:40.18 [Verbose] Add file: 'KRC\R1\VW_User\vw_usr_r.dat'.
+30/08/2025 02:09:40.19 [Verbose] Add file: 'KRC\R1\VW_User\vw_usr_r.src'.
+30/08/2025 02:09:40.19 [Verbose] Add file: 'KRC\R1\VW_User\vw_usr_s.dat'.
+30/08/2025 02:09:40.19 [Verbose] Add file: 'KRC\R1\VW_User\vw_usr_s.src'.
+30/08/2025 02:09:40.19 [Verbose] Add file: 'KRC\R1\VW_User\vw_vmlog.dat'.
+30/08/2025 02:09:40.19 [Verbose] Add file: 'KRC\R1\VW_User\vw_vmlog.src'.
+30/08/2025 02:09:40.19 [Verbose] 
+30/08/2025 02:09:40.19 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation'.
+30/08/2025 02:09:40.19 [Verbose] 
+30/08/2025 02:09:40.19 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\BM_Buckeln'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BM_Buckeln\vw_bm_usr_r.dat'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BM_Buckeln\vw_bm_usr_r.src'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BM_Buckeln\vw_bm_usr_s.dat'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BM_Buckeln\vw_bm_usr_s.src'.
+30/08/2025 02:09:40.20 [Verbose] 
+30/08/2025 02:09:40.20 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\BU_Buersten'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BU_Buersten\vw_bu_usr_r.dat'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BU_Buersten\vw_bu_usr_r.src'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BU_Buersten\vw_bu_usr_s.dat'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BU_Buersten\vw_bu_usr_s.src'.
+30/08/2025 02:09:40.20 [Verbose] 
+30/08/2025 02:09:40.20 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\BZ_Bolzenschweissen'.
+30/08/2025 02:09:40.20 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BZ_Bolzenschweissen\vw_bz_usr_r.dat'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BZ_Bolzenschweissen\vw_bz_usr_r.src'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BZ_Bolzenschweissen\vw_bz_usr_s.dat'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\BZ_Bolzenschweissen\vw_bz_usr_s.src'.
+30/08/2025 02:09:40.21 [Verbose] 
+30/08/2025 02:09:40.21 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\CO_Conveyor'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CO_Conveyor\vw_conv_usr_r.dat'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CO_Conveyor\vw_conv_usr_r.src'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CO_Conveyor\vw_conv_usr_s.dat'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CO_Conveyor\vw_conv_usr_s.src'.
+30/08/2025 02:09:40.21 [Verbose] 
+30/08/2025 02:09:40.21 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\CZ_Clinchen'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CZ_Clinchen\vw_cz_usr_r.dat'.
+30/08/2025 02:09:40.21 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CZ_Clinchen\vw_cz_usr_r.src'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CZ_Clinchen\vw_cz_usr_s.dat'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\CZ_Clinchen\vw_cz_usr_s.src'.
+30/08/2025 02:09:40.22 [Verbose] 
+30/08/2025 02:09:40.22 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\DS_Dockingsystem'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\DS_Dockingsystem\vw_ds_usr_r.dat'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\DS_Dockingsystem\vw_ds_usr_r.src'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\DS_Dockingsystem\vw_ds_usr_s.dat'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\DS_Dockingsystem\vw_ds_usr_s.src'.
+30/08/2025 02:09:40.22 [Verbose] 
+30/08/2025 02:09:40.22 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\EthernetKRL'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\EthernetKRL\vw_EthernetKRL.dat'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\EthernetKRL\vw_EthernetKRL.src'.
+30/08/2025 02:09:40.22 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\EthernetKRL\vw_EthernetKRL_USER.dat'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\EthernetKRL\vw_EthernetKRL_USER.src'.
+30/08/2025 02:09:40.23 [Verbose] 
+30/08/2025 02:09:40.23 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\FD_Flowdrill'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\FD_Flowdrill\vw_fd_usr_r.dat'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\FD_Flowdrill\vw_fd_usr_r.src'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\FD_Flowdrill\vw_fd_usr_s.dat'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\FD_Flowdrill\vw_fd_usr_s.src'.
+30/08/2025 02:09:40.23 [Verbose] 
+30/08/2025 02:09:40.23 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\G_Handling'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\G_Handling\vw_g_usr_r.dat'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\G_Handling\vw_g_usr_r.src'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\G_Handling\vw_g_usr_s.dat'.
+30/08/2025 02:09:40.23 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\G_Handling\vw_g_usr_s.src'.
+30/08/2025 02:09:40.23 [Verbose] 
+30/08/2025 02:09:40.23 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\KL_Kleben'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\KL_Kleben\vw_kl_usr_r.dat'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\KL_Kleben\vw_kl_usr_r.src'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\KL_Kleben\vw_kl_usr_s.dat'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\KL_Kleben\vw_kl_usr_s.src'.
+30/08/2025 02:09:40.24 [Verbose] 
+30/08/2025 02:09:40.24 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision'.
+30/08/2025 02:09:40.24 [Verbose] 
+30/08/2025 02:09:40.24 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\Audi_EKI'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Audi_EKI\vw_eki_usr_r.dat'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Audi_EKI\vw_eki_usr_r.src'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Audi_EKI\vw_eki_usr_s.dat'.
+30/08/2025 02:09:40.24 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Audi_EKI\vw_eki_usr_s.src'.
+30/08/2025 02:09:40.25 [Verbose] 
+30/08/2025 02:09:40.25 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\INOS'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\INOS\vw_ino_usr_r.dat'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\INOS\vw_ino_usr_r.src'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\INOS\vw_ino_usr_s.dat'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\INOS\vw_ino_usr_s.src'.
+30/08/2025 02:09:40.25 [Verbose] 
+30/08/2025 02:09:40.25 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\ISRA'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_base_user.dat'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_base_user.src'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_user.dat'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_user.src'.
+30/08/2025 02:09:40.25 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_user_conf.dat'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_cgx_user_conf.src'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_isr_usr_r.dat'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_isr_usr_r.src'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_isr_usr_s.dat'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\ISRA\vw_isr_usr_s.src'.
+30/08/2025 02:09:40.26 [Verbose] 
+30/08/2025 02:09:40.26 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\Perceptron'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Perceptron\vw_prc_usr_r.dat'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Perceptron\vw_prc_usr_r.src'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Perceptron\vw_prc_usr_s.dat'.
+30/08/2025 02:09:40.26 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Perceptron\vw_prc_usr_s.src'.
+30/08/2025 02:09:40.26 [Verbose] 
+30/08/2025 02:09:40.26 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\VMT'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\VMT\vw_vmt_usr_r.dat'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\VMT\vw_vmt_usr_r.src'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\VMT\vw_vmt_usr_s.dat'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\VMT\vw_vmt_usr_s.src'.
+30/08/2025 02:09:40.27 [Verbose] 
+30/08/2025 02:09:40.27 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\XML'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\XML\vw_xml_usr.dat'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\XML\vw_xml_usr.src'.
+30/08/2025 02:09:40.27 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\XML\vw_xml_usr_conf.dat'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\XML\vw_xml_usr_conf.src'.
+30/08/2025 02:09:40.28 [Verbose] 
+30/08/2025 02:09:40.28 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LM_Vision\Zeiss'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Zeiss\vw_zai_usr_r.dat'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Zeiss\vw_zai_usr_r.src'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Zeiss\vw_zai_usr_s.dat'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LM_Vision\Zeiss\vw_zai_usr_s.src'.
+30/08/2025 02:09:40.28 [Verbose] 
+30/08/2025 02:09:40.28 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\LR_Laserreinigung'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LR_Laserreinigung\vw_lr_usr_r.dat'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LR_Laserreinigung\vw_lr_usr_r.src'.
+30/08/2025 02:09:40.28 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LR_Laserreinigung\vw_lr_usr_s.dat'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\LR_Laserreinigung\vw_lr_usr_s.src'.
+30/08/2025 02:09:40.29 [Verbose] 
+30/08/2025 02:09:40.29 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\MS_MIG-MAG'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\MS_MIG-MAG\vw_ms_usr_r.dat'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\MS_MIG-MAG\vw_ms_usr_r.src'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\MS_MIG-MAG\vw_ms_usr_s.dat'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\MS_MIG-MAG\vw_ms_usr_s.src'.
+30/08/2025 02:09:40.29 [Verbose] 
+30/08/2025 02:09:40.29 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\NK_Nahtkontrolle'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NK_Nahtkontrolle\vw_nk_usr_r.dat'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NK_Nahtkontrolle\vw_nk_usr_r.src'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NK_Nahtkontrolle\vw_nk_usr_s.dat'.
+30/08/2025 02:09:40.29 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NK_Nahtkontrolle\vw_nk_usr_s.src'.
+30/08/2025 02:09:40.30 [Verbose] 
+30/08/2025 02:09:40.30 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\NZ_Nieten'.
+30/08/2025 02:09:40.30 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NZ_Nieten\vw_nz_usr_r.dat'.
+30/08/2025 02:09:40.30 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NZ_Nieten\vw_nz_usr_r.src'.
+30/08/2025 02:09:40.30 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NZ_Nieten\vw_nz_usr_s.dat'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\NZ_Nieten\vw_nz_usr_s.src'.
+30/08/2025 02:09:40.31 [Verbose] 
+30/08/2025 02:09:40.31 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\OE_Objekterkennung'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\OE_Objekterkennung\vw_oe_usr_r.dat'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\OE_Objekterkennung\vw_oe_usr_r.src'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\OE_Objekterkennung\vw_oe_usr_s.dat'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\OE_Objekterkennung\vw_oe_usr_s.src'.
+30/08/2025 02:09:40.31 [Verbose] 
+30/08/2025 02:09:40.31 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\PGR_Prozessgeraete'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PGR_Prozessgeraete\vw_pgr_usr_r.dat'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PGR_Prozessgeraete\vw_pgr_usr_r.src'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PGR_Prozessgeraete\vw_pgr_usr_s.dat'.
+30/08/2025 02:09:40.31 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PGR_Prozessgeraete\vw_pgr_usr_s.src'.
+30/08/2025 02:09:40.32 [Verbose] 
+30/08/2025 02:09:40.32 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\POT_Produktion-ohne-Teil'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\POT_Produktion-ohne-Teil\vw_pot_usr_r.dat'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\POT_Produktion-ohne-Teil\vw_pot_usr_r.src'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\POT_Produktion-ohne-Teil\vw_pot_usr_s.dat'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\POT_Produktion-ohne-Teil\vw_pot_usr_s.src'.
+30/08/2025 02:09:40.32 [Verbose] 
+30/08/2025 02:09:40.32 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\Projekt_Modul'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Projekt_Modul\vw_mod_usr_r.dat'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Projekt_Modul\vw_mod_usr_r.src'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Projekt_Modul\vw_mod_usr_s.dat'.
+30/08/2025 02:09:40.32 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Projekt_Modul\vw_mod_usr_s.src'.
+30/08/2025 02:09:40.32 [Verbose] 
+30/08/2025 02:09:40.32 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\PR_Praeger'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PR_Praeger\vw_pr_usr_r.dat'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PR_Praeger\vw_pr_usr_r.src'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PR_Praeger\vw_pr_usr_s.dat'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\PR_Praeger\vw_pr_usr_s.src'.
+30/08/2025 02:09:40.33 [Verbose] 
+30/08/2025 02:09:40.33 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\RE_Wischkopf'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RE_Wischkopf\vw_re_usr_r.dat'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RE_Wischkopf\vw_re_usr_r.src'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RE_Wischkopf\vw_re_usr_s.dat'.
+30/08/2025 02:09:40.33 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RE_Wischkopf\vw_re_usr_s.src'.
+30/08/2025 02:09:40.34 [Verbose] 
+30/08/2025 02:09:40.34 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\RW_Reibelementschweissen'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RW_Reibelementschweissen\vw_rw_usr_r.dat'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RW_Reibelementschweissen\vw_rw_usr_r.src'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RW_Reibelementschweissen\vw_rw_usr_s.dat'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RW_Reibelementschweissen\vw_rw_usr_s.src'.
+30/08/2025 02:09:40.34 [Verbose] 
+30/08/2025 02:09:40.34 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\RZ_Schweisszange'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RZ_Schweisszange\vw_rz_usr_r.dat'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RZ_Schweisszange\vw_rz_usr_r.src'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RZ_Schweisszange\vw_rz_usr_s.dat'.
+30/08/2025 02:09:40.34 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\RZ_Schweisszange\vw_rz_usr_s.src'.
+30/08/2025 02:09:40.34 [Verbose] 
+30/08/2025 02:09:40.34 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\Scan_gun'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Scan_gun\scan_gun_s.dat'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Scan_gun\scan_gun_s.src'.
+30/08/2025 02:09:40.35 [Verbose] 
+30/08/2025 02:09:40.35 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\SFR_SafeRobot'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SFR_SafeRobot\vw_sfr_usr_r.dat'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SFR_SafeRobot\vw_sfr_usr_r.src'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SFR_SafeRobot\vw_sfr_usr_s.dat'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SFR_SafeRobot\vw_sfr_usr_s.src'.
+30/08/2025 02:09:40.35 [Verbose] 
+30/08/2025 02:09:40.35 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\SK_Schweisssteuerung'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SK_Schweisssteuerung\vw_sk_usr_s.dat'.
+30/08/2025 02:09:40.35 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SK_Schweisssteuerung\vw_sk_usr_s.src'.
+30/08/2025 02:09:40.35 [Verbose] 
+30/08/2025 02:09:40.35 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\SM_Stanzen'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SM_Stanzen\vw_sm_usr_r.dat'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SM_Stanzen\vw_sm_usr_r.src'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SM_Stanzen\vw_sm_usr_s.dat'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SM_Stanzen\vw_sm_usr_s.src'.
+30/08/2025 02:09:40.36 [Verbose] 
+30/08/2025 02:09:40.36 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\SR_Schrauben'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SR_Schrauben\vw_sr_usr_r.dat'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SR_Schrauben\vw_sr_usr_r.src'.
+30/08/2025 02:09:40.36 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SR_Schrauben\vw_sr_usr_s.dat'.
+30/08/2025 02:09:40.37 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SR_Schrauben\vw_sr_usr_s.src'.
+30/08/2025 02:09:40.37 [Verbose] 
+30/08/2025 02:09:40.37 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\STP_Stosspunkten'.
+30/08/2025 02:09:40.37 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\STP_Stosspunkten\vw_stp_usr_r.dat'.
+30/08/2025 02:09:40.37 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\STP_Stosspunkten\vw_stp_usr_r.src'.
+30/08/2025 02:09:40.37 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\STP_Stosspunkten\vw_stp_usr_s.dat'.
+30/08/2025 02:09:40.38 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\STP_Stosspunkten\vw_stp_usr_s.src'.
+30/08/2025 02:09:40.38 [Verbose] 
+30/08/2025 02:09:40.38 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\SZ_Schweisszangen'.
+30/08/2025 02:09:40.38 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SZ_Schweisszangen\vw_sz_usr_r.dat'.
+30/08/2025 02:09:40.38 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SZ_Schweisszangen\vw_sz_usr_r.src'.
+30/08/2025 02:09:40.38 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SZ_Schweisszangen\vw_sz_usr_s.dat'.
+30/08/2025 02:09:40.38 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\SZ_Schweisszangen\vw_sz_usr_s.src'.
+30/08/2025 02:09:40.39 [Verbose] 
+30/08/2025 02:09:40.39 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\Tech_base'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Tech_base\tech_base_s.dat'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Tech_base\tech_base_s.src'.
+30/08/2025 02:09:40.39 [Verbose] 
+30/08/2025 02:09:40.39 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\TR_Traceaufzeichnung'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\TR_Traceaufzeichnung\vw_tr_usr_r.dat'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\TR_Traceaufzeichnung\vw_tr_usr_r.src'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\TR_Traceaufzeichnung\vw_tr_usr_s.dat'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\TR_Traceaufzeichnung\vw_tr_usr_s.src'.
+30/08/2025 02:09:40.39 [Verbose] 
+30/08/2025 02:09:40.39 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen'.
+30/08/2025 02:09:40.39 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_ipo_usr_r.dat'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_ipo_usr_r.src'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_ipo_usr_s.dat'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_ipo_usr_s.src'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_va_usr_r.dat'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_va_usr_r.src'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_va_usr_s.dat'.
+30/08/2025 02:09:40.40 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\VA_Virtuelle-Achsen\vw_va_usr_s.src'.
+30/08/2025 02:09:40.40 [Verbose] 
+30/08/2025 02:09:40.40 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\VM_VectorMove'.
+30/08/2025 02:09:40.40 [Verbose] 
+30/08/2025 02:09:40.40 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\Volkswagen_Fehlerauswertung'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Volkswagen_Fehlerauswertung\vw_feh_usr_s.dat'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Volkswagen_Fehlerauswertung\vw_feh_usr_s.src'.
+30/08/2025 02:09:40.41 [Verbose] 
+30/08/2025 02:09:40.41 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\R1\VW_User\Applikation\Volkswagen_RIP'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Volkswagen_RIP\vw_rip_usr_s.dat'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\R1\VW_User\Applikation\Volkswagen_RIP\vw_rip_usr_s.src'.
+30/08/2025 02:09:40.41 [Verbose] 
+30/08/2025 02:09:40.41 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\STEU'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\$config.dat'.
+30/08/2025 02:09:40.41 [Verbose] 
+30/08/2025 02:09:40.41 [Verbose] Add files to archive from path 'C:\KRC\Roboter\KRC\STEU\Mada'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\$custom.dat'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\$machine.dat'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\$option.dat'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\custom.upg'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\machine.upg'.
+30/08/2025 02:09:40.41 [Verbose] Add file: 'KRC\STEU\Mada\option.upg'.
+30/08/2025 02:09:40.41 [Verbose] 
+30/08/2025 02:09:40.42 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\KrlModSize.bin'.
+30/08/2025 02:09:40.42 [Verbose] 
+30/08/2025 02:09:40.42 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Cabinet'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Cabinet\NGSharedO.xml'.
+30/08/2025 02:09:40.42 [Verbose] 
+30/08/2025 02:09:40.42 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\AsyncDataToKrl.xml'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\CabCtrl.xml'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\connectionchain.xml'.
+30/08/2025 02:09:40.42 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\DevIODriver.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ecatms_config.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ecatms_sys_X44_swap.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ecatms_sys_X48_config.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ecat_DNM_Gateway.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ecat_PBM_Gateway.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ECAT_SYS_X44.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\FpExceptions.xml'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\HNFINFO.SAF'.
+30/08/2025 02:09:40.43 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\IPPNIO.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KLIConfig.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KNet.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KONIConfig.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KrcConfig.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KrcDryRun.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KrcExtConfMsg.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KrcIoSignals.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\KRC_IO.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_BrakeTest.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_EthernetKRL.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_RoboTeam.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_SpotControl.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_System.xml'.
+30/08/2025 02:09:40.44 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Logging_VwAscii.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_DevIO.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_EthernetKRL.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_PNIODriver.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_ProConOS.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_SysBusDriver.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_TimeSync.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Modules_VRC.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\NGMada.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\pndev1.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PNIODriver.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PNIOIM4Data.dat'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PNIOIMData.txt'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ProConOS.xml'.
+30/08/2025 02:09:40.45 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ProConOS_IO.xml'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ProConOS_NCO.xml'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ProConOS_PDD.xml'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SAFEDEV.SAF'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SafetyConfigData.xml'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SCTLCRC.IMG'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SCTLCRC.XML'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SCTLINFO.SAF'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SCTLPARA.SAF'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SCtlPara.sg'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\SysBusDriver.xml'.
+30/08/2025 02:09:40.46 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\TimeSync.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\TimeSyncBase.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\TransferApp_IO.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\USERPDI.SAF'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\VIO_USER_BUS.xml'.
+30/08/2025 02:09:40.47 [Verbose] 
+30/08/2025 02:09:40.47 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\EthernetKRL'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\ReadMe.txt'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\TCP_DC.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\XML_KUKA_Cognex_1.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\XML_KUKA_Cognex_2.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\xml_kuka_vision_1.xml'.
+30/08/2025 02:09:40.47 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\EthernetKRL\xml_kuka_vision_2.xml'.
+30/08/2025 02:09:40.47 [Verbose] 
+30/08/2025 02:09:40.48 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Mada'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\AxisData.xml'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\CFCore.xml'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\CFCoreWaggonDriverConfig.xml'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\CtrlGainTab.bin'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\EAWaggonDriverConfig.xml'.
+30/08/2025 02:09:40.48 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\KRCAxes.xml'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\LDP.xml'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\MMAxisAdapter.xml'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NextGenDriveTech.xml'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxes.xml'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxesKrc.xml'.
+30/08/2025 02:09:40.49 [Verbose] 
+30/08/2025 02:09:40.49 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Mada\MotionDrivers'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\MotionDrivers\MdlCtlDataDrv.ini'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\MotionDrivers\mdrBrakeTest.ini'.
+30/08/2025 02:09:40.49 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\MotionDrivers\motiondrv.ini'.
+30/08/2025 02:09:40.49 [Verbose] 
+30/08/2025 02:09:40.49 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Mada\NGAxis'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A1.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A2.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A3.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A4.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A5.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\A6.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA1.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA1AddFct.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA2.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA2AddFct.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA3.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA3AddFct.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA4.xml'.
+30/08/2025 02:09:40.50 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA4AddFct.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA5.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA5AddFct.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA6.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlA6AddFct.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlE1.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\CtrlE1AddFct.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\NGAxis\E1.xml'.
+30/08/2025 02:09:40.51 [Verbose] 
+30/08/2025 02:09:40.51 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Mada\SimuAxis'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A1.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A2.xml'.
+30/08/2025 02:09:40.51 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A3.xml'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A4.xml'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A5.xml'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Mada\SimuAxis\A6.xml'.
+30/08/2025 02:09:40.52 [Verbose] 
+30/08/2025 02:09:40.52 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\MotionDrivers'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\loadDataDevice.ini'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrBrakeTest.ini'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrConveyor.ini'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrEmily.ini'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrJointOffset.ini'.
+30/08/2025 02:09:40.52 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrSignalMonitor.ini'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrStandStill.ini'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\mdrVwAscii.ini'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\MotionDrivers\motiondrv.ini'.
+30/08/2025 02:09:40.53 [Verbose] 
+30/08/2025 02:09:40.53 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Motor'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Motor\M_D01_KSP20_400V_V3.xml'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Motor\M_I2_KSP40_400V_V1.xml'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Motor\M_K2_KSP40_400V_V1.xml'.
+30/08/2025 02:09:40.53 [Verbose] 
+30/08/2025 02:09:40.53 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\PersistPC'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PersistPC\EncoderMastering.xml'.
+30/08/2025 02:09:40.53 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PersistPC\KrcRrtLog.xml'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PersistPC\NGDecouple.xml'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\PersistPC\SimuMastering.xml'.
+30/08/2025 02:09:40.54 [Verbose] 
+30/08/2025 02:09:40.54 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\ServoFile'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ServoFile\S_D01_KSP20_400V_V3.xml'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ServoFile\S_I2_KSP40_400V_V1.xml'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ServoFile\S_K2_KSP40_400V_V1.xml'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\ServoFile\S_KPP_400V_16.xml'.
+30/08/2025 02:09:40.54 [Verbose] 
+30/08/2025 02:09:40.54 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\Supply'.
+30/08/2025 02:09:40.54 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\Supply\KPP_400V_16.xml'.
+30/08/2025 02:09:40.54 [Verbose] 
+30/08/2025 02:09:40.54 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Common\VxWin'.
+30/08/2025 02:09:40.55 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Common\VxWin\knet.config'.
+30/08/2025 02:09:40.55 [Verbose] 
+30/08/2025 02:09:40.55 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Office'.
+30/08/2025 02:09:40.55 [Verbose] 
+30/08/2025 02:09:40.55 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Office\PersistCIB'.
+30/08/2025 02:09:40.55 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Office\PersistCIB\Readme.txt'.
+30/08/2025 02:09:40.55 [Verbose] 
+30/08/2025 02:09:40.55 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Office\PersistPDS'.
+30/08/2025 02:09:40.55 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Office\PersistPDS\Readme.txt'.
+30/08/2025 02:09:40.55 [Verbose] 
+30/08/2025 02:09:40.55 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\User\Office\PersistRDC'.
+30/08/2025 02:09:40.55 [Verbose] Add file: 'C\KRC\Roboter\Config\User\Office\PersistRDC\Readme.txt'.
+30/08/2025 02:09:40.55 [Verbose] 
+30/08/2025 02:09:40.55 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\System\Common\Mada\'.
+30/08/2025 02:09:40.56 [Verbose] 
+30/08/2025 02:09:40.56 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\System\Common\Mada\MotionDrivers'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\MotionDrivers\MdlCtlDataDrv.ini'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\MotionDrivers\mdrBrakeTest.ini'.
+30/08/2025 02:09:40.56 [Verbose] 
+30/08/2025 02:09:40.56 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Config\System\Common\Mada\NGAxis'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A1.xml'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A2.xml'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A3.xml'.
+30/08/2025 02:09:40.56 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A4.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A5.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\A6.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA1.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA2.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA3.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA4.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA5.xml'.
+30/08/2025 02:09:40.57 [Verbose] Add file: 'C\KRC\Roboter\Config\System\Common\Mada\NGAxis\CtrlA6.xml'.
+30/08/2025 02:09:40.57 [Verbose] 
+30/08/2025 02:09:40.57 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Init\'.
+30/08/2025 02:09:40.58 [Verbose] Add file: 'C\KRC\Roboter\Init\RefListe.txt'.
+30/08/2025 02:09:40.58 [Verbose] Add file: 'C\KRC\Roboter\Init\vw_user.ini'.
+30/08/2025 02:09:40.58 [Verbose] Add file: 'C\KRC\Roboter\Init\vw_usr_r_makro.ini'.
+30/08/2025 02:09:40.58 [Verbose] Add file: 'C\KRC\Roboter\Init\vw_usr_s_makro.ini'.
+30/08/2025 02:09:40.58 [Verbose] 
+30/08/2025 02:09:40.58 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Ir_Spec\'.
+30/08/2025 02:09:40.58 [Verbose] 
+30/08/2025 02:09:40.58 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Ir_Spec\IDF'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\IDF\DEFAULT.IDF'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\IDF\DEFAULT_WIH.IDF'.
+30/08/2025 02:09:40.59 [Verbose] 
+30/08/2025 02:09:40.59 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Ir_Spec\L_IDENT'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$de_ident.src'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$en_ident.src'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$es_ident.src'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$fr_ident.src'.
+30/08/2025 02:09:40.59 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$it_ident.src'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$__Ident.idf'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\$__Ident.out'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\ident.ini'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\ident_vx.o'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Ir_Spec\L_IDENT\KukaLoadProject.1237684.xml'.
+30/08/2025 02:09:40.60 [Verbose] 
+30/08/2025 02:09:40.60 [Verbose] Add files to archive from path 'C:\KRC\Roboter\Rdc\'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Rdc\1237684.cal'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Rdc\1237684.mam'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Rdc\KLIConfig.xml'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Rdc\RdcDirectoryContents.txt'.
+30/08/2025 02:09:40.60 [Verbose] Add file: 'C\KRC\Roboter\Rdc\RobotData.xml'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\Roboter\Rdc\RobotInfo.xml'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\Roboter\Rdc\Settings.xml'.
+30/08/2025 02:09:40.61 [Verbose] 
+30/08/2025 02:09:40.61 [Verbose] Add files to archive from path 'C:\KRC\User\'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\activationfilter.config'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\ConfigMon.ini'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\Cross3.User.config'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\Gripper.config'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\InitialProjectSetup.User.config'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\InstallTech.cfg'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\KLMDigitalIO.WriteProtectedOutputs.cfg'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\KukaPMService.User.config'.
+30/08/2025 02:09:40.61 [Verbose] Add file: 'C\KRC\User\Measurement.Points.cfg'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\PMService.user.config'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\ProjectExternalFileList.xml'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\SchedulerAction.BackupAction.config'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\Settings.xml'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\SmartHMI.User.config'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\VW_User.config'.
+30/08/2025 02:09:40.62 [Verbose] Add file: 'C\KRC\User\WorkVisualServiceHost.User.config'.
+30/08/2025 02:09:40.62 [Verbose] 
+30/08/2025 02:09:40.62 [Verbose] Add files to archive from path 'C:\KRC\User\Data'.
+30/08/2025 02:09:40.62 [Verbose] 
+30/08/2025 02:09:40.62 [Verbose] Add files to archive from path 'C:\KRC\User\ProjectRoot'.
+30/08/2025 02:09:40.62 [Verbose] 
+30/08/2025 02:09:40.62 [Verbose] Add files to archive from path 'C:\KRC\User\ProjectRoot\@BaseProject'.
+30/08/2025 02:09:40.62 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\@BaseProject\BaseProject.wvs' because of rule!
+30/08/2025 02:09:40.62 [Verbose] 
+30/08/2025 02:09:40.62 [Verbose] Add files to archive from path 'C:\KRC\User\ProjectRoot\ERST_IBN'.
+30/08/2025 02:09:40.62 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\ERST_IBN\ERST_IBN.log' because of rule!
+30/08/2025 02:09:40.62 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\ERST_IBN\ERST_IBN.wvs' because of rule!
+30/08/2025 02:09:40.62 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\ERST_IBN\ERST_IBN_old.log' because of rule!
+30/08/2025 02:09:40.63 [Verbose] 
+30/08/2025 02:09:40.63 [Verbose] Add files to archive from path 'C:\KRC\User\ProjectRoot\KETVOL425100R01'.
+30/08/2025 02:09:40.63 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.asz' because of rule!
+30/08/2025 02:09:40.63 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.log' because of rule!
+30/08/2025 02:09:40.63 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.wvs' because of rule!
+30/08/2025 02:09:40.63 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01_old.log' because of rule!
+30/08/2025 02:09:40.63 [Verbose] 
+30/08/2025 02:09:40.63 [Verbose] Add files to archive from path 'C:\KRC\User\TP'.
+30/08/2025 02:09:40.63 [Verbose] 
+30/08/2025 02:09:40.63 [Verbose] Add files to archive from path 'C:\KRC\User\TP\SafetyDiagnostics'.
+30/08/2025 02:09:40.63 [Verbose] Add file: 'C\KRC\User\TP\SafetyDiagnostics\SpaceVisualization.xml'.
+30/08/2025 02:09:40.63 [Verbose] Add file: 'C\KRC\Roboter\log\Mastery.log'.
+30/08/2025 02:09:40.63 [Verbose] 
+30/08/2025 02:09:40.63 [Verbose] Add files to archive from path 'C:\KRC\ROBOTER\ProConOS'.
+30/08/2025 02:09:40.63 [Verbose] 
+30/08/2025 02:09:40.63 [Verbose] Add files to archive from path 'C:\PROGRAM FILES\KUKA.CPC\apccache\'.
+30/08/2025 02:09:40.63 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\BoardPackage_V1.4.0_Build0006.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\BoardPackage_V1.5.0_Build0006_SHA128.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\DiagnoseSafety_2.1.0.29.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\EthernetKRL_2.2.8.155.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\KUKA.CPC_V3.1.3_Build62.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\KUKA.SecurityUpdateWES_7, V1.0.12_Build37.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\KUKA.SecurityUpdateWES_7, V1.0.8_Build26.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\LoadDataDetermination, 6.2.8_Build28.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\LoadDataDetermination, 82_6.2.0_Build12.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\ProConOS 4-1, V4.1.4_Build11.appcert'.
+30/08/2025 02:09:40.64 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\Profinet KRC-Nexxt_3.3.1.8.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\ServoGunBasic_V1.0.10_Build5128_SHA128.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\ServoGunBasic_V1.0.10_Build5128_SHA256.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\ServoGunBasic_V1.0.8_Build5036_SHA128.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\ServoGunBasic_V1.0.8_Build5036_SHA256.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\SetupWrapper, V2.4.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\SetupWrapper, V2.5.0_Build02.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\SetupWrapper, V2.6.0_Build01.appcert'.
+30/08/2025 02:09:40.65 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\UserSetup.537.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\UserSetup.538.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\VKR C, V8.3.21_Build456.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\WES7 Cloning, V1.0.2_Build14.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\WES7, V4.2.0_Build02.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\WES7OSUP, V1.0.3_Build11.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\WorkVisual AddOnVKR_1.1.0.274.appcert'.
+30/08/2025 02:09:40.66 [Verbose] Add file: 'C\PROGRAM FILES\KUKA.CPC\apccache\WristMamesOffset_1.0.1.92.appcert'.
+30/08/2025 02:09:40.66 [Verbose] 
+30/08/2025 02:09:40.66 [Verbose] Store EventLogs:
+30/08/2025 02:09:40.66 [Verbose] Save EventLog 'KrcLog'
+30/08/2025 02:09:40.72 [Verbose] Add file: 'Log Files\KrcLog.evt'.
+30/08/2025 02:09:40.72 [Verbose] Save EventLog 'KrcLogI'
+30/08/2025 02:09:40.79 [Verbose] Add file: 'Log Files\KrcLogI.evt'.
+30/08/2025 02:09:40.79 [Verbose] Save EventLog 'KrcLogU'
+30/08/2025 02:09:41.14 [Verbose] Add file: 'Log Files\KrcLogU.evt'.
+30/08/2025 02:09:41.14 [Verbose] Save EventLog 'KrcLogS'
+30/08/2025 02:09:41.46 [Verbose] Add file: 'Log Files\KrcLogS.evt'.
+30/08/2025 02:09:41.46 [Verbose] Save EventLog 'KrcLogP'
+30/08/2025 02:09:42.41 [Verbose] Add file: 'Log Files\KrcLogP.evt'.
+30/08/2025 02:09:42.41 [Verbose] Save EventLog 'KrcLogB'
+30/08/2025 02:09:42.72 [Verbose] Add file: 'Log Files\KrcLogB.evt'.
+30/08/2025 02:09:42.72 [Verbose] Save EventLog 'KrcLogC'
+30/08/2025 02:09:43.00 [Verbose] Add file: 'Log Files\KrcLogC.evt'.
+30/08/2025 02:09:43.00 [Verbose] 
+30/08/2025 02:09:43.00 [Verbose] Store RegistryKeys:
+30/08/2025 02:09:43.00 [Verbose] Save RegistryKey 'HKEY_LOCAL_MACHINE\SOFTWARE\KUKA ROBOTER GMBH\WorkVisual'
+30/08/2025 02:09:43.00 [Verbose] Save RegistryKey 'HKEY_LOCAL_MACHINE\SOFTWARE\KUKA Roboter GmbH\Performance\'
+30/08/2025 02:09:43.01 [Verbose] 
+30/08/2025 02:09:43.01 [Verbose] Store projects: Aktive.
+30/08/2025 02:09:43.01 [Information] Save active project 'KETVOL425100R01 V1.23.0' from C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.wvs
+30/08/2025 02:09:43.01 [Verbose] 
+30/08/2025 02:09:43.01 [Verbose] Add files to archive from path 'C:\KRC\User\ProjectRoot\KETVOL425100R01\'.
+30/08/2025 02:09:43.01 [Verbose] Add file: 'C\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.asz'.
+30/08/2025 02:09:43.01 [Verbose] Add file: 'C\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.log'.
+30/08/2025 02:09:43.01 [Verbose] # Exclude file 'C:\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01.wvs' because of rule!
+30/08/2025 02:09:43.01 [Verbose] Add file: 'C\KRC\User\ProjectRoot\KETVOL425100R01\KETVOL425100R01_old.log'.
+30/08/2025 02:09:43.04 [Verbose] 
+30/08/2025 02:09:43.05 [Information] Successfully stored archive with configuration: 'All'.
+
+30/08/2025 02:09:43.05 [Verbose] Add file: 'Archive.log'.

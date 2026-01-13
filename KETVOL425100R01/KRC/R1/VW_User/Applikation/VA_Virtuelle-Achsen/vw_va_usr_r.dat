@@ -1,0 +1,30 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/VA_Virtuelle-Achsen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT VW_VA_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket VA Virtuelle Achsen             *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+;FOLD VA
+;
+;
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM VAR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+BOOL MSG_DEL=FALSE
+;ENDFOLD
+;
+ENDDAT

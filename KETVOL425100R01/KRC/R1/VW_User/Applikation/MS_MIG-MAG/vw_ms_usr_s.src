@@ -1,0 +1,390 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/MS_MIG-MAG
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_MS_USR_S( )
+;
+;***************************************************
+;*Technologiepaket MS MIG-MAG                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;* 15.10.2018 CE Ruecksetzen Naht-Nr korrigiert    *
+;* 01.04.2019 CE Naht-Nr von 50 auf 100 erhoeht    *
+;* 02.04.2019 CE E/A Draht i.O. angepasst          *
+;* 15.04.2019 CE E/A NahtNr ruecksetzen neu hinzu  *
+;* 10.09.2019 CE ADV angepasst                     *
+;***************************************************
+;
+END
+;
+;FOLD INIT MS 
+GLOBAL DEF MS_INIT( )
+INT i
+;
+;Version Techpaket
+Tech_MS.Name[]="KS26.01.006_20190910"
+;
+;Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_MSS_Handle[i]=-1
+  n_MSR_Handle[i]=-1
+ENDFOR
+;
+;MS BASE ADRESSEN INITIALISIEREN
+MS_BASE_INIT( )
+;
+;Vorbesetzung Timeout
+IF (MS_HSS_Timeout==0) THEN
+  MS_HSS_Timeout=1000
+ENDIF
+;
+;MS Betriebsart
+SO_MS1_Betrieb=Hand_Betrieb
+SO_MS2_Betrieb=Hand_Betrieb
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW MS 
+GLOBAL DEF MS_SAW(MSNr :IN)
+INT MSNr
+;
+;MS Betriebsart
+SO_MS1_Betrieb=HM_MS1_Betriebsart
+SO_MS2_Betrieb=HM_MS2_Betriebsart
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET MS
+GLOBAL DEF MS_RESET(MSNr :IN)
+INT MSNr
+;
+;MS Betriebsart
+SO_MS1_Betrieb=HM_MS1_Betriebsart
+SO_MS2_Betrieb=HM_MS2_Betriebsart
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL MS
+GLOBAL DEF MS_CANCEL(MSNr :IN)
+INT MSNr,i
+;
+;MS Betriebsart
+SO_MS1_Betrieb=Hand_Betrieb
+SO_MS2_Betrieb=Hand_Betrieb
+;
+;FOLD MS IO-Naehte ruecksetzen
+FOR I=1 TO 100
+  MS_Naht_Nr_iO[I]=FALSE
+  MS_Naht_Nr_wied[I]=FALSE
+ENDFOR
+;ENDFOLD
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP MS
+GLOBAL DEF MS_LOOP(MSNr :IN)
+BOOL bRet
+INT MSNr,i
+;
+;MS BASE ADRESSEN INITIALISIEREN
+MS_BASE_INIT( )
+;
+IF (MS_BASE_SL[MSNr]==HM_BASE_SL) THEN
+  MS_Msg((MSNr+1),#StateMsg)
+ELSE
+  IF (n_MSS_Handle[MSNr+1]>-1) THEN
+    bRet=Clear_KrlMsg(n_MSS_Handle[MSNr+1])
+    n_MSS_Handle[MSNr+1]=-1
+  ENDIF
+ENDIF
+;
+;Betriebsarten
+Hand_Betrieb=0
+Job_Betrieb=2
+;
+;Vorwahl ohne Prozess
+$OUT[MS_BASE_MA[MSNr]+O_MS_o_Proz]=$IN[MS_BASE_SL[MSNr]+I_MS_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;
+;Mit Naht-Wiederaufsetzen
+IF $FLAG[F_MS_A_Wied] THEN
+  MS_M_WIEDER=TRUE
+ELSE
+  MS_M_WIEDER=FALSE
+ENDIF  
+;
+;MS IO-Naehte ruecksetzen
+IF $OUT[O_R_PF0] THEN
+  FOR I=1 TO 100
+    MS_Naht_Nr_iO[I]=FALSE
+  ENDFOR
+ENDIF
+;
+IF NOT $COULD_START_MOTION THEN
+  Timer_MS_Trigger=$ROB_TIMER
+ENDIF
+;
+$FLAG[F_MS_SS_Proz]=$IN[MS_BASE_SL[1]+I_MS_SS_Proz] OR $IN[MS_BASE_SL[2]+I_MS_SS_Proz]
+$FLAG[F_KS_pneum[MSNr]]=MS_KS_pneum[MSNr]
+$FLAG[F_MS_KS_mit_VE[MSNr]]=MS_KS_mit_VE[MSNr]
+$FLAG[F_SP_Ventil_an_MS[MSNr]]=SP_Ventil_an_MS[MSNr]
+$FLAG[F_MS_mit_SP[MSNr]]=MS_mit_SP[MSNr]
+;
+;Freigabe Prozess
+$OUT[MS_BASE_MA[MSNr]+O_MS_FRG]=TRUE
+;Fehler-Reset
+$OUT[MS_BASE_MA[MSNr]+O_MS_Reset]=NOT $IN[MS_BASE_MA[MSNr]+I_MS_S_St] AND ($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei] OR ((($ROB_TIMER-Timer_MS_Trigger)<3500) AND $COULD_START_MOTION)) 
+HM_MS_LB_EIN=$OUT[O_R_Bereit] AND $OUT[O_R_SAK] AND $COULD_START_MOTION AND $OUT[O_R_Proz_akt] AND $IN[MS_BASE_MA[MSNr]+I_MS_bereit] AND $IN[MS_BASE_MA[MSNr]+I_MS_B_Abs] AND $FLAG[F_OV_100] AND ($FLAG[F_FB_PSPS] OR ($FLAG[F_LB_Ein_Feh] AND NOT $IN[I_ONLINE_FRG[2]])) 
+;Lichtbogen steht
+$OUT[MS_BASE_MA[MSNr]+O_MS_LB_ein]=$OUT[O_R_Auto] AND $IN[I_R_AUTO] AND HM_MS_LB_EIN AND $FLAG[F_MS_LB_Ein[MSNr]] AND ($IN[MS_BASE_MA[MSNr]+I_MS_L_steh] OR NOT $IN[I_R_Quit_St]) OR $IN[MS_BASE_SL[MSNr]+I_MS_SS_Proz] AND HM_MS_LB_EIN AND $FLAG[F_MS_LB_Ein[MSNr]] 
+;
+IF $OUT[O_R_Hand] AND $COULD_START_MOTION AND NOT $OUT[O_R_Proz_akt] THEN
+  IF ($OUT[DEF_ZANGE[MS_ZANGE[1]].A_AUF]==TRUE) AND $IN[I_MS1_VS_Ruh] THEN
+    IF $IN[I_MS1_KS_RUH] THEN
+      $OUT[O_MS1_FRG_Halt]=TRUE
+      $OUT[O_MS1_VST]=TRUE
+      $OUT[O_MS1_FRG_Bew]=FALSE
+    ELSE  
+      $OUT[O_MS1_FRG_Halt]=FALSE
+      $OUT[O_MS1_VST]=TRUE
+      $OUT[O_MS1_FRG_Bew]=TRUE
+    ENDIF  
+    IF ($OUT[DEF_ZANGE[MS_ZANGE[1]].A_ZU]==TRUE) AND $IN[I_MS1_VS_Ruh] THEN
+      IF $IN[I_MS1_KS_Arb] THEN
+        $OUT[O_MS1_FRG_Halt]=TRUE
+        $OUT[O_MS1_VST]=TRUE
+        $OUT[O_MS1_FRG_Bew]=FALSE
+      ELSE  
+        $OUT[O_MS1_FRG_Halt]=FALSE
+        $OUT[O_MS1_VST]=TRUE
+        $OUT[O_MS1_FRG_Bew]=TRUE
+      ENDIF  
+    ENDIF 
+  ENDIF 
+  IF (($OUT[DEF_ZANGE[MS_ZANGE[2]].A_AUF]==TRUE) OR ($OUT[DEF_ZANGE[MS_ZANGE[2]].A_ZU]==TRUE)) AND ($IN[I_MS1_KS_RUH] OR $IN[I_MS1_KS_Arb]) THEN
+    $OUT[O_MS1_VST]=TRUE
+  ENDIF      
+ENDIF  
+;
+IF $OUT[O_R_Hand] AND $FLAG[F_RSK_Gst] AND NOT $COULD_START_MOTION THEN
+  $OUT[O_MS1_FRG_Halt]=FALSE
+  $OUT[O_MS1_VST]=FALSE
+  $OUT[O_MS1_FRG_Bew]=FALSE
+  ;MS1 Pneum. Versetzeinheit
+  $OUT[O_MS1_VST]=FALSE
+  $OUT[O_MS1_FRG_Bew]=FALSE
+ENDIF
+;
+;Ausgabe Fehlermeldungen
+;
+;Prozess aktiv
+$OUT[MS_BASE_SL[MSNr]+O_MS_P_akt]=$OUT[MS_BASE_MA[MSNr]+O_MS_LB_ein] OR $OUT[MS_BASE_MA[MSNr]+O_MS_RE_ein]
+;Wartungswarnung
+$OUT[MS_BASE_SL[MSNr]+O_MS_W_akt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[MS_BASE_MA[MSNr]+I_MS_W_akt]
+;Kuehlwasser fehlt
+$OUT[MS_BASE_SL[MSNr]+O_MS_H2O_io]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[MS_BASE_MA[MSNr]+I_MS_H2O_io]
+;Gasfehler
+$OUT[MS_BASE_SL[MSNr]+O_MS_Gas_io]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[MS_BASE_MA[MSNr]+I_MS_Gas_io]
+;Drahtfehler
+$OUT[MS_BASE_SL[MSNr]+O_MS_Draht_io]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[MS_BASE_MA[MSNr]+I_MS_Draht_io]
+;Sammelstoerung
+$OUT[MS_BASE_SL[MSNr]+O_MS_S_St]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND (NOT $IN[MS_BASE_MA[MSNr]+I_MS_S_St] OR $FLAG[F_MS_Sammel[MSNr]]) AND $timer_flag[TimerNr_Ein] 
+;
+;Ueberbrueckung Abfrage Hochstromsignal
+IF $FLAG[F_MS_LB_Ein[MSNr]] AND $OUT[O_R_steht] THEN
+  Timer1_MS[MSNr]=$ROB_TIMER ;Timer Hochstromsignal triggern
+ENDIF
+IF (($ROB_TIMER-Timer1_MS[MSNr])<MS_HSS_Timeout) THEN
+  MS_HSS_HILF=TRUE
+ELSE
+  MS_HSS_HILF=FALSE
+ENDIF
+;
+;Wiedereinschalten verzoegern
+IF $FLAG[F_MS_LB_Ein[MSNr]] AND NOT $FLAG[F_MS_Ein_Ver] AND NOT $FLAG[F_FB_PSPS] THEN
+  $FLAG[F_MS_Ein_Ver]=TRUE
+  $FLAG[F_LB_Ein_Feh]=FALSE
+  Timer2_MS[MSNr]=$ROB_TIMER ;Timer Wiedereinschalten triggern
+ENDIF
+;
+IF $FLAG[F_FB_PSPS] THEN
+  $FLAG[F_MS_Ein_Ver]=FALSE
+  $FLAG[F_LB_Ein_Feh]=FALSE
+  MS_FRG_SPERR=FALSE
+ENDIF
+IF $IN[I_R_Quit_St] AND $OUT[O_R_steht] THEN
+  MS_FRG_SPERR=FALSE
+ENDIF  
+;
+IF $FLAG[F_MS_LB_Ein[MSNr]] AND (NOT $OUT[MS_BASE_MA[MSNr]+O_MS_LB_ein] OR NOT $IN[MS_BASE_MA[MSNr]+I_MS_L_steh] OR NOT $FLAG[F_OV_100] OR (NOT $IN[MS_BASE_MA[MSNr]+I_MS_H_steh] AND NOT MS_HSS_HILF AND $OUT[O_R_bewegt])) THEN
+  $FLAG[F_MS_FB_Ein]=FALSE
+  IF $IN[MS_BASE_MA[MSNr]+I_MS_bereit] AND $IN[MS_BASE_MA[MSNr]+I_MS_S_St] AND $OUT[O_R_SG_gesp] AND $OUT[O_R_steht] AND NOT $OUT[O_R_WSLAV] AND $FLAG[F_OV_100] AND (($ROB_TIMER-Timer2_MS[MSNr])>5000) THEN
+    IF NOT MS_FRG_SPERR AND $OUT[O_R_Proz_akt] THEN
+      Timer3_MS[MSNr]=$ROB_TIMER ;Timer Zuenden triggern
+      MS_FRG_SPERR=TRUE
+    ENDIF
+    IF (($ROB_TIMER-Timer3_MS[MSNr])<5000) THEN         
+      $FLAG[F_LB_Ein_Feh]=TRUE ;Freigabe Zuenden in Makro-SPS
+      $FLAG[F_MS_Sammel[MSNr]]=FALSE
+    ELSE
+      $FLAG[F_LB_Ein_Feh]=FALSE ;Freigabe Zuenden in Makro-SPS
+      $FLAG[F_MS_Sammel[MSNr]]=TRUE
+    ENDIF
+  ELSE
+    $FLAG[F_LB_Ein_Feh]=FALSE ;Freigabe Zuenden in Makro-SPS        
+  ENDIF
+ELSE
+  IF ($FLAG[F_MS_LB_Ein[MSNr]] AND $OUT[MS_BASE_MA[MSNr]+O_MS_LB_ein] AND $IN[MS_BASE_MA[MSNr]+I_MS_L_steh] AND ($IN[MS_BASE_MA[MSNr]+I_MS_H_steh] OR MS_HSS_HILF) AND $FLAG[F_OV_100]) OR (NOT $FLAG[F_MS_LB_Ein[MSNr]] AND $IN[I_FT_o_BT]) THEN
+    $FLAG[F_MS_FB_Ein]=TRUE ;Freigabe Fahrbedingung
+  ENDIF
+ENDIF
+;
+;MS Fehlerspeicher
+MS_TOUT=500
+IF MS_M_WIEDER AND $FLAG[F_MSx_LB_Ein] AND $OUT[O_R_Auto] AND $OUT[MS_BASE_SL[MSNr]+O_MS_P_akt] AND $OUT[O_R_bewegt] THEN
+  IF NOT $FLAG[F_MS_Aufz_St] THEN
+    Timer4_MS[MSNr]=$ROB_TIMER ;Timer Aufzeichnung triggern
+    $FLAG[F_MS_Aufz_St]=TRUE
+  ENDIF
+;
+  ;INIT Timeout fuer Nahtunterbrechung
+  IF NOT $FLAG[F_MS_TOUT_Na] AND $FLAG[F_MSx_LB_Ein] AND $FLAG[F_MS_LB_Ein[MSNr]] THEN
+    IF ($IN[MS_BASE_MA[MSNr]+I_MS_P_iTol] OR NOT MS_M_LIMIT[MSNr]) AND $IN[MS_BASE_MA[MSNr]+I_MS_B_Abs] THEN
+      Timer5_MS[MSNr]=$ROB_TIMER ;Timer Nahtunterbrechung triggern
+    ENDIF
+    IF (($ROB_TIMER-Timer5_MS[MSNr])>MS_TOUT) THEN
+      $FLAG[F_MS_TOUT_Na]=TRUE ;Nahtunterbrechung>MS_TOUT ms
+    ENDIF
+  ENDIF
+;
+  ;Naht-Fehler Merken
+  IF NOT $FLAG[F_MS_Fe_merk] AND (NOT $IN[MS_BASE_MA[MSNr]+I_MS_bereit] OR NOT $IN[MS_BASE_MA[MSNr]+I_MS_S_St] OR $FLAG[F_MS_TOUT_Na]) THEN
+    $FLAG[F_MS_Fe_merk]=TRUE
+    $FLAG[F_MS_LB_Ein[MSNr]]=FALSE ;Loeten Aus
+    Timer6_MS[MSNr]=($ROB_TIMER-Timer4_MS[MSNr])
+    $FLAG[F_MS_N_nio]= TRUE ;Loetung n.i.O.
+    $FLAG[F_MS_Re_erf[MSNr]]= TRUE ;Reinigung erforderlich
+  ENDIF
+ENDIF
+;
+;MS Naht-Wiederaufsetzen
+IF MS_Naht_wied AND $OUT[O_R_Auto] AND $OUT[MS_BASE_SL[MSNr]+O_MS_P_akt] THEN
+  IF $OUT[O_R_bewegt] AND (Timer6_MS[MSNr]<($ROB_TIMER-Timer4_MS[MSNr])) THEN
+    $FLAG[F_MS_FB_Wied]=FALSE ;Fahrbedingung aus
+    Timer4_MS[MSNr]=$ROB_TIMER
+  ENDIF
+  IF $OUT[O_R_steht] THEN
+    $FLAG[F_MS_LB_Ein[MSNr]]=TRUE ;Freigabe Loeten
+    IF $IN[MS_BASE_MA[MSNr]+I_MS_L_steh] AND $IN[MS_BASE_MA[MSNr]+I_MS_H_steh] AND $IN[MS_BASE_MA[MSNr]+I_MS_S_St] THEN
+      $FLAG[F_MS_FB_Wied]=TRUE ;Fahrbedingung ein
+      MS_Naht_wied=FALSE ;Vorwahl Wiederaufsetzen aus
+    ENDIF
+  ENDIF
+ENDIF
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD MS_BASE_INIT
+DEF MS_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;MS SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_MS_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_MS_BASE_SL[1]=HM_BASE_SL
+  MS_BASE_SL[1]=HM_BASE_SL
+ELSE
+  MS_BASE_SL[1]=CF_MS_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_MS_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_MS_BASE_SL[2]=HM_BASE_SL
+  MS_BASE_SL[2]=HM_BASE_SL
+ELSE
+  MS_BASE_SL[2]=CF_MS_BASE_SL[2]
+ENDIF
+;
+;MS MASTER ADRESSIERUNG
+MS_BASE_MA[1]=1857                             
+MS_BASE_MA[2]=1889
+;
+END
+;ENDFOLD (MS_BASE_INIT)
+;
+;***************************************************
+;FOLD MS_Meldungen
+DEF MS_Msg(msg_nr :IN, MsgTyp :IN, MSNr :IN)
+INT msg_nr, MSNr, Answer
+DECL MSS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "MS_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("MSNr")==#initialized then
+  SWITCH MSNr
+    CASE 1
+      Par[1] = { Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1] = { Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1] = { Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1] = { Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1] = { Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1] = { Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_MSS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="MS%1: Keine Antwort auf Lebensbit"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="MS1: Slave Startadresse ungueltig"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="MS2: Slave Startadresse ungueltig"
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_MSS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_MSS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_MSS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_MSS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (MS Meldungen)

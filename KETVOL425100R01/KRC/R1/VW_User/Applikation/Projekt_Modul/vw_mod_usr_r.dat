@@ -1,0 +1,408 @@
+&ACCESS  RV
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/Projekt_Modul
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 1
+DEFDAT  vw_mod_usr_r PUBLIC
+; 
+;***************************************************
+;*Technologiepaket Projekt_Modul                   *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;*                                                 *
+;***************************************************
+; 
+;FOLD MOD1
+; 
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD1R_MsgType StateMsg,QuitMsg,NotifyMsg
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD1)
+; 
+;***************************************************
+;FOLD MOD2
+; 
+;FOLD VW_xyz-Scan
+; 
+;FOLD INTEGER
+INT XYZ_MODE=0
+INT XYZ_Fct=22
+INT XYZ_Rtng=44
+INT XYZ_BaseNr=21
+INT XYZ_C_Mess=1
+INT XYZ_Suchweg=5
+INT ov_merk=30
+INT F_X_Lauf_nio=785
+INT F_Y_Lauf_nio=786
+INT F_Z_Lauf_nio=787
+INT F_XYZ_OutOfRange=788
+INT O_BT_FEHL=123
+INT MODELL=1
+INT FUNKTION,RICHTUNG,STRECKE,WZG_NR,EINGANG
+INT LOG_NR=1
+GLOBAL INT XYZ_vRED=6 ;PrgOv waehrend Suchfahrt in %
+;ENDFOLD INTEGER
+; 
+;FOLD BOOLEAN
+BOOL MESSUNG
+BOOL MESSUNG_X=FALSE
+BOOL MESSUNG_Y=TRUE
+BOOL MESSUNG_Z=FALSE
+GLOBAL BOOL XYZ_KORR_DBG=FALSE ;Korrekturwerte anzeigen/nicht anzeigen
+;ENDFOLD BOOLEAN
+; 
+;FOLD FRAMES
+FRAME START_POS={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+FRAME KORR_WERT={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+FRAME BASE_ORG={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+FRAME VisuKorrWert={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+FRAME XyzBaseOld={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+; 
+GLOBAL FRAME XYZ_MESS_POS[8,3]
+XYZ_MESS_POS[1,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[1,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[1,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[2,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[2,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[2,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[3,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[3,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[3,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[4,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[4,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[4,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[5,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[5,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[5,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[6,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[6,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[6,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[7,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[7,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[7,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[8,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[8,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_MESS_POS[8,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+GLOBAL FRAME XYZ_REF_POS[8,3]
+XYZ_REF_POS[1,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[1,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[1,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[2,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[2,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[2,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[3,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[3,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[3,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[4,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[4,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[4,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[5,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[5,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[5,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[6,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[6,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[6,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[7,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[7,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[7,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[8,1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[8,2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+XYZ_REF_POS[8,3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;ENDFOLD FRAMES
+; 
+;FOLD OTHERS
+DECL DATE DATUM
+STRUC KORR_NEU CHAR KORR_WERT[50],CHAR KORR_DATUM[20]
+DECL KORR_NEU KORR_TAB[50]
+KORR_TAB[1]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[2]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[3]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[4]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[5]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[6]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[7]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[8]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[9]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[10]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[11]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[12]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[13]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[14]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[15]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[16]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[17]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[18]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[19]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[20]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[21]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[22]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[23]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[24]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[25]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[26]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[27]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[28]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[29]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[30]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[31]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[32]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[33]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[34]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[35]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[36]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[37]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[38]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[39]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[40]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[41]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[42]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[43]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[44]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[45]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[46]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[47]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[48]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[49]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+KORR_TAB[50]={KORR_WERT[] "                                                ",KORR_DATUM[] "                    "}
+;ENDFOLD OTHERS
+; 
+;ENDFOLD (VW_xyz-Scan)
+; 
+;FOLD DZ
+; 
+;FOLD Corrframes
+GLOBAL INT logNr=1
+GLOBAL INT offset=0
+STRUC dz_corrFrames CHAR dzSender[16],CHAR dzCorrType[3],CHAR dzCorr[60],CHAR dzCorrBase[2],CHAR dzLogDatum[20]
+DECL dz_corrFrames dzCorrTab[200]
+dzCorrTab[1]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[2]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[3]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[4]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[5]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[6]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[7]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[8]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[9]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[10]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[11]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[12]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[13]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[14]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[15]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[16]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[17]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[18]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[19]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[20]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[21]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[22]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[23]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[24]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[25]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[26]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[27]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[28]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[29]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[30]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[31]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[32]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[33]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[34]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[35]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[36]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[37]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[38]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[39]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[40]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[41]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[42]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[43]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[44]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[45]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[46]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[47]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[48]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[49]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[50]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[51]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[52]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[53]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[54]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[55]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[56]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[57]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[58]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[59]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[60]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[61]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[62]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[63]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[64]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[65]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[66]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[67]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[68]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[69]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[70]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[71]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[72]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[73]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[74]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[75]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[76]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[77]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[78]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[79]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[80]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[81]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[82]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[83]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[84]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[85]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[86]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[87]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[88]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[89]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[90]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[91]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[92]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[93]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[94]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[95]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[96]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[97]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[98]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[99]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[100]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[101]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[102]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[103]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[104]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[105]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[106]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[107]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[108]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[109]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[110]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[111]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[112]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[113]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[114]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[115]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[116]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[117]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[118]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[119]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[120]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[121]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[122]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[123]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[124]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[125]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[126]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[127]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[128]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[129]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[130]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[131]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[132]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[133]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[134]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[135]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[136]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[137]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[138]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[139]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[140]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[141]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[142]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[143]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[144]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[145]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[146]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[147]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[148]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[149]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[150]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[151]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[152]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[153]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[154]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[155]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[156]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[157]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[158]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[159]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[160]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[161]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[162]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[163]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[164]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[165]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[166]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[167]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[168]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[169]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[170]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[171]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[172]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[173]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[174]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[175]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[176]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[177]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[178]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[179]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[180]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[181]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[182]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[183]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[184]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[185]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[186]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[187]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[188]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[189]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[190]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[191]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[192]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[193]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[194]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[195]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[196]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[197]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[198]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[199]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+dzCorrTab[200]={dzSender[] "                ",dzCorrType[] "  ",dzCorr[] "                                                  ",dzCorrBase[] "  ",dzLogDatum[] "                   "}
+;ENDFOLD (Corrframes) 
+; 
+;ENDFOLD (DZ)
+; 
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD2R_MsgType StateMsg,QuitMsg,NotifyMsg
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD2)
+; 
+;***************************************************
+;FOLD MOD3
+; 
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MOD3R_MsgType StateMsg,QuitMsg,NotifyMsg
+;ENDFOLD
+;***************************************************
+;ENDFOLD (MOD3)
+; 
+;***************************************************
+ENDDAT

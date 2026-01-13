@@ -1,0 +1,81 @@
+&ACCESS  RV
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/Perceptron
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 6
+DEFDAT  vw_prc_usr_s PUBLIC
+; 
+;*---------------------------------------------*
+;* Perceptron GmbH                             *
+;* Version 1.2.0  / VKRC 2 / VKRC 4            *
+;*                                             *
+;* Bearbeitet am:                              *
+;* 07.09.2010 HF / RH / MG                     *
+;*     Namens Anpassungen                      *
+;*                                             *
+;* 02.02.2011 HF / MM                          *
+;*     V1.1.7: Ausgaenge /Flags angepasst      *
+;*                                             *
+;* 15.07.2015 RB                               *
+;*     V1.1.8: Modell-Erweiterung              *
+;*             Modell-Flags angepasst          *
+;*             UP-Nr.-Zuweiung angepasst       *
+;*             Roboter Korrekturframe holen    *
+;*                                             *
+;* 09.05.2017 HF                               *
+;*     PRCP/Init implementiert                 *
+;*                                             *
+;*     V1.2.0: 524 - Achswinkel speichern      *
+;*             525 - Start Messpunkt ID        *
+;*                    Sendet Pose-ID           *
+;*             SysInit-1  System Init          *
+;*             SysInit-2  System Init          *
+;*             ModelInit  Modellfreigaben      *
+;*             FrameInit Max  VF-Limits        *
+;*             FrameInit Min  VF-Limits        *
+;*                                             *
+;* 01.02.2019 HF                               *
+;*     V1.3.0: TPUSER_VERSION = 8.3.0          *
+;*                                             *
+;*---------------------------------------------*
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_PRC CHAR Name[20],INT Datum
+DECL _Tech_PRC Tech_PRC
+;ENDFOLD
+; 
+;***************************************************
+; 
+;FOLD Variablen
+GLOBAL BOOL B_MIT_PRC=FALSE
+GLOBAL BOOL B_PRC_UseFct=FALSE ; Life-Bit wird verwendet
+GLOBAL INT F_m_PRC=227
+GLOBAL INT N_PRC_SigLB=1968
+; 
+ENUM PRC_MsgType StatMsg,QuitMsg,NotifyMsg,WaitMsg,DlgMsg
+DECL PRC_MsgType MLD_TYP=#NotifyMsg
+; 
+SIGNAL I_PRC_Life $IN[1968] ; 1.7 Life-Bit
+SIGNAL O_PRC_Life $OUT[1968] ; 1.7 Life-Bit
+; 
+BOOL B_PRC_NoAns0=FALSE ; Keine Antwort auf Low Pegel
+BOOL B_PRC_NoAns1=FALSE ; Keine Antwort auf High Pegel
+BOOL B_PRC_MlgRet=TRUE ; Antwort auf Meldung
+; 
+INT N_PRC_MsgRet=0 ; 
+
+INT N_PRC_TmLBSt=75591
+INT N_PRC_TmLB=2000 ; [ms]
+
+INT N_PRC_TmAktS=0 ; [ms] aktuelle Laufzeit
+INT N_PRC_TmLastS=0 ; [ms] letzte Laufzeit
+
+INT N_PRC_TmM1=-1000 ; [ms]
+INT N_PRC_TmM1Nr=25 ; aktuelle Laufzeit
+INT N_PRC_TmM2=-1000 ; [ms]
+INT N_PRC_TmM2Nr=26 ; letzte Laufzeit
+
+INT N_PRC_MlgRet=1 ; Antwort auf Meldung
+;ENDFOLD (Variablen)
+ENDDAT

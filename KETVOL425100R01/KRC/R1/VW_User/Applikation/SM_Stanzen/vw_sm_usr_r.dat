@@ -1,0 +1,40 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/SM_Stanzen
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_SM_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket SM Stanzen                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD SM
+;Punktnummer an SM
+SIGNAL SO_SM1_Prg_Nr $OUT[1809]  TO $OUT[1824]
+SIGNAL SO_SM2_Prg_Nr $OUT[1841]  TO $OUT[1856]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;
+;TCP-Korrektur
+INT Offset=0
+INT Weg=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM SMR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

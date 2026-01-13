@@ -1,0 +1,47 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/BM_Buckeln
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_BM_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket BM Buckeln                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD BM
+;BM Programmnummer
+SIGNAL SO_BM1_Prg_Nr $OUT[1819] TO $OUT[1823]
+SIGNAL SO_BM2_Prg_Nr $OUT[1851] TO $OUT[1855]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97] TO $OUT[112]
+;Korrektur
+GLOBAL INT BM1_FirstBit=1813
+GLOBAL INT BM2_FirstBit=1845
+;ENDFOLD
+;
+;FOLD BM TCP-Korrektur
+FRAME MyCorr
+FRAME MyCorrWeg
+;
+INT Weg=0
+INT Offset=0
+; 
+GLOBAL REAL BMCorrValue=0.0
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM BMR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

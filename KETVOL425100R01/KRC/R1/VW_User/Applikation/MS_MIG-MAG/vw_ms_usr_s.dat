@@ -1,0 +1,394 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/MS_MIG-MAG
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_ms_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket MS MIG-MAG                      *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.06.16 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_MS CHAR Name[20],INT Datum
+DECL _Tech_MS Tech_MS
+;ENDFOLD
+; 
+;***************************************************
+;FOLD  MS
+;VARIABLEN INTEGER
+GLOBAL INT Default_MS_BASE_SL[2]
+Default_MS_BASE_SL[1]=209
+Default_MS_BASE_SL[2]=201
+GLOBAL INT CF_MS_BASE_SL[2]
+CF_MS_BASE_SL[1]=449
+CF_MS_BASE_SL[2]=449
+GLOBAL INT MS_EKF_WERT=-3
+GLOBAL INT MS_TOUT=0
+GLOBAL INT MS_ZANGE[2]
+MS_ZANGE[1]=26
+MS_ZANGE[2]=27
+GLOBAL INT Timer1_MS[2]
+Timer1_MS[1]=5000
+Timer1_MS[2]=5000
+GLOBAL INT Timer2_MS[2]
+Timer2_MS[1]=5000
+Timer2_MS[2]=5000
+GLOBAL INT Timer3_MS[2]
+Timer3_MS[1]=5000
+Timer3_MS[2]=5000
+GLOBAL INT Timer4_MS[2]
+Timer4_MS[1]=5000
+Timer4_MS[2]=5000
+GLOBAL INT Timer5_MS[2]
+Timer5_MS[1]=5000
+Timer5_MS[2]=5000
+GLOBAL INT Timer6_MS[2]
+Timer6_MS[1]=5000
+Timer6_MS[2]=5000
+GLOBAL INT Timer_MS_Trigger=0
+;Betriebsarten
+GLOBAL INT Hand_Betrieb=0
+GLOBAL INT Job_Betrieb=2
+GLOBAL INT HM_MS1_Betriebsart=0
+GLOBAL INT HM_MS2_Betriebsart=0
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_MS[2]
+MIT_MS[1]=FALSE
+MIT_MS[2]=FALSE
+GLOBAL BOOL MS_KS_pneum[2]
+MS_KS_pneum[1]=FALSE
+MS_KS_pneum[2]=FALSE
+GLOBAL BOOL MS_KS_mit_VE[2]
+MS_KS_mit_VE[1]=FALSE
+MS_KS_mit_VE[2]=FALSE
+GLOBAL BOOL MS_mit_SP[2]
+MS_mit_SP[1]=FALSE
+MS_mit_SP[2]=FALSE
+GLOBAL BOOL SP_Ventil_an_MS[2]
+SP_Ventil_an_MS[1]=FALSE
+SP_Ventil_an_MS[2]=FALSE
+GLOBAL BOOL MIT_MS_SUCH=FALSE
+GLOBAL BOOL HM_MS_LB_EIN=FALSE
+GLOBAL BOOL MS_M_LIMIT[2]
+MS_M_LIMIT[1]=FALSE
+MS_M_LIMIT[2]=FALSE
+GLOBAL BOOL MS_Naht_Nr_iO[100]
+MS_Naht_Nr_iO[1]=FALSE
+MS_Naht_Nr_iO[2]=FALSE
+MS_Naht_Nr_iO[3]=FALSE
+MS_Naht_Nr_iO[4]=FALSE
+MS_Naht_Nr_iO[5]=FALSE
+MS_Naht_Nr_iO[6]=FALSE
+MS_Naht_Nr_iO[7]=FALSE
+MS_Naht_Nr_iO[8]=FALSE
+MS_Naht_Nr_iO[9]=FALSE
+MS_Naht_Nr_iO[10]=FALSE
+MS_Naht_Nr_iO[11]=FALSE
+MS_Naht_Nr_iO[12]=FALSE
+MS_Naht_Nr_iO[13]=FALSE
+MS_Naht_Nr_iO[14]=FALSE
+MS_Naht_Nr_iO[15]=FALSE
+MS_Naht_Nr_iO[16]=FALSE
+MS_Naht_Nr_iO[17]=FALSE
+MS_Naht_Nr_iO[18]=FALSE
+MS_Naht_Nr_iO[19]=FALSE
+MS_Naht_Nr_iO[20]=FALSE
+MS_Naht_Nr_iO[21]=FALSE
+MS_Naht_Nr_iO[22]=FALSE
+MS_Naht_Nr_iO[23]=FALSE
+MS_Naht_Nr_iO[24]=FALSE
+MS_Naht_Nr_iO[25]=FALSE
+MS_Naht_Nr_iO[26]=FALSE
+MS_Naht_Nr_iO[27]=FALSE
+MS_Naht_Nr_iO[28]=FALSE
+MS_Naht_Nr_iO[29]=FALSE
+MS_Naht_Nr_iO[30]=FALSE
+MS_Naht_Nr_iO[31]=FALSE
+MS_Naht_Nr_iO[32]=FALSE
+MS_Naht_Nr_iO[33]=FALSE
+MS_Naht_Nr_iO[34]=FALSE
+MS_Naht_Nr_iO[35]=FALSE
+MS_Naht_Nr_iO[36]=FALSE
+MS_Naht_Nr_iO[37]=FALSE
+MS_Naht_Nr_iO[38]=FALSE
+MS_Naht_Nr_iO[39]=FALSE
+MS_Naht_Nr_iO[40]=FALSE
+MS_Naht_Nr_iO[41]=FALSE
+MS_Naht_Nr_iO[42]=FALSE
+MS_Naht_Nr_iO[43]=FALSE
+MS_Naht_Nr_iO[44]=FALSE
+MS_Naht_Nr_iO[45]=FALSE
+MS_Naht_Nr_iO[46]=FALSE
+MS_Naht_Nr_iO[47]=FALSE
+MS_Naht_Nr_iO[48]=FALSE
+MS_Naht_Nr_iO[49]=FALSE
+MS_Naht_Nr_iO[50]=FALSE
+MS_Naht_Nr_iO[51]=FALSE
+MS_Naht_Nr_iO[52]=FALSE
+MS_Naht_Nr_iO[53]=FALSE
+MS_Naht_Nr_iO[54]=FALSE
+MS_Naht_Nr_iO[55]=FALSE
+MS_Naht_Nr_iO[56]=FALSE
+MS_Naht_Nr_iO[57]=FALSE
+MS_Naht_Nr_iO[58]=FALSE
+MS_Naht_Nr_iO[59]=FALSE
+MS_Naht_Nr_iO[60]=FALSE
+MS_Naht_Nr_iO[61]=FALSE
+MS_Naht_Nr_iO[62]=FALSE
+MS_Naht_Nr_iO[63]=FALSE
+MS_Naht_Nr_iO[64]=FALSE
+MS_Naht_Nr_iO[65]=FALSE
+MS_Naht_Nr_iO[66]=FALSE
+MS_Naht_Nr_iO[67]=FALSE
+MS_Naht_Nr_iO[68]=FALSE
+MS_Naht_Nr_iO[69]=FALSE
+MS_Naht_Nr_iO[70]=FALSE
+MS_Naht_Nr_iO[71]=FALSE
+MS_Naht_Nr_iO[72]=FALSE
+MS_Naht_Nr_iO[73]=FALSE
+MS_Naht_Nr_iO[74]=FALSE
+MS_Naht_Nr_iO[75]=FALSE
+MS_Naht_Nr_iO[76]=FALSE
+MS_Naht_Nr_iO[77]=FALSE
+MS_Naht_Nr_iO[78]=FALSE
+MS_Naht_Nr_iO[79]=FALSE
+MS_Naht_Nr_iO[80]=FALSE
+MS_Naht_Nr_iO[81]=FALSE
+MS_Naht_Nr_iO[82]=FALSE
+MS_Naht_Nr_iO[83]=FALSE
+MS_Naht_Nr_iO[84]=FALSE
+MS_Naht_Nr_iO[85]=FALSE
+MS_Naht_Nr_iO[86]=FALSE
+MS_Naht_Nr_iO[87]=FALSE
+MS_Naht_Nr_iO[88]=FALSE
+MS_Naht_Nr_iO[89]=FALSE
+MS_Naht_Nr_iO[90]=FALSE
+MS_Naht_Nr_iO[91]=FALSE
+MS_Naht_Nr_iO[92]=FALSE
+MS_Naht_Nr_iO[93]=FALSE
+MS_Naht_Nr_iO[94]=FALSE
+MS_Naht_Nr_iO[95]=FALSE
+MS_Naht_Nr_iO[96]=FALSE
+MS_Naht_Nr_iO[97]=FALSE
+MS_Naht_Nr_iO[98]=FALSE
+MS_Naht_Nr_iO[99]=FALSE
+MS_Naht_Nr_iO[100]=FALSE
+GLOBAL BOOL MS_Naht_Nr_wied[100]
+MS_Naht_Nr_wied[1]=FALSE
+MS_Naht_Nr_wied[2]=FALSE
+MS_Naht_Nr_wied[3]=FALSE
+MS_Naht_Nr_wied[4]=FALSE
+MS_Naht_Nr_wied[5]=FALSE
+MS_Naht_Nr_wied[6]=FALSE
+MS_Naht_Nr_wied[7]=FALSE
+MS_Naht_Nr_wied[8]=FALSE
+MS_Naht_Nr_wied[9]=FALSE
+MS_Naht_Nr_wied[10]=FALSE
+MS_Naht_Nr_wied[11]=FALSE
+MS_Naht_Nr_wied[12]=FALSE
+MS_Naht_Nr_wied[13]=FALSE
+MS_Naht_Nr_wied[14]=FALSE
+MS_Naht_Nr_wied[15]=FALSE
+MS_Naht_Nr_wied[16]=FALSE
+MS_Naht_Nr_wied[17]=FALSE
+MS_Naht_Nr_wied[18]=FALSE
+MS_Naht_Nr_wied[19]=FALSE
+MS_Naht_Nr_wied[20]=FALSE
+MS_Naht_Nr_wied[21]=FALSE
+MS_Naht_Nr_wied[22]=FALSE
+MS_Naht_Nr_wied[23]=FALSE
+MS_Naht_Nr_wied[24]=FALSE
+MS_Naht_Nr_wied[25]=FALSE
+MS_Naht_Nr_wied[26]=FALSE
+MS_Naht_Nr_wied[27]=FALSE
+MS_Naht_Nr_wied[28]=FALSE
+MS_Naht_Nr_wied[29]=FALSE
+MS_Naht_Nr_wied[30]=FALSE
+MS_Naht_Nr_wied[31]=FALSE
+MS_Naht_Nr_wied[32]=FALSE
+MS_Naht_Nr_wied[33]=FALSE
+MS_Naht_Nr_wied[34]=FALSE
+MS_Naht_Nr_wied[35]=FALSE
+MS_Naht_Nr_wied[36]=FALSE
+MS_Naht_Nr_wied[37]=FALSE
+MS_Naht_Nr_wied[38]=FALSE
+MS_Naht_Nr_wied[39]=FALSE
+MS_Naht_Nr_wied[40]=FALSE
+MS_Naht_Nr_wied[41]=FALSE
+MS_Naht_Nr_wied[42]=FALSE
+MS_Naht_Nr_wied[43]=FALSE
+MS_Naht_Nr_wied[44]=FALSE
+MS_Naht_Nr_wied[45]=FALSE
+MS_Naht_Nr_wied[46]=FALSE
+MS_Naht_Nr_wied[47]=FALSE
+MS_Naht_Nr_wied[48]=FALSE
+MS_Naht_Nr_wied[49]=FALSE
+MS_Naht_Nr_wied[50]=FALSE
+MS_Naht_Nr_wied[51]=FALSE
+MS_Naht_Nr_wied[52]=FALSE
+MS_Naht_Nr_wied[53]=FALSE
+MS_Naht_Nr_wied[54]=FALSE
+MS_Naht_Nr_wied[55]=FALSE
+MS_Naht_Nr_wied[56]=FALSE
+MS_Naht_Nr_wied[57]=FALSE
+MS_Naht_Nr_wied[58]=FALSE
+MS_Naht_Nr_wied[59]=FALSE
+MS_Naht_Nr_wied[60]=FALSE
+MS_Naht_Nr_wied[61]=FALSE
+MS_Naht_Nr_wied[62]=FALSE
+MS_Naht_Nr_wied[63]=FALSE
+MS_Naht_Nr_wied[64]=FALSE
+MS_Naht_Nr_wied[65]=FALSE
+MS_Naht_Nr_wied[66]=FALSE
+MS_Naht_Nr_wied[67]=FALSE
+MS_Naht_Nr_wied[68]=FALSE
+MS_Naht_Nr_wied[69]=FALSE
+MS_Naht_Nr_wied[70]=FALSE
+MS_Naht_Nr_wied[71]=FALSE
+MS_Naht_Nr_wied[72]=FALSE
+MS_Naht_Nr_wied[73]=FALSE
+MS_Naht_Nr_wied[74]=FALSE
+MS_Naht_Nr_wied[75]=FALSE
+MS_Naht_Nr_wied[76]=FALSE
+MS_Naht_Nr_wied[77]=FALSE
+MS_Naht_Nr_wied[78]=FALSE
+MS_Naht_Nr_wied[79]=FALSE
+MS_Naht_Nr_wied[80]=FALSE
+MS_Naht_Nr_wied[81]=FALSE
+MS_Naht_Nr_wied[82]=FALSE
+MS_Naht_Nr_wied[83]=FALSE
+MS_Naht_Nr_wied[84]=FALSE
+MS_Naht_Nr_wied[85]=FALSE
+MS_Naht_Nr_wied[86]=FALSE
+MS_Naht_Nr_wied[87]=FALSE
+MS_Naht_Nr_wied[88]=FALSE
+MS_Naht_Nr_wied[89]=FALSE
+MS_Naht_Nr_wied[90]=FALSE
+MS_Naht_Nr_wied[91]=FALSE
+MS_Naht_Nr_wied[92]=FALSE
+MS_Naht_Nr_wied[93]=FALSE
+MS_Naht_Nr_wied[94]=FALSE
+MS_Naht_Nr_wied[95]=FALSE
+MS_Naht_Nr_wied[96]=FALSE
+MS_Naht_Nr_wied[97]=FALSE
+MS_Naht_Nr_wied[98]=FALSE
+MS_Naht_Nr_wied[99]=FALSE
+MS_Naht_Nr_wied[100]=FALSE
+GLOBAL BOOL MS_Naht_wied=FALSE
+GLOBAL BOOL MS_HSS_HILF=FALSE
+GLOBAL BOOL MS_M_WIEDER=FALSE
+GLOBAL BOOL MS_FRG_SPERR=FALSE
+;FLAGS
+GLOBAL INT F_KS_pneum[2]
+F_KS_pneum[1]=528
+F_KS_pneum[2]=529
+GLOBAL INT F_MS_mit_SP[2]
+F_MS_mit_SP[1]=575
+F_MS_mit_SP[2]=584
+GLOBAL INT F_SP_Ventil_an_MS[2]
+F_SP_Ventil_an_MS[1]=574
+F_SP_Ventil_an_MS[2]=583
+GLOBAL INT F_MS_KS_mit_VE[2]
+F_MS_KS_mit_VE[1]=576
+F_MS_KS_mit_VE[2]=585
+GLOBAL INT F_MS_LB_Ein[2]
+F_MS_LB_Ein[1]=571
+F_MS_LB_Ein[2]=580
+GLOBAL INT F_MS_Re_erf[2]
+F_MS_Re_erf[1]=572
+F_MS_Re_erf[2]=581
+GLOBAL INT F_MS_Sammel[2]
+F_MS_Sammel[1]=573
+F_MS_Sammel[2]=582
+GLOBAL INT F_MS_A_Wied=577
+GLOBAL INT F_MS_SS_Proz=588
+GLOBAL INT F_FRG_LB_Ein=589
+GLOBAL INT F_MS_Aufz_St=590
+GLOBAL INT F_MS_Fe_merk=591
+GLOBAL INT F_MS_Ein_Ver=592
+GLOBAL INT F_MS_TOUT_Na=593
+GLOBAL INT F_MS_FB_Wied=594
+GLOBAL INT F_MS_FB_Ein=595
+GLOBAL INT F_MSx_LB_Ein=596
+GLOBAL INT F_LB_Ein_Feh=597
+GLOBAL INT F_MS_N_nio=598
+;SLAVE ADRESSIERUNG
+GLOBAL INT MS_BASE_SL[2] ;MS Indirekte Slave Adressen
+MS_BASE_SL[1]=449
+MS_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_MS_o_Proz=0 ;indirekt adressiert
+GLOBAL INT I_MS_SS_Proz=2 ;indirekt adressiert
+GLOBAL INT I_MS_BT_iO=6 ;indirekt adressiert
+GLOBAL INT I_MS_BT_Ausschl=7 ;indirekt adressiert
+;Slave Ausgaenge 
+GLOBAL INT O_MS_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_MS_W_akt=1 ;indirekt adressiert
+GLOBAL INT O_MS_TCP_nio=2 ;indirekt adressiert
+GLOBAL INT O_MS_H2O_io=3 ;indirekt adressiert
+GLOBAL INT O_MS_Gas_io=4 ;indirekt adressiert
+GLOBAL INT O_MS_Draht_io=5 ;indirekt adressiert
+GLOBAL INT O_MS_ST_Proz=6 ;indirekt adressiert
+GLOBAL INT O_MS_S_St=7 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT MS_BASE_MA[2] ;MS Indirekte Master Adressen
+MS_BASE_MA[1]=1857
+MS_BASE_MA[2]=1889
+;Master Eingaenge
+GLOBAL INT I_MS_bereit=0 ;1857,1889
+GLOBAL INT I_MS_S_St=1 ;1858,1890
+GLOBAL INT I_MS_L_steh=2 ;1859,1891
+GLOBAL INT I_MS_H_steh=4 ;1861,1893
+GLOBAL INT I_MS_P_iTol=5 ;1862,1894
+GLOBAL INT I_MS_W_akt=8 ;1865,1897
+GLOBAL INT I_MS_Gas_io=12 ;1869,1901
+GLOBAL INT I_MS_H2O_io=13 ;1870,1902
+GLOBAL INT I_MS_Draht_io=15 ;1872,1904
+GLOBAL INT I_MS_B_Abs=17 ;1874,1906
+;Master Ausgaenge
+GLOBAL INT O_MS_FRG=0 ;1857,1889
+GLOBAL INT O_MS_Reset=1 ;1858,1890
+GLOBAL INT O_MS_LB_ein=2 ;1859,1891
+GLOBAL INT O_MS_o_Proz=3 ;1860,1892
+GLOBAL INT O_MS_RE_ein=7 ;1864,1896
+;MS Betriebsart
+SIGNAL SO_MS1_Betrieb $OUT[1878]  TO $OUT[1880]
+SIGNAL SO_MS2_Betrieb $OUT[1910]  TO $OUT[1912]
+;ENDFOLD
+; 
+;FOLD Vorsteuerluft Ventile
+;MS1 Pneum. Schwenkeinheit
+GLOBAL INT I_MS1_KS_RUH=2163
+GLOBAL INT I_MS1_KS_Arb=2164
+GLOBAL INT I_MS1_VS_Ruh=2167
+GLOBAL INT I_MS1_VS_Arb=2168
+; 
+GLOBAL INT O_MS1_VST=2161
+GLOBAL INT O_MS1_FRG_Halt=2165
+GLOBAL INT O_MS1_FRG_Bew=2166
+GLOBAL INT O_MS1_VS_Ruh=2167
+GLOBAL INT O_MS1_VS_Arb=2168
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM MSS_MsgType StateMsg,QuitMsg,NotifyMsg
+INT MSG_Offset=0
+GLOBAL INT n_MSS_Handle[100]
+GLOBAL INT n_MSR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

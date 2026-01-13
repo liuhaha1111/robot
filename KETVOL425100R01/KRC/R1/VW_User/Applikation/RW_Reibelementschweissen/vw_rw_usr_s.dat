@@ -1,0 +1,170 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/RW_Reibelementschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_rw_usr_s PUBLIC
+; 
+;***************************************************
+;*Technologiepaket RW Reibelementschweissen        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+; 
+;***************************************************
+;FOLD Version Techpaket
+STRUC _Tech_RW CHAR Name[20],INT Datum
+DECL _Tech_RW Tech_RW
+;ENDFOLD
+; 
+;***************************************************
+;FOLD RW
+;VARIABLEN INTEGER
+GLOBAL INT Default_RW_BASE_SL[2]
+Default_RW_BASE_SL[1]=177
+Default_RW_BASE_SL[2]=193
+GLOBAL INT CF_RW_BASE_SL[2]
+CF_RW_BASE_SL[1]=449
+CF_RW_BASE_SL[2]=449
+GLOBAL INT RW1_Konfig_Makro[4]
+RW1_Konfig_Makro[1]=941
+RW1_Konfig_Makro[2]=942
+RW1_Konfig_Makro[3]=943
+RW1_Konfig_Makro[4]=944
+GLOBAL INT RW2_Konfig_Makro=949
+;VARIABLEN BOOL
+GLOBAL BOOL MIT_RW[2]
+MIT_RW[1]=FALSE
+MIT_RW[2]=FALSE
+GLOBAL BOOL B_RW_AUF_ZU[2]
+B_RW_AUF_ZU[1]=FALSE
+B_RW_AUF_ZU[2]=FALSE
+GLOBAL BOOL B_RW_TEACH_REF[2]
+B_RW_TEACH_REF[1]=FALSE
+B_RW_TEACH_REF[2]=FALSE
+GLOBAL BOOL B_RW_Tastend[2]
+B_RW_Tastend[1]=FALSE
+B_RW_Tastend[2]=FALSE
+;FLAGS
+GLOBAL INT F_m_RW[2]
+F_m_RW[1]=478
+F_m_RW[2]=483
+GLOBAL INT F_RW_Sammel[2]
+F_RW_Sammel[1]=479
+F_RW_Sammel[2]=484
+GLOBAL INT F_RW_nio[2]
+F_RW_nio[1]=480
+F_RW_nio[2]=485
+;RW SLAVE ADRESSIERUNG
+GLOBAL INT RW_BASE_SL[2] ;RW Indirekte Slave Adressen
+RW_BASE_SL[1]=449
+RW_BASE_SL[2]=449
+;Slave Eingaenge
+GLOBAL INT I_RW_o_Proz=0 ;indirekt adressiert
+;Slave Ausgaenge
+GLOBAL INT O_RW_P_akt=0 ;indirekt adressiert
+GLOBAL INT O_RW_nio=2 ;indirekt adressiert
+GLOBAL INT O_RW_W_SZ=3 ;indirekt adressiert
+GLOBAL INT O_RW_W_Schm=4 ;indirekt adressiert
+GLOBAL INT O_RW_FKontr=5 ;indirekt adressiert
+GLOBAL INT O_RW_F_Vak=6 ;indirekt adressiert
+GLOBAL INT O_RW_F_Weg=7 ;indirekt adressiert
+GLOBAL INT O_RW_F_PrzAb=8 ;indirekt adressiert
+GLOBAL INT O_RW_F_VEinz=9 ;indirekt adressiert
+GLOBAL INT O_RW_F_Zuf=10 ;indirekt adressiert
+GLOBAL INT O_RW_F_Brems=11 ;indirekt adressiert
+GLOBAL INT O_RW_F_PrzSt=12 ;indirekt adressiert
+GLOBAL INT O_RW_F_AblSt=13 ;indirekt adressiert
+GLOBAL INT O_RW_Sammel=15 ;indirekt adressiert
+;MASTER ADRESSIERUNG
+GLOBAL INT RW_BASE_MA[2] ;RW Indirekte Master Adressen
+RW_BASE_MA[1]=1265
+RW_BASE_MA[2]=1185
+;Master Eingaenge
+GLOBAL INT I_RW_bereit=0 ;1265,1185
+GLOBAL INT I_RW_Re_aus=2 ;1267,1187
+GLOBAL INT I_RW_TPos_g=6 ;1271,1191
+GLOBAL INT I_RW_Auto=8 ;1273,1193
+GLOBAL INT I_RW_ref=9 ;1274,1194
+GLOBAL INT I_RW_aktiv=10 ;1275,1195
+GLOBAL INT I_RW_IPos_g=11 ;1276,1196
+GLOBAL INT I_RW_auf=12 ;1277,1197
+GLOBAL INT I_RW_zu=13 ;1278,1198
+GLOBAL INT I_RW_LBit=16 ;1281,1201
+GLOBAL INT I_RW_GCodW1=29 ;1294,1214
+GLOBAL INT I_RW_GCodW2=30 ;1295,1215
+GLOBAL INT I_RW_GCodW4=31 ;1296,1216
+GLOBAL INT I_RW_Vorz=47 ;1312,1232
+GLOBAL INT I_RW_W_SZ=48 ;1313,1233
+GLOBAL INT I_RW_W_Schm=49 ;1314,1234
+GLOBAL INT I_RW_FKontr=50 ;1315,1235
+GLOBAL INT I_RW_F_Ziel=51 ;1316,1236
+GLOBAL INT I_RW_F_Vak=52 ;1317,1237
+GLOBAL INT I_RW_F_Weg=53 ;1318,1238
+GLOBAL INT I_RW_F_PrzAb=54 ;1319,1239
+GLOBAL INT I_RW_F_VEinz=55 ;1320,1240
+GLOBAL INT I_RW_F_Zuf=56 ;1321,1241
+GLOBAL INT I_RW_F_Brems=57 ;1322,1242
+GLOBAL INT I_RW_F_PrzSt=58 ;1323,1243
+GLOBAL INT I_RW_F_AblSt=59 ;1324,1244
+GLOBAL INT I_RW_F_Prganw=60 ;1325,1245
+GLOBAL INT I_RW_Sammel=63 ;1328,1248
+;Master Ausgaenge
+GLOBAL INT O_RW_Fe_Res=0 ;1265,1185
+GLOBAL INT O_RW_Re_aus=2 ;1267,1187
+GLOBAL INT O_RW_o_Fue=3 ;1268,1188
+GLOBAL INT O_RW_S_TPos=5 ;1270,1190
+GLOBAL INT O_RW_TPos_u=6 ;1271,1191
+GLOBAL INT O_RW_R_Hand=7 ;1272,1192
+GLOBAL INT O_RW_R_Auto=8 ;1273,1193
+GLOBAL INT O_RW_ref=9 ;1274,1194
+GLOBAL INT O_RW_FRG=10 ;1275,1195
+GLOBAL INT O_RW_SPos_g=11 ;1276,1196
+GLOBAL INT O_RW_t_auf=14 ;1279,1199
+GLOBAL INT O_RW_t_zu=15 ;1280,1200
+GLOBAL INT O_RW_LBit=16 ;1281,1201
+GLOBAL INT O_RW_ZCod_LBit=24 ;1289,1209
+GLOBAL INT O_RW_ZCod_HBit=26 ;1291,1211
+GLOBAL INT O_RW_SPos_LBit=32 ;1297,1217
+GLOBAL INT O_RW_SPos_HBit=46 ;1311,1231
+GLOBAL INT O_RW_D_Teach=4012 ;SZ Master Dummy
+GLOBAL INT O_RW_D_Ref=4013 ;SZ Master Dummy
+;RW Zangencode
+SIGNAL SO_RW1_ZCode $OUT[1289]  TO $OUT[1291]
+SIGNAL SO_RW2_ZCode $OUT[1209]  TO $OUT[1211]
+;RW Sollposition
+SIGNAL SO_RW_SollPos $OUT[1297]  TO $OUT[1311]
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Lebensbit RW
+BOOL LBitState[2]
+LBitState[1]=FALSE
+LBitState[2]=FALSE
+BOOL RW_LBitFeh[2]
+RW_LBitFeh[1]=FALSE
+RW_LBitFeh[2]=FALSE
+; 
+INT LBitTimeCnt[2]
+LBitTimeCnt[1]=-1
+LBitTimeCnt[2]=-1
+INT ErrRWNr=-1
+;ENDFOLD
+; 
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM RWS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_RWS_Handle[100]
+GLOBAL INT n_RWR_Handle[100]
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+;***************************************************
+ENDDAT

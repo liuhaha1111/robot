@@ -1,0 +1,43 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/CZ_Clinchen
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_CZ_USR_R PUBLIC
+; 
+;***************************************************
+;*Technologiepaket CZ Clinchen                     *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.09 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD CZ
+;Servo
+SIGNAL SO_CZS1_Prg_Nr $OUT[1361]  TO $OUT[1376]
+SIGNAL SO_CZS2_Prg_Nr $OUT[1441]  TO $OUT[1456]
+;pneumohydraulisch
+SIGNAL SO_CZP1_Prg_Nr $OUT[1361]  TO $OUT[1368]
+SIGNAL SO_CZP2_Prg_Nr $OUT[1441]  TO $OUT[1448]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97]  TO $OUT[112]
+;
+;TCP-Korrektur
+INT Weg=0
+INT Offset=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM CZR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

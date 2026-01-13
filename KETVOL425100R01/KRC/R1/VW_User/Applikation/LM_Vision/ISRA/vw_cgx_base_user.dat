@@ -1,0 +1,6 @@
+&ACCESS  RV
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/ISRA
+&REL 1
+DEFDAT  vw_cgx_base_user PUBLIC
+
+ENDDAT

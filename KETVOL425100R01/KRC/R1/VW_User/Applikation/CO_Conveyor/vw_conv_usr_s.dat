@@ -1,0 +1,31 @@
+&ACCESS  R
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/CO_Conveyor
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 200
+DEFDAT  vw_conv_usr_s PUBLIC
+;
+;***************************************************
+;*Technologiepaket CO_Conveyor                     *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;*                                                 *
+;***************************************************
+;
+;FOLD CONV
+;Version Techpaket
+STRUC _Tech_CONV CHAR Name[20],INT Datum
+DECL _Tech_CONV Tech_CONV
+;
+;***************************************************
+;FOLD Meldungsausgabe
+ENUM CONVS_MsgType StateMsg,QuitMsg,NotifyMsg
+GLOBAL INT n_CONVS_Handle[100]
+GLOBAL INT n_CONVR_Handle[100]
+;ENDFOLD
+;***************************************************
+;ENDFOLD (CONV)
+ENDDAT

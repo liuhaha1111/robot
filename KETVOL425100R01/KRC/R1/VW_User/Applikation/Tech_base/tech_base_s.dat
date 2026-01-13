@@ -1,0 +1,36 @@
+&ACCESS  R
+&COMMENT KS26 (VW)
+&PARAM DISKPATH = VW_User/Applikation/Tech_base
+&PARAM TPUSER_VERSION = 8.3.0
+&REL 220
+DEFDAT  tech_base_s PUBLIC
+; 
+;***************************************************
+;*       Baustein Ansteuerung Tech_Base                  *
+;*        der Marke VOLKSWAGEN                     *
+;* Bearbeitet am:  05.12.2023                      *
+;*     Erstellt : MBA                              *
+;***************************************************
+; 
+; 
+DECL GLOBAL BOOL B_MIT_TechBase=TRUE ;Variable wird im Techpaket  gesetzt
+DECL GLOBAL INT Techbase_Value=0
+DECL GLOBAL INT BH_Techbase_Value=0
+DECL GLOBAL BOOL Techbase_Type_ER=FALSE
+DECL GLOBAL BOOL ResetTechbase=FALSE
+DECL GLOBAL BOOL MIT_Learnbase=TRUE ;Learn base
+DECL GLOBAL BOOL Techbase_AllEr=FALSE ;Learn base EROOR
+DECL GLOBAL BOOL ResetScanGun_Base=FALSE
+DECL GLOBAL FRAME Scangun_Resetpoint={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+DECL GLOBAL FRAME Techbase_point={X 0.0,Y 0.0,Z 0.0,A -90.0000,B 0.0,C 0.0}
+
+DECL GLOBAL FRAME Scan_speicher={X -1292.88086,Y 3336.83521,Z 1121.09839,A 86.9227066,B 6.52024174,C -0.0475041084}
+; 
+;FOLD Meldungsausgabe
+GLOBAL INT n_TechBase_Handle[100]
+ENUM TechBase_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+; 
+; 
+ENDDAT

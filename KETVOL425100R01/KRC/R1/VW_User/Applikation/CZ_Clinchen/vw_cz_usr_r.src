@@ -1,0 +1,318 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/CZ_Clinchen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_CZ_USR_R( )
+; 
+;***************************************************
+;*Technologiepaket CZ Clinchen                     *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+;
+END
+;
+;FOLD Clinchen_Interface
+GLOBAL DEF CZ_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT i
+;
+;***************************************************
+SWITCH USER_CMD
+;
+;***************************************************
+  CASE #USR_INIT
+    ;FOLD Init
+    ;
+    ;Merker Init
+    ;FOR i=1 TO 2
+    ;  IF MIT_CZS[i] THEN
+    ;    CZS_MERKER_INIT(i)
+    ;  ENDIF
+    ;  IF MIT_CZP[i] THEN
+    ;    CZP_MERKER_INIT(i)
+    ;  ENDIF
+    ;ENDFOR
+    ;
+    IF (MIT_CZS[1]==TRUE) AND (CZ1_Dock==FALSE) THEN
+      SEL_RES=SELECT(#MAKRO,(CZS1_Konfig_Makro[1]),TRUE,,,,,FALSE)
+    ENDIF 
+    IF (MIT_CZS[2]==TRUE) THEN
+      SEL_RES=SELECT(#MAKRO,(CZS2_Konfig_Makro),TRUE,,,,,FALSE)
+    ENDIF
+    ;ENDFOLD (Init)
+;
+;***************************************************
+  CASE #USR_ADV
+    ;FOLD Advance
+    ;
+    Offset=PAR4
+    ;
+    IF (PAR4>0) THEN
+      CONTINUE
+      IF (($PRO_MODE==#GO) OR ($EXT)) THEN
+        MyCorrOFF=(Offset*0.1)
+        WHILE ((Offset<0) or (Offset>150))
+          CZ_Msg(2,#QuitMsg) ; MyCorrOFF nicht im zulaessigen Bereich
+        ENDWHILE
+        MyCorr=$NULLFRAME
+        MyCorr.X=-MyCorrOff
+        IF (VW_MPARA_ACT.BASE_NO > 0) THEN
+          SWITCH BASE_TYPE[VW_MPARA_ACT.BASE_NO]
+            CASE #TCP
+              CONTINUE
+              $BASE=$BASE:MyCorr
+            DEFAULT
+              CONTINUE
+              $TOOL=$TOOL:MyCorr
+          ENDSWITCH
+        ELSE
+          CONTINUE
+          $TOOL=$TOOL:MyCorr
+        ENDIF
+      ENDIF  ;Von PRO_MODE
+    ENDIF  ;Von PAR4
+;
+    CONTINUE
+    SO_SPS_Proz_Nr=PAR6
+;  
+    SWITCH PAR1
+      CASE 1  ;Auswahl Servo
+        SWITCH PAR2
+          CASE 1
+            IF $IN[CZS_BASE_SL[1]+I_CZS_o_Proz] THEN
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            CONTINUE
+            SO_CZS1_Prg_Nr=PAR3 ;CZ 1 Ausgabe Programm-Nr
+            $FLAG[F_Frg_Servo]=TRUE
+          CASE 2
+            IF $IN[CZS_BASE_SL[2]+I_CZS_o_Proz] THEN
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            CONTINUE
+            SO_CZS2_Prg_Nr=PAR3 ;CZ 2 Ausgabe Programm-Nr
+            $FLAG[F_Frg_Servo]=TRUE
+        ENDSWITCH
+;
+      CASE 2  ;Auswahl pneumohydraulisch
+        SWITCH PAR2
+          CASE 1
+            IF $IN[CZP_BASE_SL[1]+I_CZP_o_Proz] THEN
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            CONTINUE
+            SO_CZP1_Prg_Nr=PAR3 ;CZ 1 Ausgabe Programm-Nr
+          CASE 2
+            IF $IN[CZP_BASE_SL[2]+I_CZP_o_Proz] THEN
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              CONTINUE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            CONTINUE
+            SO_CZP2_Prg_Nr=PAR3 ;CZ 2 Ausgabe Programm-Nr
+	     ENDSWITCH      
+;
+      DEFAULT
+        CZ_Msg(20,#QuitMsg) ;Falsche Auswahl
+    ENDSWITCH ;von PAR1
+;
+    ;ENDFOLD (Advance)
+;
+;***************************************************
+  CASE #USR_TRIG
+    ;FOLD Trig
+    ;
+    SO_SPS_Proz_Nr=PAR6
+    IF (PAR6==$COUNT_I[I_Arbpkt_Nr]) AND (PAR6<>0) THEN
+      CZ_Msg(1,#QuitMsg) ; Punkt schon geclincht
+    ENDIF
+    IF (PAR6<>0) THEN
+      IF ($PRO_MODE==#MSTEP) THEN
+        CZ_Msg(4,#QuitMsg)
+        WAIT FOR ($PRO_MODE<>#MSTEP)
+      ENDIF
+    ENDIF   
+    SWITCH PAR1
+      CASE 1  ;Auswahl Servo
+        SWITCH PAR2
+          CASE 1
+            IF $IN[CZS_BASE_SL[1]+I_CZS_o_Proz] THEN
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            IF (SO_CZS1_Prg_Nr<>PAR3) THEN
+              SO_CZS1_Prg_Nr=PAR3 ;CZ 1 Ausgabe Programm-Nr
+		        WAIT SEC 0.1
+		      ENDIF
+          CASE 2
+            IF $IN[CZS_BASE_SL[2]+I_CZS_o_Proz] THEN
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            IF (SO_CZS2_Prg_Nr<>PAR3) THEN
+              SO_CZS2_Prg_Nr=PAR3 ;CZ 2 Ausgabe Programm-Nr
+		        WAIT SEC 0.1
+		      ENDIF
+	     ENDSWITCH  
+;
+      CASE 2  ;Auswahl pneumohydraulisch
+        SWITCH PAR2
+          CASE 1
+            IF $IN[CZP_BASE_SL[1]+I_CZP_o_Proz] THEN
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            IF (SO_CZP1_Prg_Nr<>PAR3) THEN
+              SO_CZP1_Prg_Nr=PAR3 ;CZ 1 Ausgabe Programm-Nr
+		        WAIT SEC 0.1
+		      ENDIF
+          CASE 2
+            IF $IN[CZP_BASE_SL[2]+I_CZP_o_Proz] THEN
+              $FLAG[F_o_Proz_BMS]=TRUE
+            ELSE
+              $FLAG[F_o_Proz_BMS]=FALSE
+            ENDIF
+            IF (SO_CZP2_Prg_Nr<>PAR3) THEN
+              SO_CZP2_Prg_Nr=PAR3 ;CZ 2 Ausgabe Programm-Nr
+		        WAIT SEC 0.1
+		      ENDIF
+	     ENDSWITCH  	
+;
+      DEFAULT
+        CZ_Msg(20,#QuitMsg) ;P1: Falsche Auswahl
+;
+    ENDSWITCH ;von PAR1
+;
+    ;ENDFOLD (Trig)
+;
+;***************************************************
+  CASE #USR_MAIN
+    ;FOLD Main
+;
+    $COUNT_I[I_Arbpkt_Nr]=PAR6
+    Weg=PAR5
+    ;+X Rueckbewegung
+    MyCorrWeg=$NULLFRAME
+    MyCorrWeg.X=-(Weg*0.1)
+    IF (Weg>9) THEN
+      LIN $Pos_act:MyCorrWeg C_VEL
+    ENDIF  
+;
+    ;ENDFOLD (Main)
+;
+;***************************************************
+  DEFAULT
+;  
+ENDSWITCH
+END
+;
+;ENDFOLD (Clinchen Interface)
+;
+;***************************************************
+;FOLD CZS_MERKER_INIT
+DEF CZS_MERKER_INIT(CZNR :IN)
+INT CZNR
+;
+SWITCH CZNR
+  CASE 1
+    ;Sicherheit CZ1 Servo
+    $CYCFLAG[116]=$IN[1345] AND NOT $IN[1349] AND $IN[1353] AND $IN[1354] AND (NOT $IN[1355] OR $OUT[1355]) AND NOT $IN[1413] AND NOT $IN[1419] AND $OUT[1356]
+  CASE 2
+    ;Sicherheit CZ2 Servo
+    $CYCFLAG[119]=$IN[1425] AND NOT $IN[1429] AND $IN[1433] AND $IN[1434] AND (NOT $IN[1435] OR $OUT[1435]) AND NOT $IN[1493] AND NOT $IN[1499] AND $OUT[1436]
+ENDSWITCH
+END
+;
+;***************************************************
+;FOLD CZP_MERKER_INIT
+DEF CZP_MERKER_INIT(CZNR :IN)
+INT CZNR
+;
+SWITCH CZNR
+  CASE 1
+    ;Sicherheit CZ1 Pneumo.
+    $CYCFLAG[117]=$IN[1345] AND NOT $IN[1348] AND $IN[1350] AND $IN[1353]
+  CASE 2
+    ;Sicherheit CZ2 Pneumo.
+    $CYCFLAG[120]=$IN[1425] AND NOT $IN[1428] AND $IN[1430] AND $IN[1433]
+ENDSWITCH
+END
+;
+;***************************************************
+;FOLD CZ_Meldungen
+DEF CZ_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr
+DECL CZR_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+DECL STATE_T Stat 
+;
+USER_MSG = { Modul[] "CZ_R_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop True, Clear_P_Reset True, Log_To_DB False }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_CZR_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="Punkt schon geklincht"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="MyCorrOFF nicht im zulaessigen Bereich"
+    CASE 3
+      USER_MSG.MSG_TXT[]="FRG-Prozess (F740) fehlt"
+    CASE 4
+      USER_MSG.MSG_TXT[]="Programmablaufart aendern auf GO und Satzanwahl durchfuehren"
+    CASE 19
+	   USER_MSG.MSG_TXT[]="Falsche Gruppen-Auswahl"  
+    CASE 20
+	   USER_MSG.MSG_TXT[]="P1: Falsche Auswahl"
+    CASE 21
+	   USER_MSG.MSG_TXT[]="P2: Falsche Auswahl" 
+    CASE 22
+	   USER_MSG.MSG_TXT[]="P3: Falsche Auswahl"  
+    DEFAULT
+      USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_CZR_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_CZR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      While ( Exists_KrlMsg(n_CZR_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        Wait Sec 0.1
+      Endwhile
+    CASE #NotifyMsg
+      n_CZR_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_CZR_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;
+;ENDFOLD (CZ Meldungen)
+

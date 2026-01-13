@@ -1,0 +1,54 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/RW_Reibelementschweissen
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT VW_RW_USR_R PUBLIC
+;
+;***************************************************
+;*Technologiepaket RW Reibelementschweissen        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2015.02.20 LE                                   *
+;* 2016.02.05 CE Indirekte Adressierung neu hinzu  *
+;*                                                 *
+;***************************************************
+;
+;FOLD Reibelement
+;RW Sollposition
+SIGNAL SO_RW1_SollPos $OUT[1297] TO $OUT[1311]
+SIGNAL SO_RW2_SollPos $OUT[1217] TO $OUT[1231]
+;RW Istposition
+SIGNAL SO_RW1_IstPos $IN[1297]  TO $IN[1311]
+SIGNAL SO_RW2_IstPos $IN[1217]  TO $IN[1231]
+;RW Programmnummer
+SIGNAL SO_RW1_Prg_Nr $OUT[1313] TO $OUT[1328]
+SIGNAL SO_RW2_Prg_Nr $OUT[1233] TO $OUT[1248]
+;RW Fahrzeugtyp
+SIGNAL SO_RW1_Fzg_Typ $OUT[1329] TO $OUT[1336]
+SIGNAL SO_RW2_Fzg_Typ $OUT[1249] TO $OUT[1256]
+;BMS Prozessnummer
+SIGNAL SO_SPS_Proz_Nr $OUT[97] TO $OUT[112]
+;ENDFOLD
+;
+REAL MyPos=99.0
+REAL MyPos1=99.0
+REAL MyPos2=0.0
+;
+;TCP-Korrektur
+INT Weg=0
+INT Offset=0
+FRAME MyCorr
+FRAME MyCorrWeg
+;ENDFOLD
+;
+;FOLD Meldungsausgabe
+ENUM RWR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+;
+ENDDAT

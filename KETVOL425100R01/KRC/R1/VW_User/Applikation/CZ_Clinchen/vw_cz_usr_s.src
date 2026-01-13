@@ -1,0 +1,562 @@
+&ACCESS R
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/CZ_Clinchen
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_CZ_USR_S( )
+; 
+;***************************************************
+;*Technologiepaket CZ Clinchen                     *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Aenderungsjournal:                              *
+;*                                                 *
+;***************************************************
+; 
+END
+;
+;FOLD INIT CZ 
+GLOBAL DEF CZ_INIT( )
+INT i
+;
+;Version Techpaket
+Tech_CZ.Name[]="KS26.01.002_20190612"
+;
+;Vorbesetzung Meldungsausgabe
+FOR i=1 TO 100
+  n_CZS_Handle[i]=-1
+  n_CZR_Handle[i]=-1
+ENDFOR
+;
+;CZ BASE ADRESSEN INITIALISIEREN
+CZ_BASE_INIT( )
+; 
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD SAW CZ
+GLOBAL DEF CZ_SAW(CZNr :IN)
+INT CZNr
+;
+IF NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_Re_aus] AND MIT_CZS[CZNr] THEN
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_zu]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu]=FALSE
+ENDIF 
+B_CZ_AUF_ZU[CZNr]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD RESET CZ
+GLOBAL DEF CZ_RESET(CZNr :IN)
+INT CZNr
+;
+IF NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_Re_aus] THEN
+  $FLAG[F_Frg_Servo]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_zu]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu]=FALSE
+ENDIF
+B_CZ_AUF_ZU[CZNr]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CANCEL CZ 
+GLOBAL DEF CZ_CANCEL(CZNr :IN)
+INT CZNr
+;
+IF NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_Re_aus] THEN
+  $FLAG[F_Frg_Servo]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_zu]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu]=FALSE
+ENDIF
+B_CZ_AUF_ZU[CZNr]=FALSE
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP CZ Servo
+GLOBAL DEF CZS_LOOP(CZNr :IN)
+BOOL bRet
+INT i,CZNr
+;
+;CZ BASE ADRESSEN INITIALISIEREN
+CZ_BASE_INIT( )
+;
+IF (CZS_BASE_SL[CZNr]==HM_BASE_SL) THEN
+  CZ_Msg((CZNr+3),#StateMsg)
+ELSE
+  IF (n_CZS_Handle[(CZNr+3)]>-1) THEN
+    bRet=Clear_KrlMsg(n_CZS_Handle[(CZNr+3)])
+    n_CZS_Handle[(CZNr+3)]=-1
+  ENDIF
+ENDIF
+;
+IF (CZNr==1) THEN
+  FOR i=1 TO 4
+    $FLAG[F_CZ1_BMS_ANW_Z[i]]=$IN[CZS_BASE_SL[CZNr]+I_CZ_anw_Z[i]]
+  ENDFOR
+ENDIF
+IF (CZNr==2) THEN
+  $FLAG[F_CZ2_BMS_ANW_Z[1]]=$IN[CZS_BASE_SL[CZNr]+I_CZ_anw_Z[1]]
+ENDIF
+;
+;Vorwahl ohne Prozess
+$OUT[CZS_BASE_MA[CZNr]+O_CZS_o_Fue]=$IN[CZS_BASE_SL[CZNr]+I_CZS_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;Prozess aktiv
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_P_akt]=$OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG] AND ($OUT[CZS_BASE_MA[CZNr]+O_CZS_zu] OR $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref])   
+;
+;BA-Hand an CZ setzen
+IF NOT $COULD_START_MOTION OR B_CZ_AUF_ZU[CZNr] OR B_CZ_Tastend[CZNr] OR SCHLEPPFEHLER THEN
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Hand]=TRUE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Auto]=FALSE
+ENDIF
+;
+;BA-AUTO an CZ setzen
+IF ($OUT[O_R_Hand] AND NOT B_CZ_AUF_ZU[CZNr] AND NOT B_CZ_Tastend[CZNr] AND ($OUT[O_R_Proz_akt] OR $OUT[O_R_bewegt]) AND NOT SCHLEPPFEHLER) OR ($OUT[O_R_Auto] AND $COULD_START_MOTION) THEN
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Hand]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Auto]=TRUE
+ENDIF
+;
+;Fehler-Reset
+$OUT[CZS_BASE_MA[CZNr]+O_CZS_Reset]=($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei] OR $FLAG[F_CZS_Reset]) AND $IN[CZS_BASE_MA[CZNr]+I_CZS_Sammel]
+;
+;Ausgabe Statusmeldungen an BMS
+;
+;Clinchpunkt n.i.O.
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_nio]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $OUT[CZS_BASE_SL[CZNr]+O_CZS_P_akt] AND $FLAG[F_CZS_nio[CZNr]]
+;Vorwarnung Antrieb geht schwer
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_W_SZ]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_W_SZ]
+;Warnung Standzeit Werkzeug
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_W_Tool]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_W_Tool]
+;Kraft unterschritten
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Kr_n]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_Kr_n]
+;Kraft ueberschritten
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Kr_h]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_Kr_h]
+;Programmfehler
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Prog]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_Prog]
+;Zielposition ungueltig
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Ziel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_Ziel]
+;Antrieb geht schwer
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_schw]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_schw]
+;Matrizenueberwachung n.i.O.
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_defekt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_CZ_def[CZNr]]
+;Vorwarnung Spruehmittel
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_VW_Spruehm]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_VW_Spruehm]
+;Spruehmittel leer
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Spruehm]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZS_BASE_MA[CZNr]+I_CZS_F_Spruehm]
+;Betriebsbereit fehlt
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_F_Betr]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND NOT $IN[CZS_BASE_MA[CZNr]+I_CZS_bereit] AND $timer_flag[TimerNr_Ein]
+;Sammelstoerung
+$OUT[CZS_BASE_SL[CZNr]+O_CZS_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($FLAG[F_CZS_Sammel[CZNr]] OR $IN[CZS_BASE_MA[CZNr]+I_CZS_Sammel] OR CZ_LBitFeh[CZNr]) AND $timer_flag[TimerNr_Ein]
+;
+;CZ 1 Tastend ruecksetzen
+IF $OUT[O_R_Hand] AND B_CZ_Tastend[CZNr] AND NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf] AND NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu] THEN
+  B_CZ_Tastend[CZNr]=FALSE
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_SPos_g]=FALSE
+  WAIT SEC 0.12
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+  schleppfehler=TRUE
+  sf_prog_status=#user_act
+ENDIF	
+;
+;INIT Zangenfunktion
+IF $OUT[O_R_Hand] AND NOT $OUT[O_R_Auto] AND $COULD_START_MOTION AND ((NOT $OUT[O_R_Proz_akt] AND NOT $OUT[O_R_bewegt]) OR (R1AusgleichFunktion>0)) THEN
+  IF ($OUT[CZS_BASE_MA[CZNr]+O_CZS_ref] OR $OUT[CZS_BASE_MA[CZNr]+O_CZS_auf] OR $OUT[CZS_BASE_MA[CZNr]+O_CZS_zu] OR $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf] OR $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu]) THEN 
+    CZ_Z_Funkt(CZNr)
+  ENDIF  
+ENDIF
+;
+;Zangenbefehle ruecksetzen
+IF ($OUT[O_R_Hand] AND ($PRO_MODE1==#BSTEP)) OR ($OUT[O_R_Hand] AND NOT $FLAG[F_Frg_Servo] AND $OUT[O_R_bewegt]) OR ($OUT[O_R_Hand] AND NOT $COULD_START_MOTION AND B_CZ_AUF_ZU[CZNr]) THEN
+  IF NOT $OUT[CZS_BASE_MA[CZNr]+O_CZS_Re_aus] THEN
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref]=FALSE
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+	 $OUT[CZS_BASE_MA[CZNr]+O_CZS_auf]=FALSE
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_zu]=FALSE
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf]=FALSE
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu]=FALSE
+  ENDIF
+  B_CZ_AUF_ZU[CZNr]=FALSE
+ENDIF
+;
+;Zangencode setzen
+IF (CZNr==1) AND NOT CZ1_DOCK THEN
+  SO_CZ1_ZCode=1
+ENDIF
+IF (CZNr==2) THEN
+  SO_CZ2_ZCode=1
+ENDIF
+;
+;Lebensbit-Ueberwachung  
+L_Bit_CZS(CZNr)	
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP CZ Pneumo
+GLOBAL DEF CZP_LOOP(CZNr :IN)
+BOOL bRet
+INT i,CZNr
+;
+;CZ BASE ADRESSEN INITIALISIEREN
+CZ_BASE_INIT( )
+;
+IF (CZP_BASE_SL[CZNr]==HM_BASE_SL) THEN
+  CZ_Msg((CZNr+5),#StateMsg)
+ELSE
+  IF (n_CZS_Handle[(CZNr+5)]>-1) THEN
+    bRet=Clear_KrlMsg(n_CZS_Handle[(CZNr+5)])
+    n_CZS_Handle[(CZNr+5)]=-1
+  ENDIF
+ENDIF
+;
+IF (CZNr==1) THEN
+  FOR i=1 TO 4
+    $FLAG[F_CZ1_BMS_ANW_Z[i]]=$IN[CZP_BASE_SL[CZNr]+I_CZ_anw_Z[i]]
+  ENDFOR
+ENDIF
+IF (CZNr==2) THEN
+  $FLAG[F_CZ2_BMS_ANW_Z[1]]=$IN[CZP_BASE_SL[CZNr]+I_CZ_anw_Z[1]]
+ENDIF
+;
+;BA-Hand an CZ setzen
+IF $OUT[O_R_Hand] AND NOT $COULD_START_MOTION THEN
+  $OUT[CZP_BASE_MA[CZNr]+O_CZP_Hand]=TRUE
+  $OUT[CZP_BASE_MA[CZNr]+O_CZP_Auto]=FALSE
+ENDIF
+;
+;BA-AUTO an CZ setzen
+B_CZ_Hilf[CZNr]=($OUT[CZP_BASE_MA[CZNr]+O_CZP_auf] OR $OUT[CZP_BASE_MA[CZNr]+O_CZP_Mit] OR $OUT[CZP_BASE_MA[CZNr]+O_CZP_zu] OR $OUT[CZP_BASE_MA[CZNr]+O_CZP_F_auf] OR $OUT[CZP_BASE_MA[CZNr]+O_CZP_F_zu])
+IF ($OUT[O_R_Hand] AND ($OUT[O_R_Proz_akt] OR B_CZ_Hilf[CZNr]) AND $COULD_START_MOTION) OR $OUT[O_R_Auto] THEN
+  $OUT[CZP_BASE_MA[CZNr]+O_CZP_Hand]=FALSE
+  $OUT[CZP_BASE_MA[CZNr]+O_CZP_Auto]=TRUE
+ENDIF  
+;
+;Fehler-Reset
+$OUT[CZP_BASE_MA[CZNr]+O_CZP_Reset]=($IN[I_R_Quit_St] OR $IN[I_R_Quit_Wei] OR $FLAG[F_CZP_Reset]) AND $IN[CZP_BASE_MA[CZNr]+I_CZP_Sammel]
+;
+;Vorwahl ohne Prozess
+$OUT[CZP_BASE_MA[CZNr]+O_CZP_o_Fu2]=$IN[CZP_BASE_SL[CZNr]+I_CZP_o_Proz] OR $FLAG[F_o_Proz_SStep]
+;Prozess aktiv
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_P_akt]=$OUT[CZP_BASE_MA[CZNr]+O_CZP_zu] 
+;
+;Ausgabe Fehlermeldungen
+;
+;Clinchpunkt n.i.O.
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_nio]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $OUT[CZP_BASE_SL[CZNr]+O_CZP_P_akt] AND $FLAG[F_CZP_nio[CZNr]]
+;Sensor Fehler EPWX 
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_F_EPWX]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZP_BASE_MA[CZNr]+I_CZP_F_EPWX]
+;Oelstandskontrolle
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_F_Oel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZP_BASE_MA[CZNr]+I_CZP_F_Oel]
+;Laufzeitfehler Oeldruck
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_F_Druck]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $IN[CZP_BASE_MA[CZNr]+I_CZP_F_Druck]
+;Matrizenueberwachung n.i.O.
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_defekt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_CZ_def[CZNr]]
+;Sammelstoerung
+$OUT[CZP_BASE_SL[CZNr]+O_CZP_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($FLAG[F_CZP_Sammel[CZNr]] OR $IN[CZP_BASE_MA[CZNr]+I_CZP_Sammel] OR CZ_LBitFeh[CZNr]) AND $timer_flag[TimerNr_Ein]
+;
+;Lebensbit-Ueberwachung  
+L_Bit_CZP(CZNr)	
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD LOOP CZ Flat
+GLOBAL DEF CZF_LOOP(CZNr :IN)
+BOOL bRet
+INT i,CZNr
+;
+;CZ BASE ADRESSEN INITIALISIEREN
+CZ_BASE_INIT( )                          
+;
+IF (CZF_BASE_SL[CZNr]==HM_BASE_SL) THEN
+  CZ_Msg((CZNr+7),#StateMsg)
+ELSE
+  IF (n_CZS_Handle[(CZNr+7)]>-1) THEN
+    bRet=Clear_KrlMsg(n_CZS_Handle[(CZNr+7)])
+    n_CZS_Handle[(CZNr+7)]=-1
+  ENDIF
+ENDIF
+;
+IF $OUT[O_R_Hand] AND $COULD_START_MOTION AND NOT $OUT[O_R_Proz_akt] THEN
+  IF ((DEF_ZANGE[20].Typ==1) OR (DEF_ZANGE[20].Typ==2)) AND (DEF_ZANGE[20].A_AUF>0) AND (DEF_ZANGE[20].A_ZU>0) THEN   
+    $OUT[CZF_BASE_SL[CZNr]+O_V_CZF_Bew]=TRUE
+  ENDIF           	 
+ENDIF
+IF $OUT[O_R_Hand] AND $FLAG[F_RSK_Gst] AND NOT $COULD_START_MOTION THEN  
+  $OUT[CZF_BASE_SL[CZNr]+O_V_CZF]=FALSE   
+  $OUT[CZF_BASE_SL[CZNr]+O_V_CZF_Bew]=FALSE 
+ENDIF
+;
+;Prozess aktiv
+$OUT[CZF_BASE_SL[CZNr]+O_CZF_P_akt]=$OUT[CZF_BASE_MA[CZNr]+O_CZF_zu]
+;
+;Ausgabe Fehlermeldungen
+;
+;Laufzeitfehler Oeldruck
+$OUT[CZF_BASE_SL[CZNr]+O_CZF_F_Druck]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_CZF_Feh[CZNr]]
+;Clinchzange defekt
+$OUT[CZF_BASE_SL[CZNr]+O_CZF_defekt]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND $FLAG[F_CZ_def[CZNr]]
+;Sammelstoerung
+$OUT[CZF_BASE_SL[CZNr]+O_CZF_Samel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($OUT[CZF_BASE_MA[CZNr]+O_CZF_defekt] OR $OUT[CZF_BASE_MA[CZNr]+O_CZF_F_Druck] OR $OUT[CZF_BASE_MA[CZNr]+O_CZF_F_Oel]) AND $timer_flag[TimerNr_Ein]
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CZ_BASE_INIT
+DEF CZ_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;CZ Servo SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_CZS_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_CZS_BASE_SL[1]=HM_BASE_SL
+  CZS_BASE_SL[1]=HM_BASE_SL
+ELSE
+  CZS_BASE_SL[1]=CF_CZS_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_CZS_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_CZS_BASE_SL[2]=HM_BASE_SL
+  CZS_BASE_SL[2]=HM_BASE_SL
+ELSE
+  CZS_BASE_SL[2]=CF_CZS_BASE_SL[2]
+ENDIF
+;
+;CZ Pneumo SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_CZP_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_CZP_BASE_SL[1]=HM_BASE_SL
+  CZP_BASE_SL[1]=HM_BASE_SL
+ELSE
+  CZP_BASE_SL[1]=CF_CZP_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_CZP_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_CZP_BASE_SL[2]=HM_BASE_SL
+  CZP_BASE_SL[2]=HM_BASE_SL
+ELSE
+  CZP_BASE_SL[2]=CF_CZP_BASE_SL[2]
+ENDIF
+;
+;CZ Flat SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_CZF_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_CZF_BASE_SL[1]=HM_BASE_SL
+  CZF_BASE_SL[1]=HM_BASE_SL
+ELSE
+  CZF_BASE_SL[1]=CF_CZF_BASE_SL[1]
+ENDIF
+;
+;CZ Servo MASTER ADRESSIERUNG
+CZS_BASE_MA[1]=1345                            
+CZS_BASE_MA[2]=1425
+;CZ Pneumo MASTER ADRESSIERUNG
+CZP_BASE_MA[1]=1345                           
+CZP_BASE_MA[2]=1425
+;CZ Flat MASTER ADRESSIERUNG
+CZF_BASE_MA[1]=2193
+;
+END
+;ENDFOLD (CZ_BASE_INIT)
+;
+;***************************************************
+;FOLD CZ Zangenfunktion
+DEF CZ_Z_Funkt(CZNr :IN)
+INT CZNr                        
+;
+;CZ Referenzieren (Servo)
+IF $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref] THEN	
+  $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=TRUE
+  B_CZ_AUF_ZU[CZNr]=TRUE
+  WAIT SEC 0.8
+  IF $IN[CZS_BASE_MA[CZNr]+I_CZS_ref] AND $IN[CZS_BASE_MA[CZNr]+I_CZS_IPos_g] THEN
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_ref]=FALSE
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=FALSE
+    B_CZ_AUF_ZU[CZNr]=FALSE
+    CZ_Msg(CZNr+1,#NotifyMsg)
+  ENDIF
+ENDIF
+;CZ Tastend Auf (Servo)
+IF $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf] THEN	
+  B_CZ_Tastend[CZNr]=TRUE
+  IF $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Hand] AND $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_auf] THEN	
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=TRUE
+  ENDIF
+ENDIF
+;CZ Tastend Zu (Servo)
+IF $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu] THEN	
+  B_CZ_Tastend[CZNr]=TRUE
+  IF $OUT[CZS_BASE_MA[CZNr]+O_CZS_R_Hand] AND $OUT[CZS_BASE_MA[CZNr]+O_CZS_t_zu] THEN	
+    $OUT[CZS_BASE_MA[CZNr]+O_CZS_FRG]=TRUE
+  ENDIF
+ENDIF
+;
+ 
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Lebensbit CZ Servo
+DEF L_Bit_CZS(CZNr :IN)
+INT CZNr,RobTimer
+BOOL LBitCZ,LBitFault,ErrLBit,bRet 
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;Setzen / Rueksetzen Lebensbit Roboter
+$OUT[CZS_BASE_MA[CZNr]+O_CZS_LBit] = NOT $IN[CZS_BASE_MA[CZNr]+I_CZS_LBit]
+RobTimer = $ROB_TIMER	
+IF $IN[CZS_BASE_MA[CZNr]+I_CZS_LBit] <> LBitState[CZNr] THEN
+  LBitTimeCnt[CZNr] = RobTimer
+ENDIF
+IF (RobTimer - LBitTimeCnt[CZNr]) > 5000 THEN
+  ErrLBit = TRUE
+  ErrCZNr = CZNr
+  CZ_LBitFeh[CZNr]=TRUE
+ENDIF
+LBitState[CZNr] = $IN[CZS_BASE_MA[CZNr]+I_CZS_LBit]
+IF ErrLBit THEN
+  CZ_Msg(1,#StateMsg, ErrCZNr)
+ELSE
+  IF (n_CZS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_CZS_Handle[1])
+    n_CZS_Handle[1]=-1
+    ErrCZNr = -1
+  ENDIF
+  CZ_LBitFeh[CZNr]=FALSE
+ENDIF
+;  
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD Lebensbit CZ Pneumo
+DEF L_Bit_CZP(CZNr :IN)
+;Setzen / Rueksetzen Lebensbit Roboter
+INT CZNr,RobTimer
+BOOL LBitCZ,LBitFault,ErrLBit,bRet
+;
+ErrLBit = FALSE
+LBitFault=FALSE
+;Setzen - Rucksetzen  des Lebensbit an Zangensteuerung
+$OUT[CZP_BASE_MA[CZNr]+O_CZP_LBit] = NOT $IN[CZP_BASE_MA[CZNr]+I_CZP_LBit]
+RobTimer = $ROB_TIMER	
+IF $IN[CZP_BASE_MA[CZNr]+I_CZP_LBit] <> LBitState[CZNr] THEN
+  LBitTimeCnt[CZNr] = RobTimer
+ENDIF
+IF (RobTimer - LBitTimeCnt[CZNr]) > 5000 THEN
+  ErrLBit = TRUE
+  ErrCZNr = CZNr
+  CZ_LBitFeh[CZNr]=TRUE
+ENDIF
+LBitState[CZNr] = $IN[CZP_BASE_MA[CZNr]+I_CZP_LBit]
+IF ErrLBit THEN
+  CZ_Msg(1,#StateMsg, ErrCZNr)
+ELSE
+  IF (n_CZS_Handle[1]>-1) THEN
+    bRet=Clear_KrlMsg(n_CZS_Handle[1])
+    n_CZS_Handle[1]=-1
+    ErrCZNr = -1
+  ENDIF
+  CZ_LBitFeh[CZNr]=FALSE
+ENDIF
+;  
+END
+;ENDFOLD
+;
+;***************************************************
+;FOLD CZ_Meldungen
+DEF CZ_Msg(msg_nr :IN, MsgTyp :IN, CZNr :IN)
+INT msg_nr, CZNr, Answer
+DECL CZS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+;
+USER_MSG = { Modul[] "CZ_S_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF Varstate("CZNr")==#initialized then
+  SWITCH CZNr
+    CASE 1
+      Par[1]={ Par_type #Value, Par_int 1 }
+    CASE 2
+      Par[1]={ Par_type #Value, Par_int 2 }
+    CASE 3
+      Par[1]={ Par_type #Value, Par_int 3 }
+    CASE 4
+      Par[1]={ Par_type #Value, Par_int 4 }
+    CASE 5
+      Par[1]={ Par_type #Value, Par_int 5 }
+    CASE 6
+      Par[1]={ Par_type #Value, Par_int 6 }
+    DEFAULT
+      Par[1]={ Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+IF ((n_CZS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="CZ%1: Keine Antwort auf Lebensbit"
+    CASE 2
+	   USER_MSG.MSG_TXT[]="CZS1: Zange ist referenziert"
+    CASE 3
+	   USER_MSG.MSG_TXT[]="CZS2: Zange ist referenziert"
+    CASE 4
+	   USER_MSG.MSG_TXT[]="CZS1: Slave Startadresse ungueltig"
+    CASE 5
+	   USER_MSG.MSG_TXT[]="CZS2: Slave Startadresse ungueltig"
+    CASE 6
+	   USER_MSG.MSG_TXT[]="CZP1: Slave Startadresse ungueltig"
+    CASE 7
+	   USER_MSG.MSG_TXT[]="CZP2: Slave Startadresse ungueltig"
+    CASE 8
+	   USER_MSG.MSG_TXT[]="CZF1: Slave Startadresse ungueltig"
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_CZS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_CZS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_CZS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_CZS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (CZ Meldungen)

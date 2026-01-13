@@ -1,0 +1,496 @@
+&ACCESS R
+&REL 211
+&COMMENT KS26
+&PARAM DISKPATH = VW_User/Applikation/RZ_Schweisszange
+&PARAM TPVW_VERSION = 8.3.0
+DEF VW_RZ_USR_S( )
+; 
+;*-----------------------------------------------------*
+;* Technologiepaket RZ Schweisszange                   *
+;*                                                     *
+;* Konzernstandard                                     *
+;*-----------------------------------------------------*
+; 
+END
+;
+;FOLD INIT RZ 
+GLOBAL DEF RZ_INIT(INITCmd :IN )
+INT i, INITCmd
+;
+;
+;KF BASE ADRESSEN INITIALISIEREN
+KF_BASE_INIT( )
+;KW BASE ADRESSEN INITIALISIEREN
+KW_BASE_INIT( )
+;RZ BASE ADRESSEN INITIALISIEREN
+RZ_BASE_INIT( )
+;
+SWITCH INITCmd
+  CASE 1 ; RZ_INIT von vw_usr_s 
+    ;FOLD Version Techpaket
+    Tech_RZ.Name[]="KS26.02.003_20190905"
+    ;ENDFOLD
+;
+    ;FOLD Vorbesetzung Meldungsausgabe
+    FOR i = 1 TO 100
+      n_RZS_Handle[i]=-1
+      n_RZR_Handle[i]=-1
+    ENDFOR
+    ;ENDFOLD
+;
+  CASE 2 ; #RZInit von vw_usr_s
+ENDSWITCH    
+;
+; 
+;FOLD KS Interrupt
+;KS1 Abschalten
+GLOBAL INTERRUPT DECL 2 WHEN $IN[KF_BASE_MA[1]+I_KS_R_Nocke]==FALSE DO KS_Abschalten(1)
+INTERRUPT ON 2
+GLOBAL INTERRUPT DECL 3 WHEN $IN[KF_BASE_MA[1]+I_KS_A_Nocke]==FALSE DO KS_Abschalten(2)
+INTERRUPT ON 3
+;KS2 Abschalten
+GLOBAL INTERRUPT DECL 4 WHEN $IN[KF_BASE_MA[2]+I_KS_R_Nocke]==FALSE DO KS_Abschalten(3)
+INTERRUPT ON 4
+GLOBAL INTERRUPT DECL 5 WHEN $IN[KF_BASE_MA[2]+I_KS_A_Nocke]==FALSE DO KS_Abschalten(4)
+INTERRUPT ON 5
+;KS3 Abschalten
+GLOBAL INTERRUPT DECL 6 WHEN $IN[KF_BASE_MA[3]+I_KS_R_Nocke]==FALSE DO KS_Abschalten(5)
+INTERRUPT ON 6
+GLOBAL INTERRUPT DECL 7 WHEN $IN[KF_BASE_MA[3]+I_KS_A_Nocke]==FALSE DO KS_Abschalten(6)
+INTERRUPT ON 7
+;Kuehlwasser vorhanden
+GLOBAL INTERRUPT DECL 8 WHEN $IN[I_R_KW_vorh[1]]==TRUE DO KW_vorhanden()
+INTERRUPT ON 8
+;ENDFOLD  
+;
+END
+;ENDFOLD
+;
+;-----------------------------------------------------------
+;
+;FOLD SAW RZ 
+GLOBAL DEF RZ_SAW( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;-----------------------------------------------------------
+;
+;FOLD RESET RZ 
+GLOBAL DEF RZ_RESET( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;-----------------------------------------------------------
+;
+;FOLD CANCEL RZ 
+GLOBAL DEF RZ_CANCEL( )
+INT i
+;
+;
+END
+;ENDFOLD
+;
+;-----------------------------------------------------------
+;
+;FOLD LOOP RZ 
+GLOBAL DEF RZ_LOOP( )
+BOOL bRet
+;
+;KF BASE ADRESSEN INITIALISIEREN
+KF_BASE_INIT( )
+;KW BASE ADRESSEN INITIALISIEREN
+KW_BASE_INIT( )
+;
+if Mit_RZ==FALSE then
+	$Flag[F_m_RZ1]=FALSE
+	$Flag[F_m_RZ2]=FALSE
+	$Flag[F_m_RZ3]=FALSE
+	$Flag[F_m_RZKOPF]=FALSE
+endif
+;
+;
+;Downgrade Docking
+IF Mit_RZ THEN
+;
+ if Mit_DS==FALSE THEN
+  ;FOLD RZ asynchron - synchron
+  if $ex_kin.et1<>#ersys then
+  Switch $async_axis
+   case 'B0000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0001'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0010'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0011'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0110'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0101'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0111'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0100'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B1000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=FALSE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B10000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=FALSE
+     $out[RZ_6]=TRUE
+   case 'B100000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=FALSE
+   ENDSWITCH
+   else  ; 1. externe Zusatzachse ist Verfahrachse
+  Switch $async_axis
+   case 'B0000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0010'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0110'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B0100'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B1010'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B1100'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B1110'
+     $out[RZ_1]=FALSE
+     $out[RZ_2]=FALSE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B1000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=FALSE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B10000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=FALSE
+     $out[RZ_5]=TRUE
+     $out[RZ_6]=TRUE
+   case 'B100000'
+     $out[RZ_1]=TRUE
+     $out[RZ_2]=TRUE
+     $out[RZ_3]=TRUE
+     $out[RZ_4]=TRUE
+     $out[RZ_5]=FALSE
+     $out[RZ_6]=TRUE
+   ENDSWITCH
+   endif
+  ;ENDFOLD
+;
+ else
+  if $async_axis==0 then
+  for i=1 to 6
+    $out[RZ_1+((i-1)*32)]=true
+  endfor
+  if $ex_kin.et1<>#ersys then
+	for b=1 to ($ex_ax_num)
+	  if b==1 then
+        a=1
+	  else	
+       a=a*2
+      endif
+      c=(a B_AND $async_axis)
+	  if ((a B_AND $async_axis) > 0) then
+       if b>3 then
+       $out[RZ_4+b-1]=false
+       else
+	    $out[RZ_1+((b-1)*32)]=false
+       endif
+	  else
+       if b>3 then
+         $out[RZ_4+b-1]=true
+       else
+         $out[RZ_1+((b-1)*32)]=true
+       endif
+	  endif
+    endfor
+  else
+   ; Roboter steht auf Verfahrachse
+	for b=2 to ($ex_ax_num)
+	  if b==2 then
+        a=1
+	  else	
+       a=a*2
+      endif
+	c=(a B_AND $async_axis)
+	  if ((a B_AND $async_axis) >0) then
+       if b>4 then
+         $out[RZ_4+b-2]=false
+       else
+	    $out[RZ_1+((b-2)*32)]=false
+       endif
+	  else
+       if b>4 then
+         $out[RZ_4+b-2]=true
+       else
+	    $out[RZ_1+((b-2)*32)]=true
+       endif
+	  endif
+    endfor
+  endif
+ endif  
+endif
+;
+ENDIF
+
+;***************************************************
+;KS schwenken
+FOR i=1 TO 3
+  IF $OUT[O_R_Hand] AND NOT $OUT[O_R_Proz_akt] AND $OUT[O_KS_Schw[i]] THEN
+    IF $OUT[SG_RZ_Open[i]]==TRUE THEN
+	 $OUT[KF_BASE_MA[i]+O_KF_versetzen]=TRUE
+     $OUT[KF_BASE_MA[i]+O_KS_M_EIN]=($IN[KF_BASE_MA[i]+I_KF_INI] OR NOT KF_mit_VE[i])
+    ENDIF
+  ELSE
+    $OUT[O_KS_Schw[i]]=FALSE
+  ENDIF
+ENDFOR
+;***************************************************
+;
+;Ausgabe RSK Statusmeldungen an BMS
+;
+;Fehler KS Motor/Endlage
+$OUT[O_RSK_F_KS]=$OUT[O_R_Auto] AND ($FLAG[F_RSK_KS_R] OR $FLAG[F_RSK_KS_A])
+;Fehler KF Motor/Initiator
+$OUT[O_RSK_F_KF]=$OUT[O_R_Auto] AND ($FLAG[F_F_Schwenker] OR $FLAG[F_RSK_KF] OR $FLAG[F_KF_MoS_nio] OR $FLAG[F_KW_MoS_nio] OR $FLAG[F_KL_MoS_nio])
+;Fehler Kurzschlussschweissung
+$OUT[O_RSK_F_Kurz]=$OUT[O_R_Auto] AND $FLAG[F_RSK_Kurz]
+;Sammelstoerung
+$OUT[O_RSK_F_Sammel]=$OUT[O_R_Auto] AND $OUT[O_R_PERI_RDY] AND ($FLAG[F_RSK_KF] OR $FLAG[F_RSK_KS_R] OR $FLAG[F_RSK_KS_A] OR $FLAG[F_RSK_Kraft] OR $FLAG[F_RSK_Mess] OR $FLAG[F_RSK_Kurz] OR $FLAG[F_RSK_Vers] OR $FLAG[F_RSK_Sammel] OR $FLAG[F_KF_KS_ZS_S])
+;
+;***************************************************
+;
+;Ausgabe KW Statusmeldungen an BMS
+FOR i=1 TO 3
+  IF MIT_KW[i] THEN
+	;Prozess aktiv
+	$OUT[KW_BASE_SL[i]+O_KW_Proz_akt]=$FLAG[F_KW_Proz_akt[i]]
+	;Beim Kappenwechsel
+	$OUT[KW_BASE_SL[i]+O_KW_b_Wechsel]=$FLAG[F_KW_Proz_akt[i]] AND $FLAG [F_KW_BMS_Anw[i]]
+    ;Kappen Magazin oben/unten leer
+    $OUT[KW_BASE_SL[i]+O_KW_Mag_leer]=NOT $IN[KW_BASE_MA[i]+I_KW_MZ1_leer] OR NOT $IN[KW_BASE_MA[i]+I_KW_MZ2_leer]
+	;Fehler Kappe loesen
+		;$OUT[KW_BASE_SL[i]+O_KW_Kap_loesen]=$OUT[O_R_Auto]
+    ;Fehler Kappe setzen
+    $OUT[KW_BASE_SL[i]+O_KW_Feh_setz]=$OUT[KW_BASE_SL[i]+O_KW_Proz_akt] AND $FLAG[F_KW_Sammel[i]]
+	;Fehler KF Motor/Initiator
+	$OUT[KW_BASE_SL[i]+O_KW_Feh_KF]=$OUT[O_R_Auto] AND $FLAG[F_RSK_KF]
+	;KW Motorschutz hat ausgeloest!
+	$OUT[KW_BASE_SL[i]+O_KW_Motorschutz]=NOT $IN[KW_BASE_MA[i]+I_KW_Motorschutz]
+    ;Sammelstoerung
+    $OUT[KW_BASE_SL[i]+O_KW_Sammel]=$OUT[O_R_Auto] AND $COULD_START_MOTION AND ($OUT[KW_BASE_SL[i]+O_KW_Feh_setz] OR $OUT[KW_BASE_SL[i]+O_KW_Mag_leer] OR $FLAG[F_KW_Sammel[i]])
+		;$OUT[KW_BASE_SL[i]+O_KW_Proz_akt]=$FLAG[F_KW_Proz_akt[i]]
+		;$OUT[KW_BASE_SL[i]+O_KW_b_Wechsel]=$FLAG[F_KW_Proz_akt[i]]
+	
+  ENDIF
+  $FLAG[F_m_KW[i]]=MIT_KW[i]
+  $FLAG[F_Braeuer]=KW_Braeuer
+  $FLAG[F_Lutz]=KW_Lutz
+  $FLAG[F_AEG]=KW_AEG
+  $FLAG[F_Sintherleghe]=KW_Sintherleghe
+ENDFOR
+;
+;
+;
+END
+;ENDFOLD
+;
+;***************************************************
+;RZ BASE ADRESSEN INITIALISIEREN
+DEF RZ_BASE_INIT( )
+SG_RZ_Open[1]=3862
+SG_RZ_Open[2]=3894
+SG_RZ_Open[3]=3926
+END
+;***************************************************
+;FOLD KFKS_BASE_INIT
+DEF KF_BASE_INIT()
+;
+;KF MASTER ADRESSIERUNG
+KF_BASE_MA[1]=833                             
+KF_BASE_MA[2]=993
+KF_BASE_MA[3]=1153
+END
+;ENDFOLD (KF_BASE_INIT)
+;
+;***************************************************
+;FOLD KW_BASE_INIT
+DEF KW_BASE_INIT()
+BOOL bRet
+INT BaseResult
+;
+;KW SLAVE ADRESSIERUNG
+BaseResult=BaseCheck(CF_KW_BASE_SL[1])
+IF (BaseResult<>0) THEN
+  CF_KW_BASE_SL[1]=HM_BASE_SL
+  KW_BASE_SL[1]=HM_BASE_SL
+ELSE
+  KW_BASE_SL[1]=CF_KW_BASE_SL[1]
+ENDIF
+;
+BaseResult=BaseCheck(CF_KW_BASE_SL[2])
+IF (BaseResult<>0) THEN
+  CF_KW_BASE_SL[2]=HM_BASE_SL
+  KW_BASE_SL[2]=HM_BASE_SL
+ELSE
+  KW_BASE_SL[2]=CF_KW_BASE_SL[2]
+ENDIF
+;
+BaseResult=BaseCheck(CF_KW_BASE_SL[3])
+IF (BaseResult<>0) THEN
+  CF_KW_BASE_SL[3]=HM_BASE_SL
+  KW_BASE_SL[3]=HM_BASE_SL
+ELSE
+  KW_BASE_SL[3]=CF_KW_BASE_SL[3]
+ENDIF
+;
+;KW MASTER ADRESSIERUNG
+KW_BASE_MA[1]=857                             
+KW_BASE_MA[2]=1017
+KW_BASE_MA[3]=1177
+;
+END
+;ENDFOLD (KW_BASE_INIT)
+;
+;
+;-----------------------------------------------------------
+;FOLD RZ Meldungen
+DEF RZ_Msg(msg_nr :IN, MsgTyp :IN)
+INT msg_nr, Answer
+DECL RZS_MsgType MsgTyp
+DECL KrlMsg_T USER_MSG
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt
+BOOL Result
+;
+USER_MSG = { Modul[] "RZ_Msg", Nr -1, Msg_txt[] " "}
+Opt = { VL_Stop FALSE, Clear_P_Reset FALSE, Log_To_DB TRUE }
+Par[1] = { Par_type #Value, Par_txt[] " " }
+;
+IF ((n_RZS_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = msg_nr
+  SWITCH msg_nr
+    CASE 1
+	   USER_MSG.MSG_TXT[]="mehrere Bahnhoefe nicht belegt"
+    CASE 2
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 3
+	   USER_MSG.MSG_TXT[]=" "
+    CASE 4
+	   USER_MSG.MSG_TXT[]=" "
+    DEFAULT
+	   USER_MSG.MSG_TXT[]="unbekannte Meldung"
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #StateMsg
+      n_RZS_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Statusmeldung
+    CASE #QuitMsg
+      n_RZS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+    CASE #NotifyMsg
+      n_RZS_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    DEFAULT
+      n_RZS_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF
+END
+;
+;ENDFOLD (RZ Meldungen)

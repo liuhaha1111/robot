@@ -1,0 +1,60 @@
+&ACCESS RVO1
+&REL 12
+&COMMENT Pnet-Alternativen
+&PARAM EDITMASK = Makro999[0-999]
+&PARAM TPVW_VERSION = 8.3.17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\makrovorgabe.src
+&PARAM DISKPATH = Makros
+DEFFCT INT MAKRO59(ADV :IN)
+   ;FOLD Makro Anfang ;%{PSE}%MKUKATPVW
+      BOOL ADV
+      ; interface to basic routines
+      EXT  BAS (BAS_COMMAND  :IN,REAL  :IN )
+      ; interface to VW-standard routines
+      EXT VW (VW_COMMAND:IN, BOOL: IN, REAL:IN, REAL:IN, REAL:IN, REAL:IN, BOOL :IN, E6POS :IN )
+      ; interface select routine
+      EXTFCT INT  SELECT (SUBTYPE  :IN,INT  :IN,BOOL  :IN,ARI_TYP  :IN,INT  :IN,BOOL_TYP  :IN,INT  :IN,BOOL  :IN)
+      SPS_N=-1
+      ;FOLD ;%{H} %MKUKATPVW
+      IF VARSTATE ("ADV") <> #INITIALIZED THEN
+         ADV=FALSE
+      ENDIF
+      IF (NOT ADV) THEN
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- letzte Aenderung 08.08.2020 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- letzte Aenderung 08.08.2020 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD --                 Pnet-Alternativen              -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:--                 Pnet-Alternativen              --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD -- DB1 -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- DB1 --, 3: VW_COMMENT
+   ;ENDFOLD
+   ;FOLD GOTO Label 1 = F 512 ;%{E}%MKUKATPVW,%CCONTROL,%VJUMP,%P 1:GOTO Label, 2:1, 3:=, 4:F 512
+      ;FOLD  ;%{H}
+         CONTINUE
+         IF $FLAG[512] THEN
+            CONTINUE
+            GOTO Label1
+         ENDIF
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD TECH1 PN-Teilnehmer ID-Nr=225 Ankoppeln Lokales Docking Techaufruf=EIN ;%{E}%MKUKATPVW %CVW_SPS %VUSER %P 2:TECH1.PN-Teilnehmer CN=102 P1=225 P2=1 P3=1 P4=1 P5=1 P6=1 P7=1 P8=1 P9=1 P10=EIN, 3: USER
+      VW_USR_R(#USR_MAKRO,102,225,1,1,1,1,1,1,1,1,TRUE)
+   ;ENDFOLD
+   ;FOLD Label 1 ;%{E}%MKUKATPVW,%CCONTROL,%VLABEL,%P 1:Label, 2:1
+      ;FOLD  ;%{H}
+         Label1:
+      ;ENDFOLD
+   ;ENDFOLD
+   ;FOLD -- ============================================== -- ;%{E}%MKUKATPVW %CVW_COM %VCOMMENT %P 2:-- ============================================== --, 3: VW_COMMENT
+   ;ENDFOLD
+   ; FOLD ;%{H}
+   RETURN 1
+   ELSE
+   RETURN 0
+   ENDIF
+ENDFCT
+; ENDFOLD

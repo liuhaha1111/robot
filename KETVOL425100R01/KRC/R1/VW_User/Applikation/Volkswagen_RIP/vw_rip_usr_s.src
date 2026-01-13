@@ -1,0 +1,322 @@
+&ACCESS R
+&COMMENT KS26 (VW)
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/Volkswagen_RIP
+&PARAM TPUSER_VERSION = 8.3.0
+DEF VW_RIP_USR_S( )
+;
+;***************************************************
+;*Technologiepaket Ansteuerung VW Markenrip            *
+;*                                                     *
+;*Konzernstandard                                      *
+;*Bearbeiter: MBA                                      *
+;*                                                     *
+;* Aenderungsjournal: 2018.04.17 neu erstellt          *
+;*                                                     *
+;***************************************************
+;
+END
+;
+;FOLD VW_WA_INIT
+GLOBAL DEF VW_WA_INIT()
+;
+;FOLD Version Techpaket
+Tech_RIP.Name[]="KS26.02.002_20190702"
+;ENDFOLD
+;
+END
+;ENDFOLD
+
+;FOLD WASSERBESCHALTUNG
+GLOBAL DEF VW_WASSER()
+
+
+
+IF NOT B_DFW2anRIP1 THEN 
+  I_BvWaMin[1]  = I_RIP_KW_MIN[1]
+  I_BvWaMax[1]  = I_RIP_KW_MAX[1]
+  O_WaAus[1]    = O_RIP_KW_AUS[1]
+  O_WaEin[1]    = O_RIP_KW[1]
+  O_WaAusInakt  = O_RIP_KW2_AUS
+  O_WaEinInakt  = O_RIP_KW2_EIN
+ELSE
+  I_BvWaMin[1]  = I_RIP_KW_MIN_2
+  I_BvWaMax[1]  = I_RIP_KW_MAX_2
+  O_WaAus[1]    = O_RIP_KW2_AUS
+  O_WaEin[1]    = O_RIP_KW2_EIN
+  O_WaAusInakt  = O_RIP_KW_AUS[1]
+  O_WaEinInakt  = O_RIP_KW[1]
+ENDIF
+
+I_BvWaMin[2]  = I_RIP_KW_MIN[2]
+I_BvWaMax[2]  = I_RIP_KW_MAX[2]
+O_WaAus[2]    = O_RIP_KW_AUS[2]
+O_WaEin[2]    = O_RIP_KW[2]
+
+I_BvWaMin[3]  = I_RIP_KW_MIN[3]
+I_BvWaMax[3]  = I_RIP_KW_MAX[3]
+O_WaAus[3]    = O_RIP_KW_AUS[3]
+O_WaEin[3]    = O_RIP_KW[3]
+
+;FOLD Reset inaktiven Kuehlwasserstrang
+$OUT[O_WaAusInakt] = TRUE
+$OUT[O_WaEinInakt] = FALSE
+;ENDFOLD
+
+;
+;FOLD Wasserzustaende initialisieren
+FOR WaLauf=1 TO 3
+  b_Wmax[WaLauf]=$IN[I_BvWaMin[WaLauf]] AND NOT $IN[I_BvWaMax[WaLauf]];zu viel Wasser
+  b_Wmin[WaLauf]=NOT $IN[I_BvWaMin[WaLauf]] AND $IN[I_BvWaMax[WaLauf]];zu wenig Wasser
+  b_Werr[WaLauf]=NOT $IN[I_BvWaMin[WaLauf]] AND NOT $IN[I_BvWaMax[WaLauf]];Zustand unklar
+ENDFOR
+;ENDFOLD Wasserzustaende initialisieren
+;
+;FOLD Kontrolle Niederdruck RIPs initialisieren
+  b_NdIo[1]=$IN[I_RIP_KO_ND[1]] OR B_OHNE_ND[1]
+  b_NdIo[2]=($IN[I_RIP_KO_ND[2]] OR B_OHNE_ND[2] AND B_MIT_RIP[2]) OR NOT B_MIT_RIP[2]
+  b_NdIo[3]=($IN[I_RIP_KO_ND[3]] OR B_OHNE_ND[3] AND B_MIT_RIP[3]) OR NOT B_MIT_RIP[3]
+;ENDFOLD
+; 
+;FOLD Medien AUS/EIN an BMS
+IF NOT MIT_VW_WASS AND ($FLAG[F_O_WASSER] OR OHNE_VW_WAS) AND NOT B_MIT_KW_VW THEN
+  IF NOT b_NdIo[1] OR NOT b_NdIo[2] OR NOT b_NdIo[3] THEN
+    $OUT[O_R_KW_EIN]= FALSE
+  ELSE
+    $OUT[O_R_KW_EIN]= TRUE
+  ENDIF
+  IF ($OUT[O_R_PF0] AND $OUT[O_R_SAK]) THEN
+    OHNE_VW_WAS=FALSE
+  ELSE
+    OHNE_VW_WAS=TRUE
+  ENDIF
+ENDIF
+;ENDFOLD Medien AUS/EIN an BMS
+;
+   ;Wenn Anwahl mit Wasser in Makro50   TIMER_ABGE  TIMER_ABGE  T_SG_ABGEL
+IF B_MIT_KW_VW OR MIT_VW_WASS THEN
+   IF NOT MED_EXT_AUS AND NOT $OUT[O_R_KW_EIN] AND NOT WASSERSTOE AND $OUT[O_R_RK100] AND b_NdIo[1] AND b_NdIo[2] AND b_NdIo[3] THEN
+     IF NOT TIMER_ABGE AND NOT T_SG_ABGEL THEN
+       $OUT[O_R_KW_EIN]=TRUE
+     ENDIF
+   ENDIF
+   
+   ;Hilfmerker mit Wasser fuer SSR 
+   IF ($OUT[O_R_PF0] AND $OUT[O_R_SAK]) THEN
+     MIT_VW_WASS=FALSE
+   ELSE
+     MIT_VW_WASS=TRUE
+   ENDIF
+   
+   ;Meldung Medien Ein an BMS AUS bei SCHUTZGITTER Offen
+   IF (NOT $OUT[O_R_RK100] AND WASSERSTOE AND WASSER_EIN) OR NOT b_NdIo[1] OR NOT b_NdIo[2] OR NOT b_NdIo[3] THEN
+       MED_EXT_AUS=TRUE
+       IF (VW_FEH_NR==20) THEN
+         $OUT[O_R_KW_EIN]=FALSE
+       ENDIF
+   ELSE
+       MED_EXT_AUS=FALSE
+   ENDIF
+   
+   ;Hilfsmerker NICHT O_R_RK100
+   IF NOT $OUT[O_R_RK100] AND NOT WA_HIFU_REST THEN
+     WA_HIFU_REST=TRUE
+     $TIMER_STOP[T_WASSER_EIN]=TRUE
+   ENDIF
+
+   ;Einmaliger Start nach RK100
+   IF $OUT[O_R_RK100] AND WA_HIFU_REST THEN
+     $OUT[O_R_KW_EIN]=TRUE
+     ;$FLAG[815]=FALSE
+     WA_HIFU_REST=FALSE
+     WASSERSTOE=FALSE
+     ;TIMER Wasser RUECKSETZEN
+     $TIMER_STOP[T_WASSER_EIN]=TRUE
+     $TIMER[T_WASSER_EIN]=0
+     $TIMER_STOP[T_WASSER_EIN]=FALSE
+     ;TIMER Stellglieder RUECKSETZEN
+     $TIMER_STOP[T_STELLGLIE]=TRUE
+     $TIMER[T_STELLGLIE]=0
+     $TIMER_STOP[T_STELLGLIE]=FALSE
+   ENDIF
+
+   ;Rückzugzyl. aus EZ/SP1
+    IF ($OUT[O_WaEin[1]] AND NOT $OUT[O_WaAus[1]]) THEN
+      $OUT[O_RIP_RZYL_E] = FALSE
+      $OUT[O_RIP_RZYL_A] = TRUE
+    ENDIF
+    
+    ;Rückzugzyl. ein EZ/SP1
+    IF (NOT $OUT[O_WaEin[1]] AND $OUT[O_WaAus[1]]) THEN
+      $OUT[O_RIP_RZYL_E] = TRUE
+      $OUT[O_RIP_RZYL_A] = FALSE
+    ENDIF
+
+;wenn keine Stoerung
+   IF NOT WASSERSTOE THEN
+;Maximaler Fluss Fehler
+     IF b_Wmax[1] OR (b_Wmax[2] AND B_MIT_RIP[2]) OR (b_Wmax[3] AND B_MIT_RIP[3]) THEN
+        ;Auswertung Fehler maximaler Fluss in welcher RIP
+        
+       ;Stoerzeit ueberschritten > Wasser AUS
+       IF (($ROB_TIMER - RobWasser_Delay) > MaxRobWa_Delay) THEN
+         WASSERSTOE=TRUE
+         RobWasser_Delay = 0
+         IF b_Wmax[1] THEN
+           $OUT[O_WaAus[1]]=TRUE
+           $OUT[O_WaEin[1]]=FALSE
+           b_sWmax[1]=TRUE
+         ENDIF
+         IF b_Wmax[2] AND B_MIT_RIP[2] THEN
+           $OUT[O_WaAus[2]]=TRUE
+           $OUT[O_WaEin[2]]=FALSE
+           b_sWmax[2]=TRUE
+         ENDIF
+         IF b_Wmax[3] AND B_MIT_RIP[3] THEN
+           $OUT[O_WaAus[3]]=TRUE
+           $OUT[O_WaEin[3]]=FALSE
+           b_sWmax[3]=TRUE
+         ENDIF
+       ENDIF
+     ELSE
+       ;Stoertimer Reset
+       RobWasser_Delay = 0
+       RobWasser_Delay = $ROB_TIMER
+     ENDIF
+
+	;Starten der Abschaltzeit bei Grundstellung Wartung usw
+    IF $OUT[O_R_RK100] THEN
+      IF ($FLAG[F_WA_EIN_VSP] OR (NOT $OUT[O_R_PF0] AND NOT $OUT[O_R_WartB] AND $OUT[O_R_SG_gesp])) THEN
+        $TIMER_STOP[T_WASSER_EIN]=TRUE
+        $TIMER[T_WASSER_EIN]=0
+        $TIMER_STOP[T_WASSER_EIN]=FALSE
+	  ENDIF
+    ENDIF    
+    TIMER_ABGE=($TIMER[T_WASSER_EIN]>WA_AUS_NAZ)
+    IF TIMER_ABGE AND NOT $TIMER_STOP[T_WASSER_EIN] THEN
+      $TIMER_STOP[T_WASSER_EIN]=TRUE
+	ENDIF
+
+    IF $OUT[O_R_RK100]  THEN    
+      $TIMER_STOP[T_STELLGLIE]=TRUE
+      $TIMER[T_STELLGLIE]=0
+      $TIMER_STOP[T_STELLGLIE]=FALSE
+    ENDIF
+    T_SG_ABGEL=($TIMER[T_STELLGLIE]>WA_AUS_SZA)
+	IF T_SG_ABGEL AND NOT $TIMER_STOP[T_STELLGLIE] THEN
+      $TIMER_STOP[T_STELLGLIE]=TRUE
+    ENDIF
+     
+    IF $OUT[O_R_RK100] AND NOT WASSERSTOE AND NOT WASSER_EIN AND NOT $FLAG[F_KW_Wart_AUS] AND (NOT ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS]) OR (DOCK_SZ==FALSE)) THEN
+       WA_ZUSTAND=1    
+     ENDIF
+
+     IF (TIMER_ABGE OR T_SG_ABGEL) AND NOT $FLAG[F_WA_EIN_VSP] THEN
+       MED_EXT_AUS=FALSE
+       IF (VW_FEH_NR<>20) THEN
+		 $OUT[O_R_KW_EIN]=FALSE
+       ENDIF 
+     ELSE
+       MED_EXT_AUS=FALSE       
+     ENDIF
+     
+	 IF (NOT $ON_PATH AND $SS_MODE) THEN
+	   WA_AUS_SATZ=TRUE
+	   WA_HIFU_SATZ=FALSE
+	 ENDIF 
+
+	 IF (WA_AUS_SATZ) THEN 
+	   IF ($OUT[12]) THEN
+	     WA_AUS_SATZ=FALSE
+	   ENDIF
+	   
+	   IF (WA_HIFU_SATZ AND $PRO_MOVE AND $ON_PATH) THEN
+	     WA_AUS_SATZ=FALSE
+	   ENDIF
+
+	   IF ($OUT[O_R_steht] AND $ON_PATH) THEN
+	     WA_HIFU_SATZ=TRUE
+	   ENDIF
+	 ENDIF 
+     
+    IF ($OUT[O_R_RK100] AND (WA_AUS_SATZ OR $FLAG[F_KW_Wart_AUS] OR ($FLAG[F_KW_DS_Makro_AUS] AND (DOCK_SZ==TRUE)) OR $FLAG[F_KW_DS_Prog_AUS] OR WASSERSTOE OR NOT $IN[I_MEDIENEI])) THEN
+      IF ($FLAG[F_KW_DS_Makro_AUS] OR $FLAG[F_KW_DS_Prog_AUS]) AND NOT WA_AUS_SATZ AND NOT $FLAG[F_KW_Wart_AUS] AND NOT WASSERSTOE AND $IN[I_MEDIENEI] THEN
+        WA_ZUSTAND=3 ;Fuer Docking nur RIP1 abschalten
+      ELSE
+       WA_ZUSTAND=2
+     ENDIF
+    ENDIF
+
+    ;NOTFUNKTION KUEHLWASSER -----------------------------------------------------
+    IF B_MIT_KW_VW AND $FLAG[F_O_WASSER] THEN
+	   WA_ZUSTAND=1
+	 ENDIF
+	 
+    ;NOTFUNKTION KUEHLWASSER -----------------------------------------------------
+     SWITCH WA_ZUSTAND
+     CASE 1
+       ;Wasser EIN
+        $OUT[O_WaAus[1]]=FALSE
+        $OUT[O_WaEin[1]]=TRUE
+        b_sWmax[1]=FALSE
+        IF B_MIT_RIP[2] THEN
+          $OUT[O_WaAus[2]]=FALSE
+          $OUT[O_WaEin[2]]=TRUE
+          b_sWmax[2]=FALSE
+        ENDIF
+        IF B_MIT_RIP[3] THEN
+          $OUT[O_WaAus[3]]=FALSE
+          $OUT[O_WaEin[3]]=TRUE
+          b_sWmax[3]=FALSE
+        ENDIF
+        
+        $OUT[O_RIP_RZYL_E]    = FALSE
+        $OUT[O_RIP_RZYL_A]    = TRUE
+        
+       WASSER_EIN=TRUE
+     CASE 2
+       ;Wasser AUS
+        $OUT[O_WaAus[1]]=TRUE
+        $OUT[O_WaEin[1]]=FALSE
+        IF B_MIT_RIP[2] THEN
+          $OUT[O_WaAus[2]]=TRUE
+          $OUT[O_WaEin[2]]=FALSE
+        ENDIF
+        IF B_MIT_RIP[3] THEN
+          $OUT[O_WaAus[3]]=TRUE
+          $OUT[O_WaEin[3]]=FALSE
+        ENDIF
+        
+        $OUT[O_RIP_RZYL_E] = TRUE
+        $OUT[O_RIP_RZYL_A] = FALSE
+          
+       WASSER_EIN=FALSE
+      CASE 3
+        ;Wasser AUS fuer Docking
+        $OUT[O_WaAus[1]]=TRUE
+        $OUT[O_WaEin[1]]=FALSE
+        WASSER_EIN=FALSE
+        IF $OUT[O_R_RK100] AND NOT WASSERSTOE AND NOT $FLAG[F_KW_Wart_AUS] THEN
+          IF B_MIT_RIP[2] THEN
+            $OUT[O_WaAus[2]]=FALSE
+            $OUT[O_WaEin[2]]=TRUE
+            b_sWmax[2]=FALSE
+          ENDIF
+          IF B_MIT_RIP[3] THEN
+            $OUT[O_WaAus[3]]=FALSE
+            $OUT[O_WaEin[3]]=TRUE
+            b_sWmax[3]=FALSE
+          ENDIF
+        ENDIF
+        
+        $OUT[O_RIP_RZYL_E] = TRUE
+        $OUT[O_RIP_RZYL_A] = FALSE
+        
+     DEFAULT
+     ENDSWITCH
+   ENDIF
+ENDIF
+END
+;ENDFOLD (WASSERBESCHALTUNG)
+;
+;MED_EXT_AUS-----------------------------------------------------------

@@ -1,0 +1,713 @@
+&ACCESS R
+&REL 220
+&COMMENT KS26 (VW)
+&PARAM TPUSER_VERSION = 8.3.0
+&PARAM DISKPATH = VW_User/Applikation/Tech_Base
+DEF Tech_Base_S( )
+;
+;***************************************************
+;*Technologiepaket Ansteuerung VW Tech_Base_S           *
+;*                                                     *
+;*Konzernstandard                                      *
+;*Bearbeiter: MBA                                      *
+;*                                                     *
+;* Aenderungsjournal: 2023.12.05 neu erstellt          *
+;*                                                     *
+;***************************************************
+;
+END
+;
+;FOLD  TechBase_Program
+GLOBAL DEF TechBase_Interface(USER_CMD:IN,CMD_SEL:IN,PAR1:IN,PAR2:IN,PAR3:IN,PAR4:IN,PAR5:IN,PAR6:IN,PAR7:IN,PAR8:IN,PAR9:IN)
+DECL VW_USER_CMD USER_CMD
+INT  CMD_SEL,PAR1,PAR2,PAR3,PAR4,PAR5,PAR6,PAR7,PAR8,PAR9
+INT I
+SWITCH USER_CMD
+;***************************************************
+CASE #USR_INIT
+;FOLD Init
+FOR i=1 TO 100
+ n_TechBase_Handle[i]=-1
+ENDFOR
+  Techbase_Value=0
+ BH_Techbase_Value=0
+;ENDFOLD (Init)
+;***************************************************
+
+CASE #USR_ADV
+;FOLD Advance
+
+if ResetScanGun_Base then
+Rseset_ScanGunBase(1,255)
+ TechBase_Msg(35,#NotifyMsg)   ;Scangun_base Value Initialized Successfully
+ResetScanGun_Base=False
+ENDIF 
+
+IF (PAR4>0) AND (PAR5>0) AND (PAR4<PAR5) THEN
+   Techbase_Value=Get_TechbaseNbFromInputs(PAR4,PAR5)
+ELSE
+TechBase_Msg(1,#QuitMsg) ;TechBase-single Robot user input error       
+endif
+if (TechBase_Value==0) then 
+    Techbase_Type_ER=True
+endif
+if not Techbase_Type_ER then
+  SWITCH PAR8
+      CASE 1
+        CONTINUE
+        Techbase_point=BASE_DATA[VW_MPARA_ACT.BASE_NO]
+      CASE 11
+        CONTINUE
+        WHILE ($CYCFLAG[PAR6]==TRUE)
+        ;TechBase_Msg(7,#QuitMsg) ;Suchlauf Nahsensor defekt
+        ENDWHILE
+      DEFAULT
+      TechBase_Msg(20,#QuitMsg) ;P1 Falschr Wert
+    ENDSWITCH ;von PAR8
+endif
+;ENDFOLD (Advance)
+;***************************************************
+
+CASE #USR_TRIG
+;FOLD Trig
+;ENDFOLD (Trig)
+;***************************************************
+
+CASE #USR_MAIN
+;FOLD MAIN
+switch par8
+case 1
+Tech_ScanGunBase(1,255)
+TechBase_Msg(32,#NotifyMsg)   ;Tech Fix Scangun_base Successfully
+case 11
+SWITCH PAR1
+
+CASE 10   ;316-6
+       SWITCH PAR2
+       case 1  ;BH1
+         CONTINUE
+         if (par3==100) then    ;not layer   SCANTA_Speicher 1-100
+            IF (TechBase_Value<1) OR (TechBase_Value>100) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=TechBase_Value
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTA_Speicher 1-50
+            IF (TechBase_Value<1) OR (TechBase_Value>50) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=TechBase_Value
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTA_Speicher 51-100
+            IF (TechBase_Value<1) OR (TechBase_Value>50) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=TechBase_Value+50
+            endif 
+          endif      
+       case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTA_Speicher 101-255
+            IF (TechBase_Value<1) OR (TechBase_Value>100) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=TechBase_Value+100
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTA_Speicher 101-151
+            IF (TechBase_Value<1) OR (TechBase_Value>50) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=TechBase_Value+100
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTA_Speicher 151-255
+            IF (TechBase_Value<1) OR (TechBase_Value>50) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=TechBase_Value+150
+            endif       
+          endif
+       ENDSWITCH;von PAR2
+  
+
+case 20;316-7
+       SWITCH PAR2
+       case 1  ;BH1
+        CONTINUE
+         if (par3==100) then    ;not layer   SCANTB_Speicher 1-100
+            IF (TechBase_Value<100) OR (TechBase_Value>200) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=TechBase_Value-100
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTB_Speicher 1-50
+            IF (TechBase_Value<100) OR (TechBase_Value>150) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=TechBase_Value-100
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTB_Speicher 51-100
+            IF (TechBase_Value<100) OR (TechBase_Value>150) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=(TechBase_Value+50)-100
+            endif 
+          endif      
+        case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTB_Speicher 101-255
+            IF (TechBase_Value<100) OR (TechBase_Value>200) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=(TechBase_Value+100)-100
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTB_Speicher 101-151
+            IF (TechBase_Value<100) OR (TechBase_Value>150) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=(TechBase_Value+100)-100
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTB_Speicher 151-255
+            IF (TechBase_Value<100) OR (TechBase_Value>150) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=(TechBase_Value+150)-100
+            endif       
+          endif
+       ENDSWITCH;von PAR2
+ 
+
+
+CASE 30;316-2
+       SWITCH PAR2
+       case 1  ;BH1
+          CONTINUE
+         if (par3==100) then    ;not layer   SCANTC_Speicher 1-100
+            IF (TechBase_Value<200) OR (TechBase_Value>300) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=TechBase_Value-200
+            endif   
+          endif 
+         if (par3==101) then    ;hight layer SCANTC_Speicher 1-50
+            IF (TechBase_Value<200) OR (TechBase_Value>250) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=TechBase_Value-200
+            endif
+          endif 
+         if (par3==102) then    ;low layer   SCANTC_Speicher 51-100
+            IF (TechBase_Value<200) OR (TechBase_Value>250) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=(TechBase_Value+50)-200
+            endif 
+          endif      
+       case 2   ;BH2
+         CONTINUE
+         if (par3==100) then     ;not layer   SCANTC_Speicher 101-255
+            IF (TechBase_Value<200) OR (TechBase_Value>300) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+                BH_TechBase_Value=(TechBase_Value+100)-200
+            endif       
+          endif 
+         if (par3==101) then     ;hight layer SCANTC_Speicher 101-151
+            IF (TechBase_Value<200) OR (TechBase_Value>250) THEN
+                TechBase_Type_ER=True
+               else 
+             CONTINUE 
+             BH_TechBase_Value=(TechBase_Value+100)-200
+            endif             
+          endif 
+         if (par3==102) then     ;low layer   SCANTC_Speicher 151-255
+            IF (TechBase_Value<200) OR (TechBase_Value>250) THEN
+              TechBase_Type_ER=True
+            else 
+              CONTINUE
+              BH_TechBase_Value=(TechBase_Value+150)-200
+            endif       
+          endif
+       ENDSWITCH;von PAR2
+       ENDSWITCH ;von PAR1
+        ENDSWITCH;von PAR8
+
+if not TechBase_Type_ER and (PAR8==11) and  (PAR1==10) then  ;316-6,Learn single base
+  CONTINUE
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+
+  ;Base learn setzen
+if (par7==1) and (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      IF MIT_Learnbase THEN
+       CONTINUE
+       SCANTA_Speicher[BH_Techbase_Value]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCANTA_Speicher[BH_Techbase_Value]
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCANTA_Speicher[BH_Techbase_Value]=$BASE
+       ENDIF
+   IF  not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+IF (SCANTA_Speicher[BH_Techbase_Value].x==0.0) or (SCANTA_Speicher[BH_Techbase_Value].y==0.0) or (SCANTA_Speicher[BH_Techbase_Value].Z==0.0) then
+    TechBase_Msg(23,#QuitMsg,1) ;TechBase-base 316-6 error
+else
+TechBase_Msg(29,#NotifyMsg,1) ;TechBase-base 316-6  Successfully
+endif
+endif 
+endif
+
+
+  if not TechBase_Type_ER and (PAR8==11) and  (PAR1==20) then  ;316-7,Learn single base
+  CONTINUE
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+
+  ;Base learn setzen
+if (par7==1) and (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      IF MIT_Learnbase THEN
+       CONTINUE
+       SCANTB_Speicher[BH_Techbase_Value]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCANTB_Speicher[BH_Techbase_Value]
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCANTB_Speicher[BH_Techbase_Value]=$BASE
+       ENDIF
+   IF  not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+IF ( SCANTB_Speicher[BH_Techbase_Value].x==0.0) or (SCANTB_Speicher[BH_Techbase_Value].y==0.0) or (SCANTB_Speicher[BH_Techbase_Value].Z==0.0) then
+    TechBase_Msg(24,#QuitMsg,2) ;TechBase-base 316-7 error
+else
+TechBase_Msg(30,#NotifyMsg,2) ;TechBase-base 316-7 Successfully
+endif
+endif
+endif 
+
+
+  if not TechBase_Type_ER and (PAR8==11) and  (PAR1==30) then  ;316-2,Learn single base
+  CONTINUE
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+
+  ;Base learn setzen
+if (par7==1) and (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      IF MIT_Learnbase THEN
+       CONTINUE
+       SCANTC_Speicher[BH_Techbase_Value]=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCANTC_Speicher[BH_Techbase_Value]
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCANTC_Speicher[BH_Techbase_Value]=$BASE
+       ENDIF
+   IF not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+IF (SCANTC_Speicher[BH_Techbase_Value].x==0.0) or (SCANTC_Speicher[BH_Techbase_Value].y==0.0) or (SCANTC_Speicher[BH_Techbase_Value].Z==0.0) then
+    TechBase_Msg(25,#QuitMsg,3) ;TechBase-base 316-2 error
+else
+TechBase_Msg(31,#NotifyMsg,3) ;TechBase-base 316-2  Successfully
+endif
+endif 
+endif
+
+if not TechBase_Type_ER and (PAR8==11)  and (par7==2)  then  ;Learn all base
+IF (PAR3==100) THEN  ;NOT LAYER
+IF  (BH_TechBase_Value>100) THEN   ;BH2
+Tech_SpeicherBase(101,255,PAR1)
+ELSE    ;BH1
+Tech_SpeicherBase(1,100,PAR1)
+ENDIF
+ENDIF
+
+IF (PAR3==101) THEN  ;HIGHT LAYER
+IF  (BH_TechBase_Value>100) THEN   ;BH2
+Tech_SpeicherBase(101,150,PAR1)
+ELSE    ;BH1
+Tech_SpeicherBase(1,50,PAR1)
+ENDIF
+ENDIF
+
+IF (PAR3==102) THEN  ;LOW LAYER
+IF  (BH_TechBase_Value>100) THEN   ;BH2
+Tech_SpeicherBase(151,255,PAR1)
+ELSE    ;BH1
+Tech_SpeicherBase(51,100,PAR1)
+ENDIF
+ENDIF
+endif
+
+IF  TechBase_Type_ER THEN
+    TechBase_Type_ER=FALSE
+ TechBase_Msg(28,#QuitMsg) ;TechBase-single type error
+ENDIF
+
+;ENDFOLD (MAIN)
+
+CASE #USR_MAKRO
+;FOLD Makro
+
+;ENDFOLD (Makro)
+
+ENDSWITCH
+END
+;ENDFOLD ( TechBase_Program)
+
+
+
+; get number from inputs
+;----------------------------------------
+DEFFCT INT Get_TechBaseNbFromInputs(StartIndex : IN, EndIndex : IN)
+   ;FOLD Get_TechBaseNbFromInputs
+      INT StartIndex, EndIndex
+      INT Result, Counter
+      INT IndexPosition
+      Result=0
+      IndexPosition =0
+      FOR Counter = StartIndex TO EndIndex
+         CONTINUE
+         IF TechBase_ReadIn(Counter,FALSE) THEN
+            Result = Result + TechBase_EXPONENT(2,IndexPosition)
+         ENDIF
+         IndexPosition = IndexPosition + 1
+      ENDFOR
+      RETURN (Result)
+   ;ENDFOLD
+ENDFCT
+
+; Read from Input
+;----------------------------------------
+ DEFFCT BOOL TechBase_ReadIn(InNumber:IN, ErrorDefault:IN)
+   ;FOLD TechBase_ReadIn
+      INT InNumber
+      BOOL ErrorDefault
+      IF (InNumber <> 0) THEN
+         CONTINUE
+         Return $IN[InNumber]
+      ELSE
+        TechBase_Msg(26,#QuitMsg) ;TechBase-single set error    
+         RETURN ErrorDefault
+      ENDIF
+   ;ENDFOLD
+ENDFCT 
+
+; Exponent helper
+;----------------------------------------
+DEFFCT INT TechBase_EXPONENT (X:IN, Y:IN)
+   ;FOLD TechBase_EXPONENT
+      INT X,Y
+      INT iResult
+      INT iCounter
+      SWITCH Y
+         CASE 0
+            iResult=1
+         CASE 1
+            iResult=X
+         DEFAULT
+            iResult=X
+            FOR iCounter = 1 TO (Y-1)
+               iResult = iResult * X
+            ENDFOR
+      ENDSWITCH
+      RETURN iResult
+   ;ENDFOLD
+ENDFCT
+;
+
+;FOLD TechBase Message
+DEF TechBase_Msg(Msg_nr :IN, MsgTyp :IN,SZNr :IN)
+INT Msg_nr, OFFSET,SZNr,ABC_Speicher
+DECL TechBase_MsgType MsgTyp
+DECL KrlMsg_T USER_Msg
+DECL KrlMsgPar_T Par[3]
+DECL KrlMsgOpt_T Opt 
+;
+USER_MSG = { Modul[] "TechBase_Msg", Nr -1, Msg_txt[] " "}
+Par[1] = { Par_type #Value, Par_txt[] " " }
+Opt = { VL_Stop false, Clear_P_Reset True, Log_To_DB TRUE }
+;
+;
+ ABC_Speicher=BH_Techbase_Value
+IF Varstate("SZNr")==#initialized THEN
+  SWITCH SZNr
+    CASE 1
+      Par[1] = { Par_type #Value }
+      Par[1].par_int= ABC_Speicher
+    CASE 2
+      Par[1] = { Par_type #Value}
+      Par[1].par_int= ABC_Speicher
+    CASE 3
+      Par[1] = { Par_type #Value }
+      Par[1].par_int= ABC_Speicher
+    DEFAULT
+      Par[1] = { Par_type #Value, Par_txt[] " " }
+  ENDSWITCH
+ELSE
+  Par[1] = { Par_type #Value, Par_txt[] " " }
+ENDIF
+;
+OFFSET=0
+IF ((n_TechBase_Handle[msg_nr]<0) OR (MsgTyp==#NotifyMsg) OR (MsgTyp==#QuitMsg)) THEN
+  USER_MSG.Nr = Msg_nr
+  SWITCH  Msg_nr
+    CASE 1
+      USER_MSG.MSG_TXT[]="TechBase-single Robot user input error"
+    CASE 2
+      USER_MSG.MSG_TXT[]="TOOL_CORR fehlt"
+    CASE 3
+      USER_MSG.MSG_TXT[]="BASE_CORR fehlt"
+    CASE 4
+      USER_MSG.MSG_TXT[]="P2 Werte nur 1 - 13 zulaessig"
+    CASE 5
+      USER_MSG.MSG_TXT[]="Sensor 1 defekt/Sensor 1 pruefen"
+    CASE 6
+      USER_MSG.MSG_TXT[]="Sensor 2 defekt/Sensor 2 pruefen"
+    CASE 7
+      USER_MSG.MSG_TXT[]="Suchlauf Nahsensor defekt"
+    CASE 8
+      USER_MSG.MSG_TXT[]="Teilespeicher-Nr. von SPS fehlt"
+    CASE 9
+      USER_MSG.MSG_TXT[]="SPS Speicherposition ungueltig"
+    CASE 10
+      USER_MSG.MSG_TXT[]="Koordinaten fuer Speicherposition ungueltig"
+    CASE 11
+      USER_MSG.MSG_TXT[]="Base Type ungueltig"
+    CASE 12
+      USER_MSG.MSG_TXT[]=" "
+    CASE 13
+      USER_MSG.MSG_TXT[]="Punkt schon gepraegt"
+    CASE 14
+      USER_MSG.MSG_TXT[]="Spreizmagnete Stromwert zu hoch, Soll 0-80"
+    CASE 15
+      USER_MSG.MSG_TXT[]="Base-Nr falsch"
+    CASE 16
+      USER_MSG.MSG_TXT[]=" "
+    CASE 17
+      USER_MSG.MSG_TXT[]=" "
+    CASE 18
+      USER_MSG.MSG_TXT[]="Suchl. Neue Base wurde gesetzt"
+    CASE 19
+      USER_MSG.MSG_TXT[]="falsche Gruppennummer "
+    CASE 20
+      USER_MSG.MSG_TXT[]="P1 Falscher Wert"
+    CASE 21
+      USER_MSG.MSG_TXT[]="P2 Falscher Wert"
+    CASE 22
+      USER_MSG.MSG_TXT[]="P3 Falscher Wert"  
+    CASE 23
+      USER_MSG.MSG_TXT[]="316-6 SCANTA_Speicher[%1] Techerror" 
+    CASE 24
+      USER_MSG.MSG_TXT[]="316-7 SCANTB_Speicher[%1] Techerror" 
+    CASE 25
+      USER_MSG.MSG_TXT[]="316-2 SCANTC_Speicher[%1] Techerror" 
+    CASE 26
+      USER_MSG.MSG_TXT[]="TechBase-single set error" 
+    CASE 27
+      USER_MSG.MSG_TXT[]="Signal-Wertebereich ueberschritten"  
+    CASE 28
+      USER_MSG.MSG_TXT[]="TechBase-single type error" 
+    CASE 29
+      USER_MSG.MSG_TXT[]="316-6 SCANTA_Speicher[%1] TechSuccessfully" 
+    CASE 30
+      USER_MSG.MSG_TXT[]="316-7 SCANTB_Speicher[%1] TechSuccessfully" 
+    CASE 31
+      USER_MSG.MSG_TXT[]="316-2 SCANTC_Speicher[%1] TechSuccessfully"
+    CASE 32
+      USER_MSG.MSG_TXT[]="Tech Fix Scangun_base Successfully"  
+    CASE 33
+      USER_MSG.MSG_TXT[]="TechBase-base all error" 
+    CASE 34
+      USER_MSG.MSG_TXT[]="TechBase-base all Successfully" 
+    CASE 35
+      USER_MSG.MSG_TXT[]="Scangun_base Value Initialized Successfully"
+    DEFAULT
+      USER_MSG.MSG_TXT[]=" "
+  ENDSWITCH
+  SWITCH MsgTyp
+    CASE #QuitMsg
+      n_TechBase_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE ( Exists_KrlMsg(n_TechBase_Handle[msg_nr]) )  ;Warten bis der Anwender quittiert
+        WAIT Sec 0.1
+      ENDWHILE
+    CASE #NotifyMsg
+      n_TechBase_Handle[msg_nr] = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+    CASE #StateMsg  
+      n_TechBase_Handle[msg_nr] = Set_KrlMsg (#State, USER_MSG, Par[], Opt) ;Ausgabe Zustandsmeldung
+    DEFAULT
+      n_TechBase_Handle[msg_nr] = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+  ENDSWITCH
+ENDIF  
+END
+;ENDFOLD
+
+
+;set all fix base
+def Tech_ScanGunBase(StartIndex : IN, EndIndex : IN)
+   ;FOLD Tech_ScanGunBase
+      INT StartIndex, EndIndex
+      INT  Counter
+      DECL  FRAME Scangun_StartPoint
+      Scangun_StartPoint=Techbase_point
+      FOR Counter = StartIndex TO EndIndex
+      CONTINUE     
+      SCANTA_Speicher[Counter]=Scangun_StartPoint
+      CONTINUE
+      SCANTB_Speicher[Counter]=Scangun_StartPoint
+      CONTINUE
+      SCANTC_Speicher[Counter]=Scangun_StartPoint
+      ENDFOR
+      END
+   ;ENDFOLD
+
+;Tech all base
+def Tech_SpeicherBase(StartIndex : IN, EndIndex : IN,TECH_TYPE : IN)
+   ;FOLD Tech_SpeicherBase
+      INT StartIndex, EndIndex,TECH_TYPE
+      INT  Counter
+
+SWITCH TECH_TYPE
+CASE 10  ;316-6
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+  ;Base learn setzen
+  IF (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      IF MIT_Learnbase THEN
+       CONTINUE  
+       SCAN_Speicher=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCAN_Speicher
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCAN_Speicher=$BASE
+endif
+endif
+
+      FOR Counter = StartIndex TO EndIndex
+scanta_speicher[counter]=scan_speicher
+ IF (SCANTA_Speicher[Counter].x==0.0) or (SCANTA_Speicher[Counter].y==0.0) or (SCANTA_Speicher[Counter].Z==0.0) then
+     Techbase_AllEr=TRUE
+ ENDIF
+      ENDFOR
+   IF not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+
+CASE 20  ;316-7
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+  ;Base learn setzen
+  IF (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+       CONTINUE  
+      IF MIT_Learnbase THEN
+       SCAN_Speicher=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCAN_Speicher
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCAN_Speicher=$BASE
+endif
+endif
+      FOR Counter = StartIndex TO EndIndex
+scantb_speicher[counter]=scan_speicher
+ IF (SCANTB_Speicher[Counter].x==0.0) or (SCANTB_Speicher[Counter].y==0.0) or (SCANTB_Speicher[Counter].Z==0.0) then
+  Techbase_AllEr=TRUE
+ ENDIF
+      ENDFOR
+   IF not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+
+CASE 30  ;316-2
+  WHILE (VW_MPARA_ACT.BASE_NO<1)
+  TechBase_Msg(15,#QuitMsg) ; Base-Nr falsch
+  ENDWHILE
+  ;Base learn setzen
+   IF (BASE_TYPE[VW_MPARA_ACT.BASE_NO]==#BASE) THEN
+      IF MIT_Learnbase THEN
+       CONTINUE  
+       SCAN_Speicher=BASE_DATA[VW_MPARA_ACT.BASE_NO]:$pos_act
+       $BASE=SCAN_Speicher
+       ELSE
+       CONTINUE
+       $BASE=$pos_act
+       SCAN_Speicher=$BASE
+endif
+endif
+      FOR Counter = StartIndex TO EndIndex
+scantc_speicher[counter]=scan_speicher
+ IF (SCANTC_Speicher[Counter].x==0.0) or (SCANTC_Speicher[Counter].y==0.0) or (SCANTC_Speicher[Counter].Z==0.0) then
+ Techbase_AllEr=TRUE
+ ENDIF
+ ENDFOR
+   IF not $t1 THEN
+      TechBase_Msg(18,#NotifyMsg)   ;Neue Base wurde gesetzt
+      HALT
+    ENDIF
+     
+endswitch ;TECH_TYPE
+IF Techbase_AllEr then
+Techbase_AllEr=false
+TechBase_Msg(33,#QuitMsg) ;TechBase-base all error
+else
+TechBase_Msg(34,#NotifyMsg) ;TechBase-base all Successfully
+endif
+END
+;ENDFOLD
+
+; Reset ScanGun base 
+;----------------------------------------
+def Rseset_ScanGunBase(StartIndex : IN, EndIndex : IN)
+   ;FOLD Rseset_ScanGunBase
+      INT StartIndex, EndIndex
+      INT  Counter
+      DECL  FRAME Scangun_StartPoint
+      Scangun_StartPoint=Scangun_Resetpoint
+      FOR Counter = StartIndex TO EndIndex
+      CONTINUE     
+      SCANTA_Speicher[Counter]=Scangun_StartPoint
+      CONTINUE
+      SCANTB_Speicher[Counter]=Scangun_StartPoint
+      CONTINUE
+      SCANTC_Speicher[Counter]=Scangun_StartPoint
+      ENDFOR
+      END
+   ;ENDFOLD
+
+;MED_EXT_AUS-----------------------------------------------------------

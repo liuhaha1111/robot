@@ -1,0 +1,2962 @@
+&ACCESS  RV
+&COMMENT KS_26.0
+&PARAM DISKPATH = VW_User/Applikation/LM_Vision/XML
+&PARAM EDITMASK = vw_xml_usr
+&PARAM TPVW_VERSION = 8.3.0
+&REL 181
+DEF vw_xml_usr( )
+;
+;*************************************************************
+;* Kamera Systemschnittstelle XML                            *
+;* Version 2.0                                                *
+;* Bearbeitet am:                                            *
+;* 01.11.2016 NI neu erstellt                                *
+;* 02.12.2016 NI Clear Rx buff before send data              *
+;* 24.05.2017 FH Konfigurierbare User-Flags                  *
+;* 31.05.2017 FH GIK teilweise in #USR_ADV versch.           *
+;* 31.05.2017 FH GIK Makro=0 ignore, kein Fehler             *
+;* 24.04.2018 MA CGX in VIS; Cognex in VISION                *
+;* KS26.01.001_20190920 CA Bugfixes: F951, Tel_ID            *
+;* KS26.01.001_20190920 CA 32 Grenzwertarrays                *
+;* KS26.01.002_20190923 CA realign min/max-chk auch relativ  *
+;*************************************************************
+;
+END
+;
+; EKI-Schnittstelle KUKA_VIS
+; PAR1 = Job Nummer + Kamerasystem - Nr
+; PAR2 = Mod_Id (Kalibrier, referezieren, validieren usw.)
+; PAR3 = Base / TOOL Nummer (1...32)
+; PAR4 = Nummer des Korrekturpruef - Arrays
+; PAR5 = (nur bei Realign), Grenzwert Array Nummer
+; PAR6 = reserviert
+; PAR7 = reserviert
+; PAR8 = reserviert
+; PAR9 = reserviert
+
+GLOBAL DEF VIS_Intrface(USER_CMD :IN, CMD_SEL :IN, PAR1 :IN, PAR2 :IN, PAR3 :IN, PAR4 :IN, PAR5 :IN, PAR6 :IN, PAR7 :IN, PAR8 :IN, PAR9 :IN)
+  DECL VW_USER_CMD USER_CMD
+  INT CMD_SEL, PAR1, PAR2, PAR3, PAR4, PAR5, PAR6, PAR7, PAR8, PAR9
+
+  DECL EKI_STATUS RET
+  INT i_ret, i , init_PAR1, taste, status_id
+  BOOL OldState_EKI_MES_NE
+  BOOL OldState_EKI_MES_IO
+
+  taste = TASTE_0 ; default no Key
+
+  SWITCH USER_CMD
+    
+    CASE #USR_INIT
+      init_PAR1 = 1
+      FOR i = 1 TO 5
+        ;B_EKI_INITSY[i] = TRUE
+        OldState_EKI_MES_IO = $FLAG[F_EKI_MES_IO]
+        OldState_EKI_MES_NE = $FLAG[F_EKI_MES_NE]
+        i_ret = set_system_vars(init_PAR1, 0, 31, 0)
+        EKI_VARS[cam_sys_nr].i_EKI_Timer = EKI_TimerClc[cam_sys_nr] ;normal Timeout
+        ;i_ret = ping_open_prt()
+        ;init_PAR1 = init_PAR1 + 100
+      ENDFOR
+       ;IF (VARSTATE("XML_KUKA_VISION_[cam_sys_nr]")==#INITIALIZED) THEN
+        ;RET = EKI_Clear("XML_KUKA_VISION_[cam_sys_nr]")
+       ;ENDIF
+      cam_sys_nr = 0
+    CASE #USR_MAIN
+      ; check correct JOB_ID und Vorbelegen der XML - Strings
+      OldState_EKI_MES_IO = $FLAG[F_EKI_MES_IO]
+      OldState_EKI_MES_NE = $FLAG[F_EKI_MES_NE]
+      i_ret = set_system_vars(PAR1, PAR2, PAR3, PAR4)
+      IF (i_ret == -1) THEN
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr) ; falscher Uebergabeparameter PAR1
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive FLAG
+        RETURN
+      ENDIF
+      SetzeFlags(#EKI_RANGE, FALSE, cam_sys_nr)
+      ;
+      ;Initialize sample data
+      EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME
+      
+      SWITCH EKI_VARS[cam_sys_nr].PAR2
+        CASE EKI_LIFE_BIT, EKI_CALIBRAT, EKI_CALI_END, EKI_VALIDAT, EKI_VALI_END, EKI_VERIFIFY, EKI_VERI_END, EKI_REFERECE, EKI_REFE_END, EKI_PRODUCT, EKI_PROD_END, GIK_MESS_KMS , GIK_GET_POS, EKI_MESS_PKT, EKI_LIGHT_ON, EKI_LIGHT_OF
+          INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr]
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr) ; XML Empfang - Flag reset
+          i_ret = VIS_Send_XML(PAR1, PAR2)
+          IF (i_ret == 1) THEN ; Ausstieg bei EKI_Life_Bit und EKI_Cancel 
+            RETURN 
+          ENDIF
+          IF (i_ret == -1) THEN
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            RETURN
+          ENDIF
+          IF ((EKI_VARS[cam_sys_nr].PAR2 == EKI_SEND_DAT) OR (EKI_VARS[cam_sys_nr].PAR2 == EKI_GET_IRQ)) THEN
+            IF (B_IRQ_ENABLE[cam_sys_nr] == TRUE) THEN
+            ENDIF
+            RETURN ; nur Daten, PAR2 = EKI_SEND_DAT
+          ENDIF
+          i_ret = VIS_Recv_XML(PAR2)
+          IF (i_ret <= -1) THEN
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            RETURN
+          ENDIF 
+          status_id = eki_cmd_chck(PAR1, EKI_VARS[cam_sys_nr].PAR2, PAR3, PAR4)
+          
+          IF (status_id == STAT_RET_REA) THEN ; Realign Request
+            realign_exe(PAR1, EKI_VARS[cam_sys_nr].PAR2, PAR3, PAR4, PAR5)
+          ENDIF ; Realign
+          
+        CASE EKI_GET_IRQ, EKI_SEND_DAT, GIK_STRT_KMS, GIK_STRT_BTM ; Multi Datenempfang mit / ohne Interrupt
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr) ; XML Empfang - Flag reset
+          SWITCH PAR2
+            CASE EKI_GET_IRQ
+              EKI_VARS[cam_sys_nr].PAR2 = EKI_PRODUCT ; Production mode with IRQ
+              IF (B_IRQ_ENABLE[cam_sys_nr] == TRUE) THEN
+                ;  GLOBAL INTERRUPT DECL EKI_RCV_IRQ[cam_sys_nr] WHEN $FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE DO eki_recv_irq(cam_sys_nr)
+                GLOBAL INTERRUPT DECL EKI_RCV_IRQ[cam_sys_nr] WHEN $FLAG[F_EKI_Dat_OK[cam_sys_nr]] == TRUE DO eki_recv_irq(cam_sys_nr)
+                INTERRUPT ON EKI_RCV_IRQ[cam_sys_nr]
+              ELSE
+                INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr]
+                SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+                SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+                taste = VIS_MLD(93, #QuitMsg, 0) ; Fehler, keine Interruptfreigabe
+                RETURN
+              ENDIF
+              
+            CASE EKI_SEND_DAT
+              EKI_VARS[cam_sys_nr].PAR2 = EKI_PRODUCT ; Production mode without IRQ
+              
+            CASE GIK_STRT_KMS
+              EKI_VARS[cam_sys_nr].PAR2 = GIK_MESS_KMS
+              
+            CASE GIK_STRT_BTM
+              EKI_VARS[cam_sys_nr].PAR2 = GIK_MESS_BTM
+              
+          ENDSWITCH
+          
+          i_ret = VIS_Send_XML(PAR1, EKI_VARS[cam_sys_nr].PAR2)
+          IF (i_ret == -1) THEN
+            INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr]
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            RETURN
+          ENDIF
+          
+        CASE EKI_KAL_SEQ, GIK_GET_PART, GIK_BT_ABLEG, GET_REF_POS
+          status_id = eki_cmd_chck(PAR1, EKI_VARS[cam_sys_nr].PAR2, PAR3, PAR4)
+          
+        CASE EKI_CANCEL
+          INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr]
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr) ; XML Empfang - Flag reset
+          i_ret = VIS_Send_XML(PAR1, PAR2)
+          IF (i_ret == -1) THEN
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          ELSE
+            ; check Cancel - Command respose
+            i_ret = VIS_Recv_XML(PAR2) 
+          ENDIF 
+          ; Close all Ports
+          RET = EKI_Open(EKI_VARS[cam_sys_nr].XML_ch1_String[])
+          IF (RET.connected == TRUE) THEN
+            ;          IF (($Flag[I_EKI_Sp_Act[cam_sys_nr]] == TRUE) OR ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE )) THEN
+            ; close Send ports
+            RET = EKI_Close(EKI_VARS[cam_sys_nr].XML_ch1_String[])
+            RET = EKI_Clear(EKI_VARS[cam_sys_nr].XML_ch1_String[])
+          ENDIF
+          
+          RET = EKI_Open(EKI_VARS[cam_sys_nr].XML_ch2_String[])
+          IF (RET.connected == TRUE) THEN
+            ;          IF ($Flag[I_EKI_Rp_Act[cam_sys_nr]] == TRUE) THEN
+            ; close receive port
+            RET = EKI_Close(EKI_VARS[cam_sys_nr].XML_ch2_String[])
+            RET = EKI_Clear(EKI_VARS[cam_sys_nr].XML_ch2_String[])
+          ENDIF 
+          
+          send_Tel_ID[cam_sys_nr] = 1
+          EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID = send_Tel_ID[cam_sys_nr] ; Tel_ID intitialisieren
+          
+        CASE GIK_MESS_BTM
+          halt
+          init_GIK_var()
+          GIK_POSDAT[cam_sys_nr].GRP_Winkel = 0.0 ; X = Greifer Anstellwinkel, wenn vorhanden
+          GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr = 1.0 ; Y = Greifposition am Bauteil, wenn mehrere Moeglichkeiten
+          GIK_POSDAT[cam_sys_nr].TOOL_ID = 1.0;    Z = Roboter Tool Nr setzen, wenn nicht -1
+          GIK_POSDAT[cam_sys_nr].GRP_TCP.X = 0.0 ;  A = Roboter TCP X - Wert
+          GIK_POSDAT[cam_sys_nr].GRP_TCP.Y = 0.0 ;  B = Roboter TCP Y - Wert
+          GIK_POSDAT[cam_sys_nr].GRP_TCP.Z = 0.0 ;  C = Roboter TCP Z - Wert
+          i_ret = VIS_Send_XML(PAR1, GIK_GET_POS)
+          IF (i_ret == -1) THEN
+            taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen 
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            RETURN
+          ELSE
+            i_ret = VIS_Recv_XML(EKI_VARS[cam_sys_nr].PAR2)
+            IF (i_ret <= -1) THEN
+              taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen            
+              SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+              SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+              RETURN
+            ENDIF 
+            status_id = Check_Status_ID(EKI_VARS[cam_sys_nr].PAR2)
+            IF (status_id <> STAT_RET_IO) THEN
+              SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+              SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+              IF NOT ($EXT) THEN
+                taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen 
+              ENDIF
+            ENDIF
+          ENDIF
+          i_ret = get_gik_data(PAR1, GIK_GET_POS, PAR3)
+          IF (i_ret == 0) THEN
+            SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          ELSE
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen
+          ENDIF
+    
+        CASE EKI_GET_DAT, GIK_RECV_KMS, GIK_RECV_BTM
+          ;i_ret = VIS_Recv_XML(PAR2)
+          ;IF (i_ret == -1) THEN
+            ;SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            ;RETURN
+          ; Da hier keine Behandlung, alte Flags wiederherstellen
+          SetzeFlags(#EKI_MES_IO, OldState_EKI_MES_IO, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, OldState_EKI_MES_NE, cam_sys_nr)
+          ;verschoben in #usr_trig
+
+        DEFAULT
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          taste = VIS_MLD(89, #QuitMsg, 0) ;PAR2: falscher Wert Quit - MSG Roboter PHG
+          
+      ENDSWITCH 
+      
+    CASE #USR_TRIG
+      OldState_EKI_MES_IO = $FLAG[F_EKI_MES_IO]
+      OldState_EKI_MES_NE = $FLAG[F_EKI_MES_NE]
+      i_ret = set_system_vars(PAR1, PAR2, PAR3, PAR4)
+      IF (i_ret == -1) THEN
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr) ; falscher Uebergabeparameter PAR1
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        RETURN
+      ENDIF
+      EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME
+      
+      SWITCH EKI_VARS[cam_sys_nr].PAR2
+        CASE -1
+        DEFAULT
+        ; Da hier keine Behandlung, alte Flags wiederherstellen
+        SetzeFlags(#EKI_MES_IO, OldState_EKI_MES_IO, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, OldState_EKI_MES_NE, cam_sys_nr)
+      ENDSWITCH
+      
+      
+    CASE #USR_ADV
+      OldState_EKI_MES_IO = $FLAG[F_EKI_MES_IO]
+      OldState_EKI_MES_NE = $FLAG[F_EKI_MES_NE]
+      i_ret = set_system_vars(PAR1, PAR2, PAR3, PAR4)
+      IF (i_ret == -1) THEN
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr) ; falscher Uebergabeparameter PAR1
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        RETURN
+      ENDIF
+      SWITCH EKI_VARS[cam_sys_nr].PAR2
+        CASE EKI_GET_DAT, GIK_RECV_KMS, GIK_RECV_BTM
+          i_ret = VIS_Recv_XML(EKI_VARS[cam_sys_nr].PAR2)
+          IF (i_ret <= -1) THEN
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            RETURN
+          ENDIF
+          status_id = eki_cmd_chck(PAR1, EKI_VARS[cam_sys_nr].PAR2, PAR3, PAR4)
+        
+        DEFAULT
+          ; Da hier keine Behandlung, alte Flags wiederherstellen
+          SetzeFlags(#EKI_MES_IO, OldState_EKI_MES_IO, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, OldState_EKI_MES_NE, cam_sys_nr)
+
+      ENDSWITCH
+ ;     IF NOT ($EXT) THEN
+;        taste = VIS_MLD(100, #QuitMsg, 0)
+;      ENDIF
+      IF (B_EKI_KASTAT[cam_sys_nr] == TRUE) THEN ; USR_ADV nur bei stationaerer Kamera sinnvoll
+      ENDIF
+      
+    DEFAULT
+      
+  ENDSWITCH
+END 
+
+;-------------------------------------------------------------
+;---- Subroutine empfangene Telegramm ID "tel_ID" pruefen ----
+;-------------------------------------------------------------
+
+DEF Count_Telegramm_ID()
+
+  IF (send_Tel_ID[cam_sys_nr] >= MAX_TEL_ID) THEN
+    send_Tel_ID[cam_sys_nr] = 1
+  ELSE
+    send_Tel_ID[cam_sys_nr] = send_Tel_ID[cam_sys_nr] + 1
+  ENDIF
+  EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID = send_Tel_ID[cam_sys_nr]
+;      
+END
+
+;Check Telegramm_ID -- TEL_ID
+DEFFCT BOOL Check_Telegramm_ID()
+
+  BOOL check_ok
+  INT taste 
+
+  IF (EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID <> EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID) THEN
+    check_ok = FALSE
+    taste = VIS_MLD(9, #NotifyMsg, 0) ;Error Check Telegramm_ID  Quit - MSG Roboter PHG
+  ELSE
+    check_ok = TRUE
+  ENDIF
+  RETURN(check_ok)
+ENDFCT
+
+;-------------------------------------------------------
+;---- Funktion EKI Empfangsstatus "Stat_ID" pruefen ----
+;-------------------------------------------------------
+
+DEFFCT INT Check_Status_ID(PAR2: IN)
+  INT PAR2
+
+  INT taste, ret_wert
+
+  ret_wert = STAT_RET_ERR ; default Error
+
+  SWITCH EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID
+    CASE EKI_STAT_ERR ;Error
+      INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr] ; Interrupt sperren bei Fehler
+      Check_Error_ID()
+      taste = VIS_MLD(12, #NotifyMsg, 0) ;Error Check Status_ID   Notify - MSG - MSG Roboter PHG
+      ret_wert = STAT_RET_LBE
+    
+    CASE EKI_STAT_IO ;OK
+      IF (PAR2 <> EKI_LIFE_BIT) THEN
+        ret_wert = STAT_RET_IO
+      ELSE
+        ret_wert = STAT_RET_LBE
+      ENDIF
+    
+    CASE EKI_STAT_LBB 
+      IF (PAR2 == EKI_LIFE_BIT) THEN
+        ret_wert = STAT_RET_IO
+      ELSE
+        ret_wert = STAT_RET_LBE
+      ENDIF
+    
+    CASE EKI_STAT_REA ; Realign
+      IF ((PAR2 == EKI_CALIBRAT) OR (PAR2 == EKI_REFERECE) OR (PAR2 == EKI_PRODUCT) OR (PAR2 == EKI_VALIDAT) OR (PAR2 == EKI_VERIFIFY)) THEN
+        ret_wert = STAT_RET_REA ; Return Realign request
+      ELSE
+        taste = VIS_MLD(46, #NotifyMsg, PAR2) ;Error Realign in wrong case Notify - MSG Roboter PHG
+        ret_wert = STAT_RET_ERR
+      ENDIF
+    
+    CASE EKI_STAT_KBT ; BASE/TOOL Absolut Daten fuer SENSOR TCP/BASE
+      IF (PAR2 == EKI_CALI_END) THEN
+        ret_wert = STAT_RET_KBT ; Return Status ID fuer Sensor BASE/TOOL Data
+      ELSE
+        taste = VIS_MLD(129, #NotifyMsg, PAR2) ;unerlaubte Status ID, kein Kalibration
+        ret_wert = STAT_RET_ERR
+      ENDIF
+    
+    CASE GIK_ERG_KMS ; Rueckmeldung Positionsdaten fuer BT Behaelter - Base
+      SetzeFlags(#EKI_WARN_F, FALSE, cam_sys_nr)
+      SetzeFlags(#EKI_EMPTY, FALSE, cam_sys_nr)
+      ret_wert = STAT_RET_IO
+    
+    CASE GIK_ERG_LOWW ; Rueckmeldung Positionsdaten fuer Base Kiste, F�llstand < 20%
+      SetzeFlags(#EKI_WARN_F, TRUE, cam_sys_nr) ; Warnmeldung "nur noch wenige Bauteile im Behaelter"
+      SetzeFlags(#EKI_EMPTY, FALSE, cam_sys_nr)
+      ret_wert = STAT_RET_IO
+    
+    CASE GIK_ERR_KMS ; Rueckmeldung Fehler Behaelter vermessen
+      taste = VIS_MLD(73, #NotifyMsg, 0) ; Error Behaeltervermessung
+      ret_wert = STAT_RET_ERR
+    
+    CASE GIK_LEER_KMS ; Rueckmeldung Kiste Kiste leer
+      SetzeFlags(#EKI_WARN_F, TRUE, cam_sys_nr) ; Warnmeldung "nur noch wenige Bauteile im Behaelter"
+      SetzeFlags(#EKI_EMPTY, TRUE, cam_sys_nr) ; GIK: kein Bauteil im Behaelter erkannt (Kiste = LEER ?)
+      ret_wert = STAT_RET_ERR
+    
+    CASE GIK_DATA_POS
+      ret_wert = STAT_RET_IO
+    
+    CASE GIK_GRIP_DAT
+      ret_wert = STAT_RET_IO
+    
+    CASE GIK_GRIP_POS
+      ret_wert = STAT_RET_IO
+    
+    CASE GIK_LAST_POS
+      ret_wert = STAT_RET_GLT
+    
+    DEFAULT
+      ret_wert = STAT_RET_ERR
+      taste = VIS_MLD(80, #NotifyMsg, 0) ;Error Check Status_ID Quit - MSG Roboter PHG
+    
+  ENDSWITCH ;
+  RETURN(ret_wert)
+ENDFCT
+
+;---------------------------------------------------------
+;---- Funktion empfangene "err_ID" = Error ID pruefen ----
+;---------------------------------------------------------
+
+DEF Check_Error_ID()
+  ;Check Error_ID from Camsys
+  INT taste 
+
+  IF (EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID == 0) THEN
+    taste = VIS_MLD(104, #NotifyMsg, 0) ;MSG Roboter
+  ELSE
+    taste = VIS_MLD(14, #NotifyMsg, 0)
+  ENDIF
+END
+
+;-------------------------------------------------------------------------
+;---- Funktion Pruefen, ob Korrekturwerte innerhalb zulaessiger range ----
+;-------------------------------------------------------------------------
+
+DEFFCT BOOL Check_Max_Range()
+  INT i_base_check
+
+  INT taste
+  BOOL B_F_Range
+  FRAME temp_frame
+
+  B_F_Range = FALSE
+  IF (B_EKI_CHKVAL[cam_sys_nr] == FALSE) THEN
+    ; wenn Config - FLAG == FALSE, werden relative Korrektuerwerte geprueft
+    temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+  ELSE 
+    ; wenn Config - FLAG == TRUE, dann korrigierte Base pruefen
+    IF (REF_POS_VAL[EKI_VARS[cam_sys_nr].PAR4] == TRUE) THEN
+      temp_frame.X = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].X + EKI_VARS[cam_sys_nr].Get_Val_Pos.X
+      temp_frame.Y = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].Y + EKI_VARS[cam_sys_nr].Get_Val_Pos.Y
+      temp_frame.Z = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].Z + EKI_VARS[cam_sys_nr].Get_Val_Pos.Z
+      temp_frame.A = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].A + EKI_VARS[cam_sys_nr].Get_Val_Pos.A
+      temp_frame.B = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].B + EKI_VARS[cam_sys_nr].Get_Val_Pos.B
+      temp_frame.C = REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4].C + EKI_VARS[cam_sys_nr].Get_Val_Pos.C
+    ELSE
+      ; Error, no valid Refposition
+      taste = VIS_MLD(135, #NotifyMsg, 0)
+      RETURN(TRUE)
+    ENDIF
+  ENDIF
+
+  debug_Frame = temp_frame
+
+  IF ((EKI_VARS[cam_sys_nr].PAR4 > 0) AND (EKI_VARS[cam_sys_nr].PAR4 <= MAX_KORR_ARR)) THEN
+  
+    ;Check Max_Range
+    IF (temp_frame.X > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].X) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(30, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.Y > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].Y) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(31, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.Z > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].Z) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(32, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.A > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].A) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(33, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.B > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].B) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(34, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.C > VIS_Max[EKI_VARS[cam_sys_nr].PAR4].C) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(35, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+  
+    ;Check Min_Range
+    IF (temp_frame.X < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].X) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(36, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.Y < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].Y) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(37, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.Z < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].Z) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(38, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.A < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].A) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(39, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.B < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].B) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(40, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+    IF (temp_frame.C < VIS_Min[EKI_VARS[cam_sys_nr].PAR4].C) THEN
+      B_F_Range = TRUE
+      taste = VIS_MLD(41, #NotifyMsg, EKI_VARS[cam_sys_nr].PAR4)
+    ENDIF
+  ELSE
+    IF (EKI_VARS[cam_sys_nr].PAR4 == 0) THEN
+      B_F_Range = FALSE ; keine Grenzwertueberwachung
+    ELSE
+      B_F_Range = TRUE ; Par4 out of range
+    ENDIF
+  ENDIF
+
+  IF (B_F_Range == TRUE) THEN
+    IF (B_IRQ_ENABLE[cam_sys_nr] == FALSE) THEN ; keine Wahl bei IRQ - Betrieb
+      IF NOT ($EXT) THEN
+        taste = VIS_MLD(1, #QuitMsg, 0) ; MSG, ob trotzdem Werte �bernommen werden sollen
+        taste = VIS_MLD(42, #DialogMsg, 0)
+      ELSE
+        taste = VIS_MLD(65, #NotifyMsg, 0)
+      ENDIF
+      IF (taste == TASTE_1) THEN
+        B_F_Range = FALSE
+      ELSE
+        EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME
+      ENDIF
+    ELSE
+      EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME ; im IRQ - Betrieb keine Datenuebernahme
+    ENDIF
+  ENDIF
+  SetzeFlags(#EKI_RANGE, B_F_Range, cam_sys_nr)
+  RETURN (B_F_Range)
+ENDFCT
+
+;------------------------------------------------------------------
+;---- Referenz Positionsdaten erfassen                         ----
+;------------------------------------------------------------------
+
+DEF ref_pos_get()
+
+  REF_POS_DATA[EKI_VARS[cam_sys_nr].PAR4] = $POS_ACT
+  REF_POS_VAL[EKI_VARS[cam_sys_nr].PAR4] = TRUE
+
+END
+
+;------------------------------------------------------------------
+;---- Funktion Verfikation der Kanera auf Abweichungen pruefen ----
+;------------------------------------------------------------------
+
+DEFFCT BOOL Check_Verification()
+
+  INT taste
+  BOOL verify_ok
+  FRAME temp_frame
+
+  verify_ok = TRUE
+  temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+  temp_frame.X = ABS(temp_frame.X)
+  temp_frame.Y = ABS(temp_frame.Y)
+  temp_frame.Z = ABS(temp_frame.Z)
+  temp_frame.A = ABS(temp_frame.A)
+  temp_frame.B = ABS(temp_frame.B)
+  temp_frame.C = ABS(temp_frame.C)
+  IF (temp_frame.X > VIS_MaxVer[cam_sys_nr].X) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(81, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  IF (temp_frame.Y > VIS_MaxVer[cam_sys_nr].Y) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(82, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  IF (temp_frame.Z > VIS_MaxVer[cam_sys_nr].Z) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(83, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  IF (temp_frame.A > VIS_MaxVer[cam_sys_nr].A) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(84, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  IF (temp_frame.B > VIS_MaxVer[cam_sys_nr].B) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(85, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  IF (temp_frame.C > VIS_MaxVer[cam_sys_nr].C) THEN
+    verify_OK = FALSE
+    taste = VIS_MLD(86, #QuitMSG, 0) ;Verifizierung fehlgeschlagen Quit - MSG Roboter PHG  
+  ENDIF
+  RETURN(verify_OK)
+ENDFCT
+
+;--------------------------------------------------------------
+;---- Funktion initialisieren der EKI Variablen - structur ----
+;--------------------------------------------------------------
+
+DEF Reset_Get_Values()
+;Reset Variables
+
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.cam_nr = 0
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID = 0
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID = 0
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID = 0
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.Err_Text[] = " "
+  EKI_VARS[cam_sys_nr].Get_Val_Pos = $Nullframe
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.Param_Text[] = " "
+  EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[] = " "
+;      
+END
+
+;-----------------------------------------------
+;---- Funktion Command Check und ausfuehren ----
+;-----------------------------------------------
+
+DEFFCT INT eki_cmd_chck(PAR1 :IN, PAR2: IN, PAR3 :IN, PAR4: IN)
+  INT PAR1, PAR2, PAR3, PAR4
+
+  INT taste, status_id, ret
+  BOOL B_F_Range
+
+  taste = TASTE_0
+  B_F_Range = TRUE
+  SWITCH PAR2 ;PAR2: Mode_ID
+    
+    CASE EKI_LIFE_BIT ;Ping
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN ; Lebensbit abfragen
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          IF (B_EKI_ASCII[cam_sys_nr] == TRUE) THEN
+            taste = VIS_MLD(120, #NotifyMsg, 0) ; ASCII Datentransfer
+          ELSE
+            IF (B_New_XML[cam_sys_nr] == TRUE) THEN
+              taste = VIS_MLD(106, #NotifyMsg, 0) ; NEW XML 1 Port Kommunikation
+            ELSE
+              IF (B_One_Port[cam_sys_nr] == TRUE) THEN
+                taste = VIS_MLD(105, #NotifyMsg, 0) ; XML 1 Port Kommunikation
+              ELSE
+                taste = VIS_MLD(16, #NotifyMsg, 0) ; XML 2 Port Kommunikation
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(15, #NotifyMsg, 0) ; Quit - MSG Roboter PHG, NI - Notify MSG
+        ENDIF
+      ENDIF
+    
+    CASE EKI_CANCEL ;Cancel
+      EKI_VARS[cam_sys_nr].counter_Vali = 0
+      EKI_VARS[cam_sys_nr].counter_Cali = 0
+      EKI_VARS[cam_sys_nr].counter_Very = 0
+      SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+      SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+      status_id = STAT_RET_IO
+    
+    CASE EKI_CALIBRAT ;Calibration
+      EKI_VARS[cam_sys_nr].counter_Cali = EKI_VARS[cam_sys_nr].counter_Cali + 1
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id <> STAT_RET_REA) THEN
+        IF (status_id == STAT_RET_IO) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(7, #NotifyMSG, 0) ;Punkt angefahren
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(2, #NotifyMSG, 0) ;Kalibrierung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_CALI_END ;Calibration END
+      EKI_VARS[cam_sys_nr].counter_Cali = 0
+      status_id = Check_Status_ID(PAR2)
+      ;
+      IF (status_id == STAT_RET_KBT) THEN ; neue SENSOR TOOL/BASE DAten
+        IF (B_EKI_KASTAT[cam_sys_nr] == TRUE) THEN
+          Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = EKI_VARS[cam_sys_nr].Get_Val_Pos
+          taste = VIS_MLD(130, #NotifyMSG, 0) ;Punkt angefahren
+        ELSE
+          tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = EKI_VARS[cam_sys_nr].Get_Val_Pos
+          taste = VIS_MLD(131, #NotifyMSG, 0) ;Punkt angefahren
+        ENDIF
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+      ELSE
+        IF (status_id == STAT_RET_IO) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(3, #NotifyMSG, 0) ;Kalibrierung erfolgreich
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(2, #QuitMSG, 0) ;Kalibrierung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_VALIDAT ;Validation
+      EKI_VARS[cam_sys_nr].counter_Vali = EKI_VARS[cam_sys_nr].counter_Vali + 1
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id <> STAT_RET_REA) THEN
+        IF (status_id == STAT_RET_IO) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(19, #NotifyMSG, 0) ;Punkt angefahren
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(17, #NotifyMSG, 0) ;Validierung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_VALI_END ;Validation END
+      EKI_VARS[cam_sys_nr].counter_Vali = 0
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        taste = VIS_MLD(18, #NotifyMSG, 0) ;Validierung erfolgreich
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        taste = VIS_MLD(17, #QuitMSG, 0) ;Validierung fehlgeschlagen
+      ENDIF
+    
+    CASE EKI_VERIFIFY ;Verification
+      EKI_VARS[cam_sys_nr].counter_Very = EKI_VARS[cam_sys_nr].counter_Very + 1
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id <> STAT_RET_REA) THEN
+        IF (status_id == STAT_RET_IO) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(27, #NotifyMSG, 0) ;Punkt angefahren
+          EKI_VARS[cam_sys_nr].B_verify = Check_Verification()
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(25, #QuitMSG, 0) ;Verifizierung fehlgeschlagen
+          EKI_VARS[cam_sys_nr].B_Verify = FALSE
+        ENDIF
+      ENDIF
+    
+    CASE EKI_VERI_END ;Verification END
+      EKI_VARS[cam_sys_nr].counter_Very = 0
+      IF (EKI_VARS[cam_sys_nr].B_Verify == TRUE) THEN
+        status_id = Check_Status_ID(PAR2)
+      ELSE
+        status_ID = STAT_RET_ERR
+      ENDIF
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        taste = VIS_MLD(26, #NotifyMSG, 0) ;Verifizierung erfolgreich
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        taste = VIS_MLD(25, #QuitMSG, 0) ;Verifizierung fehlgeschlagen
+      ENDIF
+    
+    CASE EKI_REFERECE ;Referencing
+      status_id = Check_Status_ID(PAR2)
+      IF (status_ID <> STAT_RET_REA) THEN
+        IF (status_id == STAT_RET_IO) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(23, #NotifyMSG, 0) ;Punkt angefahren
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(21, #QuitMSG, 0) ;Referenzierung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_REFE_END ;Referencing END
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        taste = VIS_MLD(22, #NotifyMSG, 0) ;Referenzierung erfolgreich
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        taste = VIS_MLD(21, #QuitMSG, 0) ;Referenzierung fehlgeschlagen
+      ENDIF
+    
+    CASE EKI_PRODUCT ;EKI_GET_DAT Production
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id <> STAT_RET_REA) THEN ; Baseverschiebung nur, wenn kein Realign 
+        IF ( status_id == STAT_RET_IO ) THEN
+          B_F_Range = Check_Max_Range()
+        ENDIF
+        IF (status_id == STAT_RET_IO) AND (B_F_Range == FALSE) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+          taste = VIS_MLD(4, #NotifyMsg, 0)
+          IF (B_EKI_KASTAT[cam_sys_nr] == FALSE) THEN
+            IF (B_EKI_RELABS[cam_sys_nr] == FALSE) THEN
+              ; relative Korrektur
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $BASE : EKI_VARS[cam_sys_nr].Get_Val_Pos ; BASE FRAME Korrektur
+              BASE_TYPE[EKI_VARS[cam_sys_nr].i_base_eki] = #BASE
+            ELSE
+              ; absolute Korrektur
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = EKI_VARS[cam_sys_nr].Get_Val_Pos ; BASE FRAME Korrektur
+              BASE_TYPE[EKI_VARS[cam_sys_nr].i_base_eki] = #BASE
+            ENDIF
+            IF NOT ($EXT) THEN
+              taste = VIS_MLD(5, #NotifyMsg, 0)
+              taste = VIS_MLD(6, #NotifyMsg, 0)
+            ENDIF
+          ELSE
+            IF (B_EKI_RELABS[cam_sys_nr] == FALSE) THEN
+              ; reletive Korrektur
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $tool : EKI_VARS[cam_sys_nr].Get_Val_Pos ; TOOL FRAME Relativkorrektur
+              BASE_TYPE[EKI_VARS[cam_sys_nr].i_base_eki] = #TCP
+            ELSE
+              ; Absolute Korrektur
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = EKI_VARS[cam_sys_nr].Get_Val_Pos ; TOOL FRAME Korrektur
+              BASE_TYPE[EKI_VARS[cam_sys_nr].i_base_eki] = #TCP
+            ENDIF
+            IF NOT ($EXT) THEN
+              taste = VIS_MLD(91, #NotifyMsg, 0)
+              taste = VIS_MLD(92, #NotifyMsg, 0)
+            ENDIF
+          ENDIF
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          IF (EKI_VARS[cam_sys_nr].i_base_eki >= 0) THEN
+            IF (status_id < STAT_RET_IO) THEN
+              IF NOT ($EXT) THEN
+                taste = VIS_MLD(43, #QuitMsg, 0) ;Error keine Korrwerte Quit - MSG Roboter PHG
+              ELSE
+                taste = VIS_MLD(43, #NotifyMsg, 0) ;Error keine Korrwerte Notify - MSG Roboter PHG
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    
+    CASE EKI_PROD_END ;Production END
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(124, #NotifyMSG, 0) ;Production END erfolgreich
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(123, #QuitMSG, 0) ;Production END fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_MESS_PKT ;Messpunkt Daten aufnehmen
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(133, #NotifyMSG, 0) ;Production END erfolgreich
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(132, #QuitMSG, 0) ;Production END fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_LIGHT_ON ; Kamera Licht einschalten (process START)
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(126, #NotifyMSG, 0) ;Prozess START "Licht AN" OK
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(125, #QuitMSG, 0) ;Prozess START fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE EKI_LIGHT_OF ; Kamera Licht ausschalten (process END)
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(128, #NotifyMSG, 0) ; Licht AUS (Prozess END) OK
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(127, #QuitMSG, 0) ; Licht AUS (Prozess END) NIO
+        ENDIF
+      ENDIF
+    
+    ;   Griff in Schuettgutkiste
+    CASE GIK_MESS_KMS, GIK_RECV_KMS
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        ; absolute Korrektur
+        Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+        Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = EKI_VARS[cam_sys_nr].Get_Val_Pos ; BASE FRAME Korrektur
+        BASE_TYPE[EKI_VARS[cam_sys_nr].i_base_eki] = #BASE
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(5, #NotifyMsg, 0)
+          taste = VIS_MLD(68, #NotifyMSG, 0) ;Behaeltervermessung erfolgreich
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(67, #QuitMSG, 0) ;Behaeltervermessung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+    CASE GIK_MESS_BTM, GIK_RECV_BTM
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(70, #NotifyMSG, 0) ;Objektmessung erfolgreich
+        ENDIF
+        ; Positionssequenz fuer Bauteilentnahme holen
+        ret = VIS_Send_XML(PAR1, GIK_GET_POS)
+        IF (ret == -1) THEN
+          taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen 
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          RETURN(STAT_RET_ERR)
+        ELSE
+          ret = VIS_Recv_XML(EKI_VARS[cam_sys_nr].PAR2)
+          IF (ret <= -1) THEN
+            taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen            
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            RETURN(STAT_RET_ERR)
+          ENDIF 
+          status_id = Check_Status_ID(EKI_VARS[cam_sys_nr].PAR2)
+          IF (status_id <> STAT_RET_IO) THEN
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            IF NOT ($EXT) THEN
+              taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen 
+            ENDIF
+          ENDIF
+        ENDIF
+        ret = get_gik_data(PAR1, GIK_GET_POS, PAR3)
+        IF (ret == 0) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        IF NOT ($EXT) THEN
+          taste = VIS_MLD(69, #QuitMSG, 0) ;Objektmessung fehlgeschlagen
+        ENDIF
+      ENDIF
+    
+      ; dieser CASE kann entfallen
+    CASE GIK_GET_POS
+      status_id = Check_Status_ID(PAR2)
+      IF (status_id == STAT_RET_IO) THEN
+        taste = VIS_MLD(76, #NotifyMSG, 0) ;Start Sequenz fuer Bauteil holen erfolgreich
+        ret = get_gik_data(PAR1, PAR2, PAR3)
+        IF (ret == 0) THEN
+          SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        ELSE
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        ENDIF
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        taste = VIS_MLD(77, #NotifyMSG, 0) ;Sequenz fuer Bauteil holen  fehlgeschlagen
+      ENDIF
+    
+    CASE GIK_GET_PART
+      IF (GIK_POSDAT[cam_sys_nr].Data_valid == TRUE) THEN
+        IF (GIK_POSDAT[cam_sys_nr].pos_nr > 0) THEN
+          ret = execute_gtBT()
+          IF (ret < 0) THEN
+            taste = VIS_MLD(115, #QuitMsg, 0)
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+            status_id = STAT_RET_ERR
+          ELSE
+            SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+            status_id = STAT_RET_IO
+          ENDIF
+        ELSE
+          taste = VIS_MLD(75, #QuitMsg, 0)
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          status_id = STAT_RET_ERR
+        ENDIF
+      ELSE
+        taste = VIS_MLD(75, #QuitMsg, 0)
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        status_id = STAT_RET_ERR
+      ENDIF
+    
+    CASE GIK_BT_ABLEG
+      ret = BT_UP_ABLEG()
+      IF (ret > 0) THEN
+        SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+        status_id = STAT_RET_ERR
+      ELSE
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        status_id = STAT_RET_ERR
+      ENDIF
+    
+      ; ENDE Griff in Schuettgutkiste
+    
+    DEFAULT
+      SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+      SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+      taste = VIS_MLD(89, #QuitMsg, 0) ;PAR2: falscher Wert Quit - MSG Roboter PHG
+      status_id = STAT_RET_ERR
+    
+  ENDSWITCH ;PAR2: Mode_ID
+  RETURN(status_id)
+ENDFCT
+
+;---------------------------------------------------------------
+;---- Funktion: Ports oeffnen ueber Auftrag "Send_Ping"     ----
+;---------------------------------------------------------------
+
+DEFFCT INT test_open_prt(flag_nr :IN, xml_port_name[] :IN)
+  INT flag_nr
+  CHAR xml_port_name[]
+
+  DECL EKI_STATUS RET
+  INT ret_wert
+
+  ret_wert = 0
+  ; EKI_Close() und EKI_Clear() nur bei Ethernet Version V2.1
+  IF (EKI_ETH_VERS == 21) THEN
+    ;RET = EKI_Close(xml_port_name[])
+    ;RET = EKI_Clear(xml_port_name[])
+  ELSE
+   IF (B_EKI_Init == FALSE) THEN
+    RET = EKI_Init(xml_port_name[]) ;INIT EKI
+    B_EKI_Init=TRUE
+   ELSE
+    RET = EKI_Init(xml_port_name[]) ;INIT EKI
+    RET = EKI_Open(xml_port_name[]) ;OPEN EKI one
+   ENDIF
+  ENDIF
+  WAIT SEC 0
+  IF ($FLAG[flag_nr] == FALSE) THEN ; try again until timeout
+    WAIT SEC 0.05
+    EKI_VARS[cam_sys_nr].i_RobTimer = $Rob_Timer
+    WHILE ($FLAG[flag_nr] == FALSE) ; Port open check (Ping) ?
+      IF (EKI_ETH_VERS == 21) THEN
+        RET = EKI_Close(xml_port_name[])
+        RET = EKI_Clear(xml_port_name[])
+      ENDIF
+      RET = EKI_Init(xml_port_name[]) ;INIT EKI
+      RET = EKI_Open(xml_port_name[]) ;OPEN EKI one
+      WAIT SEC 0
+      IF ($FLAG[flag_nr] == TRUE) THEN
+        EXIT
+      ELSE
+        IF ($Rob_Timer - EKI_VARS[cam_sys_nr].i_RobTimer > EKI_Pingtime[cam_sys_nr]) THEN ;Timeout
+          ret_wert = -cam_sys_nr ; negativ, Port laesst sich nicht oeffnen
+          EXIT
+        ENDIF
+        IF ($FLAG[flag_nr] == TRUE) THEN
+          ret_wert = cam_sys_nr
+        ENDIF
+      ENDIF
+    ENDWHILE
+  ENDIF
+  IF ($FLAG[flag_nr] == TRUE) THEN
+    ret_wert = cam_sys_nr
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;---------------------------------------------------------------
+;---- Funktion: Ports oeffnen ueber Auftrag "Send_Ping"     ----
+;---------------------------------------------------------------
+
+DEFFCT INT ping_open_prt()
+
+  DECL EKI_STATUS RET 
+  DECL STATE_T status 
+  INT ret_wert, taste, offset
+
+  IF (B_EKI_INITSY[cam_sys_nr] == FALSE) THEN
+    ret_wert = Chk_open_prt()
+  ELSE
+    ret_wert = 1
+  ENDIF
+  IF (ret_wert > 0) THEN
+    EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = " "
+    IF (B_EKI_INITSY[cam_sys_nr] == TRUE) THEN 
+      IF (B_One_Port[cam_sys_nr] == TRUE) THEN
+        IF (B_New_XML[cam_sys_nr] == TRUE) THEN
+          ; Open Port with XML_Kuka_KAMSYS_x
+          I_EKI_Sp_Act[cam_sys_nr] = F_EKI_KMD_DT[cam_sys_nr] 
+          I_EKI_Rp_Act[cam_sys_nr] = F_EKI_KMD_DT[cam_sys_nr]
+        
+          IF (B_EKI_ASCII[cam_sys_nr] == TRUE) THEN ; binary ASCII datatransfer
+            EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[4, cam_sys_nr].text[]
+            EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[4, cam_sys_nr].text[]
+            ret_wert = test_open_prt(I_EKI_Sp_Act[cam_sys_nr], XML_string[4, cam_sys_nr].text[])
+            offset = 0
+            EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = " "
+            SWRITE(EKI_VARS[cam_sys_nr].XML_RCV_TXT[], Status, offset, "VST%1d", cam_sys_nr)
+          ELSE ; XML protocol
+            EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[3, cam_sys_nr].text[]
+            EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[3, cam_sys_nr].text[]
+            ret_wert = test_open_prt(I_EKI_Sp_Act[cam_sys_nr], XML_string[3, cam_sys_nr].text[])
+            EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[Cam_sys_nr, 8].text[]
+          ENDIF
+        
+          IF (NOT $EXT) THEN
+            IF (ret_wert > 0) THEN
+              taste = VIS_MLD(110, #NotifyMsg, 0) ; Port oeffnen ok
+            ELSE
+              taste = VIS_MLD(111, #NotifyMsg, 0) ; Port oeffnen fault)
+            ENDIF
+          ENDIF
+        
+        ELSE
+          ; Open Port with XML_Kuka_VISION_x over one Port
+          I_EKI_Sp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+          I_EKI_Rp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+        
+          EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[1, cam_sys_nr].text[]
+          EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[1, cam_sys_nr].text[]
+        
+          ret_wert = test_open_prt(I_EKI_Sp_Act[cam_sys_nr], XML_string[1, cam_sys_nr].text[])
+          EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[6, 8].text[]
+          IF (NOT $EXT) THEN
+            IF (ret_wert > 0) THEN
+              taste = VIS_MLD(110, #NotifyMsg, 0) ; Port oeffnen ok
+            ELSE
+              taste = VIS_MLD(111, #NotifyMsg, 0) ; Port oeffnen fault)
+            ENDIF
+          ENDIF
+        ENDIF
+      
+      ELSE 
+        ; Open Port with XML_Kuka_VISION_x over two Port
+        I_EKI_Sp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+        I_EKI_Rp_Act[cam_sys_nr] = F_EKI_Rp_Act[cam_sys_nr] 
+      
+        EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[1, cam_sys_nr].text[]
+        EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[2, cam_sys_nr].text[]
+        ; open Port 1
+        ret_wert = test_open_prt(I_EKI_Sp_Act[cam_sys_nr], XML_string[1, cam_sys_nr].text[])
+        EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[6, 8].text[]
+        IF (ret_wert < 1) THEN
+          IF (NOT $EXT) THEN
+            taste = VIS_MLD(111, #NotifyMsg, 0) ; Port 1 oeffnen fault)
+          ENDIF
+        ELSE
+          ; open Port 2, if Port 1 is open
+          ret_wert = test_open_prt(I_EKI_Rp_Act[cam_sys_nr], XML_string[2, cam_sys_nr].text[])
+          IF (NOT $EXT) THEN
+            IF (ret_wert > 0) THEN
+              taste = VIS_MLD(110, #NotifyMsg, 0) ; Port 2 oeffnen ok
+            ELSE
+              taste = VIS_MLD(111, #NotifyMsg, 0) ; Port 2 oeffnen fault)
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ELSE
+      ret_wert = -1
+      taste = VIS_MLD(97, #NotifyMsg, 0)
+    ENDIF
+  ELSE
+    ret_wert = -1
+    taste = VIS_MLD(98, #NotifyMsg, 0)
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;---------------------------------------------------------------
+;---- Funktion: Ports oeffnen ueber Auftrag "Send_Life_Bit" ----
+;---------------------------------------------------------------
+
+DEFFCT INT Chk_open_prt()
+
+  DECL EKI_STATUS RET
+  DECL STATE_T status 
+  INT ret_wert, taste, offset
+  BOOL recv_port
+
+  EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = " "
+  I_EKI_Sp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr]
+  I_EKI_Rp_Act[cam_sys_nr] = F_EKI_Rp_Act[cam_sys_nr]
+
+  ret_wert = -1
+  recv_port = FALSE
+
+  IF (B_EKI_ASCII[cam_sys_nr] == TRUE) THEN ; binary string communication
+    IF ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE) THEN
+      ; close port if open
+      RET = EKI_Close(XML_string[4, cam_sys_nr].text[])
+      RET = EKI_Clear(XML_string[4, cam_sys_nr].text[])
+    ENDIF
+    ret_wert = test_open_prt(F_EKI_KMD_DT[cam_sys_nr], XML_string[4, cam_sys_nr].text[])
+    IF (ret_wert > 0) THEN
+      B_One_Port[cam_sys_nr] = TRUE
+      EKI_VARS[cam_sys_nr].B_One_Port = TRUE ; new 1 Port communication aktiv
+      B_New_XML[cam_sys_nr] = TRUE
+      EKI_VARS[cam_sys_nr].New_XML = TRUE ; new 1 Port communication
+      ret_wert = cam_sys_nr
+      B_EKI_INITSY[cam_sys_nr] = TRUE ; Port initialisation success
+      IF (NOT $EXT) THEN
+        taste = VIS_MLD(118, #NotifyMsg, 0) ; Quit - MSG Roboter PHG
+      ENDIF
+    ELSE
+      B_EKI_INITSY[cam_sys_nr] = FALSE ; Port initialisation fault
+    ENDIF
+  ELSE ; XML based datatransfer
+    IF ($FLAG[I_EKI_Rp_Act[cam_sys_nr]] == TRUE) THEN
+      ; close receive port if open
+      RET = EKI_Close(XML_string[2, cam_sys_nr].text[])
+      RET = EKI_Clear(XML_string[2, cam_sys_nr].text[])
+    ENDIF
+    IF ($FLAG[I_EKI_Sp_Act[cam_sys_nr]] == TRUE) THEN
+      ; close send port (one port com) if open
+      RET = EKI_Close(XML_string[1, cam_sys_nr].text[])
+      RET = EKI_Clear(XML_string[1, cam_sys_nr].text[])
+    ENDIF
+    IF ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE) THEN
+      ; close port (new XML structure) if open
+      RET = EKI_Close(XML_string[3, cam_sys_nr].text[])
+      RET = EKI_Clear(XML_string[3, cam_sys_nr].text[])
+    ENDIF
+  
+    ; Test Receive Port
+    ret_wert = test_open_prt(I_EKI_Rp_Act[cam_sys_nr], XML_string[2, cam_sys_nr].text[])
+    IF (ret_wert > 0) THEN
+      recv_port = TRUE
+    ENDIF
+  
+    ; Test Send Port
+    ret_wert = test_open_prt(I_EKI_Sp_Act[cam_sys_nr], XML_string[1, cam_sys_nr].text[])
+    IF (ret_wert > 0) THEN
+      ret_wert = cam_sys_nr
+    ENDIF
+  
+    IF (ret_wert > 0) THEN
+      B_New_XML[cam_sys_nr] = FALSE
+      EKI_VARS[cam_sys_nr].New_XML = FALSE ; old Port communication
+      IF (recv_port == TRUE) THEN
+        B_One_Port[cam_sys_nr] = FALSE
+        EKI_VARS[cam_sys_nr].B_One_Port = FALSE ; 2 Port Kommunikation ok
+      ELSE
+        B_One_Port[cam_sys_nr] = TRUE
+        EKI_VARS[cam_sys_nr].B_One_Port = TRUE ; 1 Port Kommunikation ok
+      ENDIF
+    ELSE
+      ; Test new Camport communication
+      ret_wert = test_open_prt(F_EKI_KMD_DT[cam_sys_nr], XML_string[3, cam_sys_nr].text[])
+      IF (ret_wert > 0) THEN
+        B_One_Port[cam_sys_nr] = TRUE
+        EKI_VARS[cam_sys_nr].B_One_Port = TRUE ; new 1 Port communication aktiv
+        B_New_XML[cam_sys_nr] = TRUE
+        EKI_VARS[cam_sys_nr].New_XML = TRUE ; new 1 Port communication
+        ret_wert = cam_sys_nr
+      ELSE
+        ret_wert = test_open_prt(F_EKI_KMD_DT[cam_sys_nr], XML_string[4, cam_sys_nr].text[])
+        IF (ret_wert > 0) THEN
+          B_One_Port[cam_sys_nr] = TRUE
+          EKI_VARS[cam_sys_nr].B_One_Port = TRUE ; new 1 Port communication aktiv
+          B_New_XML[cam_sys_nr] = TRUE
+          EKI_VARS[cam_sys_nr].New_XML = TRUE ; new 1 Port communication
+          B_EKI_ASCII[cam_sys_nr] = TRUE ; ASCII Daten Uebertragung
+          ret_wert = cam_sys_nr
+        ENDIF
+      ENDIF
+    ENDIF
+  
+    IF (ret_wert > 0) THEN
+      B_EKI_INITSY[cam_sys_nr] = TRUE ; Port initialisation successful
+    
+      IF (B_One_Port[cam_sys_nr] == TRUE) THEN
+        IF (B_New_XML[cam_sys_nr] == TRUE) THEN
+          IF (B_EKI_ASCII[cam_sys_nr] == TRUE) THEN ; ASCII Daten
+            EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[4, cam_sys_nr].text[]
+            EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[4, cam_sys_nr].text[]
+            IF (NOT $EXT) THEN
+              taste = VIS_MLD(122, #NotifyMsg, 0) ; Info - MSG Roboter PHG
+            ENDIF
+            offset = 0
+            EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = " "
+            SWRITE(EKI_VARS[cam_sys_nr].XML_RCV_TXT[], Status, offset, "VST%1d", cam_sys_nr)
+          ELSE ; Einport XML mit getrennten Empfangsbuffern
+            EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[3, cam_sys_nr].text[]
+            EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[3, cam_sys_nr].text[]
+            IF (NOT $EXT) THEN
+              taste = VIS_MLD(103, #NotifyMsg, 0) ; Info - MSG Roboter PHG
+            ENDIF
+            EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[Cam_sys_nr, 8].text[]
+          ENDIF
+          I_EKI_Sp_Act[cam_sys_nr] = F_EKI_KMD_DT[cam_sys_nr] 
+          I_EKI_Rp_Act[cam_sys_nr] = F_EKI_KMD_DT[cam_sys_nr] 
+        ELSE ; Einport XML mit gemeinsamen Empfangsbuffer
+          IF (NOT $EXT) THEN
+            taste = VIS_MLD(107, #NotifyMsg, 0) ; Info - MSG Roboter PHG
+          ENDIF
+          I_EKI_Sp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+          I_EKI_Rp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+          EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[1, cam_sys_nr].text[]
+          EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[1, cam_sys_nr].text[]
+          EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[6, 8].text[]
+        ENDIF
+      ELSE ; 2 Port XML mit gemeinsamen Empfangsbuffer
+        IF (NOT $EXT) THEN
+          taste = VIS_MLD(101, #NotifyMsg, 0) ; Info - MSG Roboter PHG
+        ENDIF
+        I_EKI_Sp_Act[cam_sys_nr] = F_EKI_SP_Act[cam_sys_nr] 
+        I_EKI_Rp_Act[cam_sys_nr] = F_EKI_Rp_Act[cam_sys_nr] 
+        EKI_VARS[cam_sys_nr].XML_ch1_String[] = XML_string[1, cam_sys_nr].text[]
+        EKI_VARS[cam_sys_nr].XML_ch2_String[] = XML_string[2, cam_sys_nr].text[]
+        EKI_VARS[cam_sys_nr].XML_RCV_TXT[] = XML_get_strg[6, 8].text[]
+      ENDIF
+    ELSE
+      B_EKI_INITSY[cam_sys_nr] = FALSE ; Port initialisation fault
+    ENDIF
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;----------------------------------
+;---- Funktion: Send XML Daten ----
+;----------------------------------
+
+DEFFCT INT VIS_Send_XML(PAR1 :IN, PAR2 :IN)
+  INT PAR1, PAR2
+  ;--Data Transmission--
+
+  INT ret_wert, taste
+  DECL EKI_STATUS RET
+
+  DECL FRAME InvTool
+  DECL FRAME KameraTool
+  DECL FRAME POSITION
+
+  EKI_VARS[cam_sys_nr].i_RobTimer = $Rob_Timer
+  EKI_VARS[cam_sys_nr].i_EKI_Timer = EKI_TimerClc[cam_sys_nr] ;normal Timeout
+  EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID = PAR2
+  EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID = PAR1
+  ; Wait SEC 0            ;Vorlaufstop erzwingen
+
+  SWITCH PAR2
+      
+    CASE EKI_CALIBRAT, EKI_CALI_END, EKI_VALIDAT, EKI_VALI_END, EKI_VERIFIFY, EKI_VERI_END, EKI_REFERECE, EKI_REFE_END, EKI_PRODUCT, EKI_PROD_END, EKI_SEND_DAT, EKI_GET_IRQ, GIK_MESS_KMS, GIK_MESS_BTM, GIK_GET_POS, EKI_LIGHT_ON, EKI_LIGHT_OF
+      IF (B_EKI_INITSY[cam_sys_nr] == TRUE) THEN
+        IF (($FLAG[F_EKI_SP_Act[cam_sys_nr]] == TRUE) OR ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE)) THEN 
+          ret_wert = VIS_Send_DAT($POS_ACT)
+        ELSE
+          taste = VIS_MLD(102, #NotifyMsg, 0)
+          ret_wert = -1
+        ENDIF
+      ELSE
+        ret_wert = -1
+        taste = VIS_MLD(97, #DialogMsg, 0)
+      ENDIF
+      
+    CASE EKI_MESS_PKT
+      IF (B_EKI_INITSY[cam_sys_nr] == TRUE) THEN
+        IF (($FLAG[F_EKI_SP_Act[cam_sys_nr]] == TRUE) OR ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE)) THEN 
+          InvTool = $NULLFRAME
+          KameraTool = $NULLFRAME
+          IF(B_EKI_KASTAT[cam_sys_nr] == FALSE) THEN
+            IF (EKI_VARS[cam_sys_nr].i_base_eki > 0) THEN
+              KameraTool = TOOL_DATA[EKI_VARS[cam_sys_nr].i_base_eki]
+            ENDIF
+            InvTool = VW_INV_FRAME($TOOL)
+            POSITION = $POS_ACT : InvTool : KameraTool
+          ELSE
+            
+            IF (EKI_VARS[cam_sys_nr].i_base_eki > 0) THEN
+              KameraTool = BASE_DATA[EKI_VARS[cam_sys_nr].i_base_eki]
+            ENDIF
+            InvTool = VW_INV_FRAME($BASE)
+            POSITION = $POS_ACT : InvTool : KameraTool
+          ENDIF
+          ret_wert = VIS_Send_DAT(POSITION)
+          
+        ELSE
+          taste = VIS_MLD(102, #NotifyMsg, 0)
+          ret_wert = -1
+        ENDIF
+      ELSE
+        ret_wert = -1
+        taste = VIS_MLD(97, #DialogMsg, 0)
+      ENDIF
+      
+    CASE EKI_LIFE_BIT ; Ethernet Verbindung herstellen
+      send_Tel_ID[cam_sys_nr] = 1
+      EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID = send_Tel_ID[cam_sys_nr] ; Tel_ID intitialisieren
+      ret_wert = ping_open_prt()
+      IF (ret_wert > 0) THEN
+        ret_wert = VIS_Send_DAT($POS_ACT)
+      ELSE
+        taste = VIS_MLD(98, #NotifyMsg, 0)
+      ENDIF
+      
+    CASE EKI_CANCEL ; Close Ethernet Channel
+      ret_wert = 0
+      IF ($FLAG[F_EKI_Sp_Act[cam_sys_nr]] == TRUE) THEN
+        ret_wert = VIS_Send_DAT($POS_ACT) ; wenn Port open, dann CANCEL senden
+      ENDIF
+      
+    CASE EKI_KAL_SEQ
+      IF (($FLAG[F_EKI_SP_Act[cam_sys_nr]] == TRUE) OR ($FLAG[F_EKI_KMD_DT[cam_sys_nr]] == TRUE)) THEN 
+        IF (B_EKI_INITSY[cam_sys_nr] == TRUE) THEN
+          ret_wert = Exec_Kalibr(PAR1)
+        ELSE
+          taste = VIS_MLD(102, #NotifyMsg, 0)
+          ret_wert = -1
+        ENDIF
+      ELSE
+        ret_wert = -1
+        taste = VIS_MLD(97, #DialogMsg, 0)
+      ENDIF
+      
+    CASE GET_REF_POS
+      ref_pos_get()
+      
+    DEFAULT
+      taste = VIS_MLD(89, #QuitMsg, 0) ;PAR2: falscher Wert Quit - MSG Roboter PHG
+      ret_wert = -1 ; ungueltiges Kommando
+      
+  ENDSWITCH 
+  RETURN(ret_wert) ; no valid case
+ENDFCT
+
+;----------------------------------
+;---- Funktion: Send XML Daten ----
+;----------------------------------
+
+DEFFCT INT VIS_Send_DAT(POSITION : IN) ;--Data Transmission--
+  FRAME Position
+
+  DECL EKI_STATUS RET
+  DECL STATE_T status 
+  INT offset
+  CHAR send_buf[128]
+
+  Count_Telegramm_ID() ;Telegramm_ID hochzaehlen
+  EKI_VARS[cam_sys_nr].Send_Val_Pos = Position
+  
+  SWITCH EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID
+    CASE EKI_LIFE_BIT
+      Send_Param[1] = "1"
+      ;EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 4].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Err_Text[] = 1
+      ;EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 6].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Param_Text[] = 1
+    DEFAULT
+      Send_Param[1] = " "
+      
+  ENDSWITCH
+
+  IF ($FLAG[I_EKI_Sp_Act[cam_sys_nr]] == TRUE) THEN
+    RET = EKI_ClearBuffer(EKI_VARS[cam_sys_nr].XML_ch2_String[], EKI_VARS[cam_sys_nr].XML_RCV_TXT[]) ;Clear Receive Channel
+    SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr)
+    IF (B_EKI_ASCII[cam_sys_nr] == FALSE) THEN
+      RET = EKI_SetInt(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/TEL_ID", EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID)
+      RET = EKI_SetInt(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/M_ID", EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID)
+      RET = EKI_SetInt(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/J_ID", EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID)
+      RET = EKI_SetFrame(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/POS", EKI_VARS[cam_sys_nr].Send_Val_Pos)
+      RET = EKI_SetString(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/PAR", Send_Param[])
+      RET = EKI_SetString(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT/T", Send_Termina[])
+    
+      ;Send XML_KUKA_EKI with Data
+      RET = EKI_Lock(EKI_VARS[cam_sys_nr].XML_ch1_String[]) ;Lock Channel
+      RET = EKI_Send(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT") ;Send Data
+      RET = EKI_Unlock(EKI_VARS[cam_sys_nr].XML_ch1_String[]) ;UnLock Channel
+      RET = EKI_ClearBuffer(EKI_VARS[cam_sys_nr].XML_ch1_String[], "ROBOT") ;Clear Channel
+    ELSE
+      offset = 0
+      send_buf[] = " "
+      SWRITE(send_buf[], Status, offset, "%d %d %d %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f #", EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID, EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID, EKI_VARS[cam_sys_nr].Send_Val_Pos.X, EKI_VARS[cam_sys_nr].Send_Val_Pos.Y, EKI_VARS[cam_sys_nr].Send_Val_Pos.Z, EKI_VARS[cam_sys_nr].Send_Val_Pos.A, EKI_VARS[cam_sys_nr].Send_Val_Pos.B, EKI_VARS[cam_sys_nr].Send_Val_Pos.C)
+      RET = EKI_Send(EKI_VARS[cam_sys_nr].XML_ch1_String[], send_buf[])
+    ENDIF
+  ELSE
+    RETURN(-1) ; channel not open
+  ENDIF
+  RETURN(0)
+ENDFCT
+
+;-------------------------------------
+;---- Funktion: Receive XML Daten ----
+;-------------------------------------
+
+DEFFCT INT VIS_Recv_XML(PAR2 :IN)
+  INT PAR2
+
+  INT taste, ret
+  BOOL b_ret_ok
+
+  IF ((PAR2 == EKI_CALI_END) OR (PAR2 == EKI_VALI_END) OR (PAR2 == EKI_VERI_END) OR (PAR2 == EKI_REFE_END)) THEN
+    EKI_VARS[cam_sys_nr].i_EKI_Timer = EKI_TimerIns[cam_sys_nr] ;Timeout fuer REF CAL VAL VERFIFY
+  ELSE
+    EKI_VARS[cam_sys_nr].i_EKI_Timer = EKI_TimerClc[cam_sys_nr] ;normal Timeout
+  ENDIF
+  IF ($FLAG[F_EKI_Dat_OK[cam_sys_nr]] == FALSE) THEN
+    EKI_VARS[cam_sys_nr].i_RobTimer = $ROB_TIMER
+    WHILE (NOT $FLAG[F_EKI_Dat_OK[cam_sys_nr]]) ; warte auf Datenempfang
+      IF (($ROB_TIMER - EKI_VARS[cam_sys_nr].i_RobTimer) > EKI_VARS[cam_sys_nr].i_EKI_Timer) THEN ;Timeout
+        SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive Flag
+        taste = VIS_MLD(11, #DialogMsg, 0) ; Quit - MSG Roboter PHG
+        RETURN(-1)
+      ENDIF
+    ENDWHILE 
+  ENDIF
+  IF ($FLAG[F_EKI_Dat_OK[cam_sys_nr]] == FALSE) THEN
+    SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive Flag
+    taste = VIS_MLD(11, #DialogMsg, 0) ; Quit - MSG Roboter PHG
+    RETURN(-1)
+  ELSE
+    Reset_Get_Values()
+    ret = read_rcv_data()
+    IF (ret >= 0) THEN
+      SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive Flag
+      ; check receive of END TAG
+      EKI_LOG_Data() ; Daten in Ringspeicher protokollieren
+          b_ret_ok = Check_Telegramm_ID()
+          IF (b_ret_ok == FALSE) THEN
+            RETURN(-2)
+          ENDIF
+      IF (B_TAG_CONTRL[cam_sys_nr] == TRUE) THEN
+        IF (EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[1] <> Get_Terminat[1]) THEN
+          taste = VIS_MLD(119, #QuitMsg, 0)
+          RETURN(-1) ; Terminator Tag fehlt
+        ENDIF
+      ELSE
+        RETURN(0)
+      ENDIF
+    ELSE
+      RETURN(-1) ; keine Nutzdaten empfangen
+    ENDIF
+  ENDIF
+  RETURN(0)
+ENDFCT
+
+;---------------------------------------------------------------------------
+;---- Funktion: Read XML Data into Buffers                               ----
+; Achtung: RET.Read kann nur mit EKI Version V2.1.1 genutzt werden !!!! ----
+;---------------------------------------------------------------------------
+
+DEFFCT INT read_rcv_data()
+
+  INT OFFSET, ret_wert
+  CHAR rcv_string[128]
+  DECL EKI_STATUS RET
+  DECL STATE_T Status
+
+  ret_wert = -1
+  IF (B_EKI_ASCII[cam_sys_nr] == FALSE) THEN
+    IF (B_New_XML[cam_sys_nr] == FALSE) THEN ; alte 2 Port EKI Version V1.x (alte XML Dateien)
+      RET = EKI_Lock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;Lock Channel
+      RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 1].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID)
+      IF (RET.Read > 0) THEN
+        SWITCH EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID
+        CASE EKI_LIFE_BIT ; Auslesen ohne Err_Text und Param_Text
+          Send_Param[1] = " "
+          RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 2].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID)
+          RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 3].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID)
+          RET = EKI_GetFrame(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 5].text[], EKI_VARS[cam_sys_nr].Get_Val_Pos)
+          RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 7].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[])
+          ret_wert = RET.Read
+        DEFAULT
+          Send_Param[1] = " "
+        RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 2].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID)
+        RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 3].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID)
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 4].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Err_Text[])
+        RET = EKI_GetFrame(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 5].text[], EKI_VARS[cam_sys_nr].Get_Val_Pos)
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 6].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Param_Text[])
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 7].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[])
+        ret_wert = RET.Read
+        ENDSWITCH
+      ELSE
+        ret_wert = -1
+      ENDIF
+      RET = EKI_Unlock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;UnLock Channel
+      RET = EKI_ClearBuffer(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[6, 8].text[]) ;Clear Channel
+    ELSE ; neue EKI 1 Port Version 2.x (neue XML Dateien)
+      RET = EKI_Lock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;Lock Channel
+      RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 1].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID)
+      IF (RET.Read > 0) THEN
+        RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 2].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID)
+        RET = EKI_GetInteger(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 3].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID)
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 4].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Err_Text[])
+        RET = EKI_GetFrame(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 5].text[], EKI_VARS[cam_sys_nr].Get_Val_Pos)
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 6].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.Param_Text[])
+        RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 7].text[], EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[])
+        ret_wert = RET.Read
+      ELSE
+        ret_wert = -1
+      ENDIF
+      RET = EKI_Unlock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;UnLock Channel
+      RET = EKI_ClearBuffer(EKI_VARS[cam_sys_nr].XML_ch2_String[], XML_get_strg[Cam_sys_nr, 8].text[]) ;Clear Channel
+    ENDIF
+  ELSE
+    RET = EKI_Lock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;Lock Channel
+    ; get string from "BUFFER"
+    rcv_string[] = " "
+    RET = EKI_GetString(EKI_VARS[cam_sys_nr].XML_ch2_String[], EKI_VARS[cam_sys_nr].XML_RCV_TXT[], rcv_string[])
+    IF (RET.Read > 0) THEN
+      ; convert message to variables
+      OFFSET = 0
+      SREAD(rcv_string[], Status, OFFSET, "%d %d %d", EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID)
+      SREAD(rcv_string[], Status, OFFSET, "%f %f %f %f %f %f %s", EKI_VARS[cam_sys_nr].Get_Val_Pos.X, EKI_VARS[cam_sys_nr].Get_Val_Pos.Y, EKI_VARS[cam_sys_nr].Get_Val_Pos.Z, EKI_VARS[cam_sys_nr].Get_Val_Pos.A, EKI_VARS[cam_sys_nr].Get_Val_Pos.B, EKI_VARS[cam_sys_nr].Get_Val_Pos.C, EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[])
+      ret_wert = RET.Read
+    ELSE
+      ret_wert = -1 
+    ENDIF
+    RET = EKI_Unlock(EKI_VARS[cam_sys_nr].XML_ch2_String[]) ;UnLock Channel
+    RET = EKI_ClearBuffer(EKI_VARS[cam_sys_nr].XML_ch2_String[], EKI_VARS[cam_sys_nr].XML_RCV_TXT[]) ;Clear Channel
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;-----------------------------------------------------
+;---- Interrupt Routine Read XML Data and proceed ----
+;-----------------------------------------------------
+
+GLOBAL DEF eki_recv_irq(cam_nr: IN)
+  INT cam_nr
+
+  BOOL B_F_Range
+  INT cam_sys_merk, taste, ret
+
+  cam_sys_merk = cam_sys_nr ; Kamera System Nummer merken
+  Cam_sys_nr = cam_nr
+
+  Reset_Get_Values()
+  ret = read_rcv_data()
+
+  ; check receive of END TAG
+  IF (ret >= 0) THEN
+    IF (EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[1] == Get_Terminat[1]) THEN
+  
+      SWITCH EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID
+          
+        CASE EKI_STAT_ERR ;Error
+          BRAKE F
+          INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr] ; Interrupt sperren bei Fehler
+          taste = VIS_MLD(95, #NotifyMsg, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID) ;Error Check Status_ID   Notify - MSG - MSG Roboter PHG
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          
+        CASE EKI_STAT_IO ;OK
+          B_F_Range = Check_Max_Range()
+          IF (B_F_Range == TRUE) THEN
+            BRAKE F
+            INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr] ; Interrupt sperren bei Fehler
+            SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          ELSE
+            SetzeFlags(#EKI_MES_IO, TRUE, cam_sys_nr)
+            SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+            
+            IF(B_EKI_KASTAT[cam_sys_nr] == FALSE) THEN
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              tool_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $TOOL : EKI_VARS[cam_sys_nr].Get_Val_Pos ; TOOL FRAME Relativkorrektur
+            ELSE
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $Nullframe
+              Base_Data[EKI_VARS[cam_sys_nr].i_base_eki] = $BASE : EKI_VARS[cam_sys_nr].Get_Val_Pos ; BASE FRAME Korrektur
+            ENDIF
+          ENDIF
+          
+        DEFAULT ; keine gueltige Status_ID in dieser Betriebsart
+          BRAKE F
+          INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr] ; Interrupt sperren bei Fehler
+          taste = VIS_MLD(94, #NotifyMsg, 0) ;Error Check Status_ID   Notify - MSG - MSG Roboter PHG
+          SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          
+      ENDSWITCH
+    cam_sys_nr = cam_sys_merk ; restore GLOBAL 
+      
+    ELSE
+      INTERRUPT OFF EKI_RCV_IRQ[cam_sys_nr] ; Interrupt sperren bei Fehler
+      taste = VIS_MLD(119, #NotifyMsg, 0)
+      SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr) ; missing END TAG
+      SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+    ENDIF
+  ELSE
+    taste = VIS_MLD(121, #NotifyMsg, 0)
+    SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr) ; keine Nutzdaten empfangen
+    SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+  ENDIF
+  SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive FLAG
+END
+
+;-------------------------------------
+; Funktion Realign - z.B. SICK PLR3000 Programm - Schleife
+;-------------------------------------
+
+DEF realign_exe(PAR1 : IN, PAR2 :IN, PAR3 :IN, PAR4 : IN, PAR5 :IN)
+  INT PAR1, PAR2, PAR3, PAR4, PAR5
+
+  INT i_ret, taste, status_id
+  BOOL new_mp_pos, stat_realign
+  FRAME orig_pos
+  FRAME orig_base
+
+  orig_pos  = $POS_ACT
+  orig_base = $BASE
+  ;init realign frame
+  EKI_VARS[cam_sys_nr].realign = $NULLFRAME
+  
+  stat_realign = eki_realign(new_mp_pos, PAR5, orig_base) ; B_realign = FALSE, falls Umpositionierung nicht moeglich
+  IF (stat_realign == TRUE) THEN
+    REPEAT ; REPEAT Realign
+  
+      ;Initialize sample data
+      EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME
+    
+      ;--Data Transmission--
+      i_ret = VIS_Send_XML(PAR1, PAR2)
+      IF (i_ret <> 0) THEN
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        EXIT
+      ENDIF
+    
+      ;--Data Receive--
+      i_ret = VIS_Recv_XML(PAR2)
+      IF (i_ret <= -1) THEN
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        EXIT
+      ENDIF
+    
+      status_id = eki_cmd_chck(PAR1, PAR2, PAR3, PAR4)
+    
+      IF (status_id == STAT_RET_REA) THEN
+        stat_realign = eki_realign(new_mp_pos, PAR5, orig_base) ; B_realign = FALSE, falls Umpositionierung nicht moeglich
+      ELSE
+        stat_realign = FALSE
+      ENDIF
+  
+    UNTIL NOT stat_realign
+  ENDIF
+
+  IF (new_mp_pos == TRUE) AND (B_EKI_NREPOS[cam_sys_nr] == FALSE) THEN
+    $BASE = orig_base ;zurueckpositionieren auf Ursprungsmesspunktkoordinaten
+    WAIT SEC 0
+    IF (VW_MPARA_ACT.MOVE_TYPE == #PTP_MOTION) THEN
+      CONTINUE
+      PTP orig_pos
+    ELSE
+      IF (VW_MPARA_ACT.MOVE_TYPE == #PATH_MOTION) THEN
+        CONTINUE
+        LIN orig_pos
+      ELSE
+        IF (VW_MPARA_ACT.MOVE_TYPE == #GLUE_MOTION) THEN
+          LIN orig_pos
+        ELSE
+          taste = VIS_MLD(61, #QuitMsg, 0) ; unerlaubte Interpolationsart
+        ENDIF ; KLIN
+      ENDIF ; LIN
+    ENDIF ; PTP
+  ENDIF ; Repositionieren
+END
+
+;-------------------------------------
+; Funktion Realign - Kamera fordert Umpositionierung des Roboters z.B. SICK PLR3000
+;-------------------------------------
+
+DEFFCT BOOL eki_realign(new_mp_pos :OUT, PAR5 :IN, orig_base :IN)
+  BOOL new_mp_pos
+  INT PAR5
+  FRAME orig_base
+
+  INT ret, taste
+  FRAME temp_base, check_base
+  FRAME temp_pos
+  BOOL B_new_mespos
+
+  temp_base = orig_base
+  WAIT SEC 0
+  
+  IF (B_EKI_CHKVAL[cam_sys_nr] == FALSE) THEN
+    ;Prüfen der relativen (und aufaddierten) Werte
+	EKI_VARS[cam_sys_nr].realign = EKI_VARS[cam_sys_nr].realign : EKI_VARS[cam_sys_nr].Get_Val_Pos
+  ELSE
+    ;Prüfen der absoluten Werte
+    EKI_VARS[cam_sys_nr].realign = orig_base : EKI_VARS[cam_sys_nr].Get_Val_Pos
+  ENDIF
+  check_base = EKI_VARS[cam_sys_nr].realign
+  
+  temp_base = temp_base : EKI_VARS[cam_sys_nr].Get_Val_Pos
+  ret = Check_korr_frame(PAR5, check_base)
+  IF (ret == 0) THEN
+    temp_pos = $POS_ACT
+    $BASE = temp_base
+    WAIT SEC 0
+    IF (VW_MPARA_ACT.MOVE_TYPE == #PTP_MOTION) THEN
+      CONTINUE
+      PTP temp_pos
+      new_mp_pos = TRUE ; ggf. ist repositionieren erforderlich
+      B_new_mespos = TRUE
+    ELSE
+      IF (VW_MPARA_ACT.MOVE_TYPE == #PATH_MOTION) THEN
+        CONTINUE
+        LIN temp_pos
+        new_mp_pos = TRUE ; ggf. ist repositionieren erforderlich
+        B_new_mespos = TRUE
+      ELSE
+        IF (VW_MPARA_ACT.MOVE_TYPE == #GLUE_MOTION) THEN
+          CONTINUE
+          LIN temp_pos
+          new_mp_pos = TRUE ; ggf. ist repositionieren erforderlich
+          B_new_mespos = TRUE
+        ELSE
+          $BASE = orig_base
+          WAIT SEC 0
+          taste = VIS_MLD(61, #QuitMsg, 0) ; unerlaubte Interpolationsart
+          SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+          B_new_mespos = FALSE
+        ENDIF
+      ENDIF
+    ENDIF
+    WAIT SEC 0
+    $BASE = orig_base
+    WAIT SEC 0
+    IF NOT ($EXT) THEN
+      taste = VIS_MLD(62, #NotifyMsg, PAR5)
+    ENDIF
+  ELSE
+    B_new_mespos = FALSE ; Abbruch, da Realin out of Range
+    taste = VIS_MLD(63, #NotifyMsg, PAR5)
+  ENDIF
+  RETURN(B_new_mespos)
+ENDFCT
+
+;-----------------------------------------------------------------
+;---- Funktion: realign positionsframe auf Grenzwerte pruefen ----
+;-----------------------------------------------------------------
+
+DEFFCT INT Check_korr_frame(PAR5 :IN, temp_base :IN)
+  INT PAR5
+  FRAME temp_base
+  
+  INT i_realign_err, taste
+  
+  ;Check Max_Range
+  i_realign_err = 0
+  IF ((PAR5 > 0) AND (PAR5 <= MAX_KORR_ARR)) THEN
+    i_realign_err = 0
+    IF (temp_base.X > KORR_Max[PAR5].X) THEN
+      taste = VIS_MLD(49, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.Y > KORR_Max[PAR5].Y) THEN
+      taste = VIS_MLD(50, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.Z > KORR_Max[PAR5].Z) THEN
+      taste = VIS_MLD(51, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.A > KORR_Max[PAR5].A) THEN
+      taste = VIS_MLD(52, #NotifyMsg, PAR5)
+    i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.B > KORR_Max[PAR5].B) THEN
+      taste = VIS_MLD(53, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.C > KORR_Max[PAR5].C) THEN
+      taste = VIS_MLD(54, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+  
+    ;Check Min_Range
+    IF (temp_base.X < KORR_Min[PAR5].X) THEN
+      taste = VIS_MLD(55, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.Y < KORR_Min[PAR5].Y) THEN
+      taste = VIS_MLD(56, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.Z < KORR_Min[PAR5].Z) THEN
+      taste = VIS_MLD(57, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.A < KORR_Min[PAR5].A) THEN
+      taste = VIS_MLD(58, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.B < KORR_Min[PAR5].B) THEN
+      taste = VIS_MLD(59, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+    IF (temp_base.C < KORR_Min[PAR5].C) THEN
+      taste = VIS_MLD(60, #NotifyMsg, PAR5)
+      i_realign_err = -1 ; 
+    ENDIF
+  ELSE
+    IF (PAR5 == 0) THEN
+      ; keine Ueberwachung der Wert
+      RETURN(0)
+    ELSE
+      taste = VIS_MLD(64, #NotifyMsg, PAR5)
+      RETURN(-1)
+    ENDIF
+  ENDIF
+  IF (i_realign_err == 0) THEN
+    SetzeFlags(#EKI_REALI, FALSE, cam_sys_nr) ; no Realign Error, check successfull
+    RETURN(0)
+  ELSE
+    taste = VIS_MLD(48, #NotifyMsg, 0) ; Message "Realign out of range"
+    IF NOT ($EXT) THEN
+      taste = VIS_MLD(1, #QuitMsg, 0) ; Dialog MSG, ob trotzdem Werte �bernommen werden sollen
+      taste = VIS_MLD(42, #DialogMsg, 0) ; "Crashgefahr"
+    ELSE
+      taste = TASTE_0
+      SetzeFlags(#EKI_REALI, TRUE, cam_sys_nr) ; Realign Error
+      RETURN(-1)
+    ENDIF 
+    IF (taste == TASTE_1) THEN
+      SetzeFlags(#EKI_REALI, FALSE, cam_sys_nr) ; Realign out of range, aber doch anwenden (Quit weiter)
+      RETURN(0)
+    ELSE
+      SetzeFlags(#EKI_REALI, TRUE, cam_sys_nr) ; Realign out of range, aber nicht anwenden (Abbruch)
+      RETURN(-1)
+    ENDIF
+  ENDIF 
+ENDFCT
+
+
+DEFFCT INT set_system_vars(PAR1 :IN, PAR2 : IN, PAR3: IN, PAR4 :IN)
+  INT PAR1, PAR2, PAR3, PAR4
+  
+  INT ret_wert, job_nr, taste
+  
+  ret_wert = -1
+  job_nr = -1
+  
+  ; Check Job_ID -- xyy
+  ;                 \\_Kamera Job Nr (yy = 1..99)
+  ;                  \_Kamera System Nr (x = 0 -> KAM 1, x = 1 -> KAM 2..)
+  IF ((PAR1 > KAM0_PRG_NR) AND (PAR1 < KAM1_PRG_NR)) THEN ; KAM System 1 Job 01-99
+    cam_sys_nr = 1
+    job_nr = PAR1 - KAM0_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM1_PRG_NR) AND (PAR1 < KAM2_PRG_NR)) THEN ; KAM System 2 Job 01-99
+    cam_sys_nr = 2
+    job_nr = PAR1 - KAM1_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM2_PRG_NR) AND (PAR1 < KAM3_PRG_NR)) THEN ; KAM System 3 Job 01-99
+    cam_sys_nr = 3
+    job_nr = PAR1 - KAM2_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM3_PRG_NR) AND (PAR1 < KAM4_PRG_NR)) THEN ; KAM System 4 Job 01-99
+    cam_sys_nr = 4
+    job_nr = PAR1 - KAM3_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM4_PRG_NR) AND (PAR1 < KAM5_PRG_NR)) THEN ; KAM System 5 Job 01-99
+    cam_sys_nr = 5
+    job_nr = PAR1 - KAM4_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  
+  ; erweiterter Job - Bereich (VMT Bratislava)
+  ; Check Job_ID -- xyyy
+  ;                 \\_Kamera Job Nr (yyy = 1..999)
+  ;                  \_Kamera System Nr (x = 1 -> KAM 1, x = 2 -> KAM 2..)
+  IF ((PAR1 > KAM00_PRG_NR) AND (PAR1 < KAM11_PRG_NR)) THEN ; KAM System 1 JOB 001-999
+    cam_sys_nr = 1
+    job_nr = PAR1 - KAM00_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM11_PRG_NR) AND (PAR1 < KAM22_PRG_NR)) THEN ; KAM System 2 Job 001-999�
+    cam_sys_nr = 2
+    job_nr = PAR1 - KAM11_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM22_PRG_NR) AND (PAR1 < KAM33_PRG_NR)) THEN ; KAM System 3 Job 001-999
+    cam_sys_nr = 3
+    job_nr = PAR1 - KAM22_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM33_PRG_NR) AND (PAR1 < KAM44_PRG_NR)) THEN ; KAM System 4 Job 001-999
+    cam_sys_nr = 4
+    job_nr = PAR1 - KAM33_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  IF ((PAR1 > KAM44_PRG_NR) AND (PAR1 < KAM55_PRG_NR)) THEN ; KAM System 5 Job 001-999
+    cam_sys_nr = 5
+    job_nr = PAR1 - KAM44_PRG_NR
+    ret_wert = cam_sys_nr
+  ENDIF
+  
+  ; Set EKI vars
+  
+  IF (ret_wert > 0) THEN
+    IF (B_EKI_ASCII[cam_sys_nr] == TRUE) THEN
+      B_New_XML[cam_sys_nr] = TRUE
+    ENDIF
+    IF (B_New_XML[cam_sys_nr] == TRUE) THEN
+      B_One_Port[cam_sys_nr] = TRUE
+    ENDIF
+    EKI_VARS[cam_sys_nr].PAR4 = PAR4
+    EKI_VARS[cam_sys_nr].PAR2 = PAR2
+    EKI_VARS[cam_sys_nr].Get_Val_Pos = $NULLFRAME
+    IF (PAR2 == EKI_LIFE_BIT) THEN
+      EKI_VARS[cam_sys_nr].counter_Vali = 0
+      EKI_VARS[cam_sys_nr].counter_Cali = 0
+      EKI_VARS[cam_sys_nr].counter_Very = 0
+    ENDIF
+    SetzeFlags(#EKI_MES_NE, FALSE, cam_sys_nr)
+    SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+    EKI_JOB_NR[cam_sys_nr] = Job_nr
+  
+    ; check correct Base - number
+  
+    IF ((PAR3 > 0) AND (PAR3 < 33)) THEN
+      EKI_VARS[cam_sys_nr].i_base_eki = PAR3
+    ELSE
+      IF ((PAR2 == EKI_MESS_PKT) AND (PAR3 == 0)) THEN
+        EKI_VARS[cam_sys_nr].i_base_eki = PAR3
+      ELSE
+        EKI_VARS[cam_sys_nr].i_base_eki = -1
+        taste = VIS_MLD(44, #QuitMsg, PAR3) ;Error ungueltige Base - Nummer - MSG Roboter PHG
+        SetzeFlags(#EKI_MES_IO, FALSE, cam_sys_nr)
+        SetzeFlags(#EKI_MES_NE, TRUE, cam_sys_nr)
+        ret_wert = -1
+      ENDIF
+    ENDIF
+  ELSE
+    taste = VIS_MLD(29, #QuitMsg, 0) ;PAR1: falscher Wert Quit - MSG Roboter PHG
+    GIK_POSDAT[cam_sys_nr].bauteil_nr = -1
+    ret_wert = -1
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;------------------------------------------------------------
+;---- Funktion Kalibrieren nach Kalibrationarray         ----
+;------------------------------------------------------------
+
+DEFFCT INT Exec_Kalibr(PAR1: IN)
+  INT PAR1
+  
+  INT ret_wert, i, taste, status_id
+  
+  EKI_VARS[cam_sys_nr].i_EKI_Timer = EKI_TimerClc[cam_sys_nr] ;normal Timeout
+  EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID = EKI_CALIBRAT ; Auftrag System Kalibrieren
+  EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID = PAR1
+  
+  ret_wert = ping_open_prt()
+  IF (ret_wert > 0) THEN
+    IF ((ANZ_KAL_POS[cam_sys_nr] > 0) AND (ANZ_KAL_POS[cam_sys_nr] < MAX_KAL_POS)) THEN
+      FOR i = 1 TO ANZ_KAL_POS[cam_sys_nr]
+        LIN_REL EKI_KAL_POS[cam_sys_nr, i]
+        WAIT SEC 0.1
+        ret_wert = VIS_Send_DAT($POS_ACT)
+        IF (ret_wert <> 0) THEN
+          RETURN(-1)
+        ENDIF
+        EKI_VARS[cam_sys_nr].i_RobTimer = $ROB_TIMER
+        WHILE (NOT $FLAG[F_EKI_Dat_OK[cam_sys_nr]]) ; warte auf Datenempfang
+          IF (($ROB_TIMER - EKI_VARS[cam_sys_nr].i_RobTimer) > EKI_VARS[cam_sys_nr].i_EKI_Timer) THEN ;Timeout
+            taste = VIS_MLD(11, #DialogMsg) ; Quit - MSG Roboter PHG
+            RETURN(-1)
+          ENDIF
+        ENDWHILE 
+        ret_wert = read_rcv_data()
+        IF (ret_wert >= 0) THEN
+          SetzeFlags(#EKI_Dat_OK, FALSE, cam_sys_nr) ; reset Data receive Flag
+          IF (EKI_VARS[cam_sys_nr].EKI_RECEIVE.end_sign[1] == Get_Terminat[1]) THEN
+            status_id = Check_Status_ID(EKI_CALIBRAT)
+            IF (status_id == STAT_RET_IO) THEN
+              ret_wert = 0
+            ELSE
+              RETURN(-1)
+            ENDIF
+          ELSE
+            taste = VIS_MLD(119, #QuitMsg, 0)
+            RETURN(-1) ; ERROR, END TAG missing
+          ENDIF
+        ELSE
+          taste = VIS_MLD(121, #QuitMsg, 0)
+          RETURN(-1)
+        ENDIF
+      ENDFOR
+    ELSE
+      ret_wert = -1
+      taste = VIS_MLD(90, #QuitMsg, MAX_KAL_POS)
+    ENDIF
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+
+;------------------------------------------------------------
+;---- Funktion Positioniersequenz vom GIK - System holen ----
+;------------------------------------------------------------
+
+DEFFCT INT get_gik_data(PAR1 :IN, PAR2 :IN, PAR3 : IN)
+  INT PAR1, PAR2, PAR3
+  
+  ; PAR3 = Greifer/Sensor TOOL Nr
+  
+  INT i, ret_GIK, i_ret, taste
+  INT Tool_NR
+  BOOL B_F_Range
+  BOOL B_ret
+  
+  init_GIK_var()
+  i = 1
+  B_F_Range = FALSE
+  ret_GIK = chk_gik_statID(i)
+  
+  IF (ret_GIK < 0) THEN ; ERROR 
+    taste = VIS_MLD(78, #NotifyMsg, GIK_GET_POS) ; Quit MSG
+    GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+    RETURN(-1)
+  ELSE ; Get DATA
+    IF (EKI_JOB_NR[cam_sys_nr] < 0) THEN
+      taste = VIS_MLD(112, #QuitMsg, GIK_GET_POS) ; Quit MSG
+      RETURN(-1)
+    ELSE
+      GIK_POSDAT[cam_sys_nr].bauteil_nr = EKI_JOB_NR[cam_sys_nr]
+    ENDIF
+  
+    REPEAT
+      IF ((ret_GIK == GIK_VALID_DT) OR (ret_GIK == GIK_GRBT_POS)) THEN
+        i = i + 1
+      ENDIF
+      IF ((ret_GIK == GIK_VALID_DT) OR (ret_GIK == GIK_GRBT_POS) OR (ret_GIK == GIK_GRP_WIPO)) THEN
+        ;--Data Send to GIK --
+        i_ret = VIS_Send_XML(PAR1, PAR2)
+        IF (i_ret == -1) THEN
+          GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+          taste = VIS_MLD(78, #NotifyMsg, GIK_GET_POS) ; Quit MSG
+          RETURN(-1)
+        ENDIF
+      ENDIF
+  
+      ;--Data Receive from GIK --
+      i_ret = VIS_Recv_XML(PAR2)
+      IF (i_ret <= -1) THEN
+        GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+        taste = VIS_MLD(78, #NotifyMsg, GIK_GET_POS) ; Quit MSG
+        RETURN(-1)
+      ENDIF
+  
+      ;-- Check GIK Daten  --
+      ret_GIK = chk_gik_statID(i)
+      IF (ret_GIK <> GIK_GRP_WIPO) THEN
+        B_ret = Check_Max_Range()
+        IF (B_ret == TRUE) THEN
+          B_F_Range = TRUE
+        ENDIF
+      ENDIF
+   
+    UNTIL (ret_GIK == GIK_LAST_DAT)
+      
+    IF (B_F_Range == TRUE) THEN
+      GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+      RETURN(-1)
+    ELSE
+      IF ((GIK_POSDAT[cam_sys_nr].TOOL_ID > 0) AND (GIK_POSDAT[cam_sys_nr].TOOL_ID < 5)) THEN ; check TOOL ID vom Kamerasystem
+        Tool_NR = ROB_TOOL_ID[cam_sys_nr, GIK_POSDAT[cam_sys_nr].TOOL_ID]
+        ret_GIK = set_gik_grpw(Tool_NR, PAR3)
+        IF (ret_GIK > 0) THEN
+          GIK_POSDAT[cam_sys_nr].Data_valid = TRUE
+        ELSE
+          GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+        ENDIF
+      ELSE
+        taste = VIS_MLD(117, #QuitMsg, 0) ; falsche Tool ID vom Kamerasystem
+        GIK_POSDAT[cam_sys_nr].Data_valid = FALSE
+        RETURN (-1)
+      ENDIF
+
+    ENDIF
+  ENDIF
+  RETURN(0)
+ENDFCT
+
+;----------------------------------------------------------
+;---- Funktion Ablage - UP rufen                       ----
+;----------------------------------------------------------
+
+DEFFCT INT BT_UP_ABLEG()
+
+  INT taste
+
+  IF ((GIK_POSDAT[cam_sys_nr].bauteil_nr > 0) AND (GIK_POSDAT[cam_sys_nr].bauteil_nr < 6)) THEN
+    IF ((GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr > 0) AND (GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr < 11)) THEN
+      ; up_num = GIK_UP_NUM[cam_sys_nr, GIK_POSDAT[cam_sys_nr].bauteil_nr, GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr]
+      SEL_RES = SELECT(#UP, GIK_UP_NUM[cam_sys_nr, GIK_POSDAT[cam_sys_nr].bauteil_nr, GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr] , TRUE , , , , , FALSE)
+    ELSE
+      taste = VIS_MLD(108, #QuitMsg, 0) ; Quit MSG
+      RETURN(-1)
+    ENDIF
+  ELSE
+    taste = VIS_MLD(109, #QuitMsg, 0) ; Quit MSG
+    RETURN(-1)
+  ENDIF
+  RETURN(0)
+ENDFCT
+
+;----------------------------------------------------------
+;---- Funktion Initialisieren vom GIK - Systemstructur ----
+;----------------------------------------------------------
+
+DEF init_GIK_var()
+
+  INT i
+
+  GIK_POSDAT[cam_sys_nr].Data_valid = FALSE ; kein gueltiger Datensatz
+  GIK_POSDAT[cam_sys_nr].pos_nr = 0 ; Laufnummer positinsdaten
+  GIK_POSDAT[cam_sys_nr].GRP_Winkel = 0 ; Stellwinkel Greifer default = 0
+  GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr = 0 ; BT Entnahme Sequenz default = 0
+  GIK_POSDAT[cam_sys_nr].GRP_Makro_do = 0 ; Punktnummer fuer Greifer - Makro
+  GIK_POSDAT[cam_sys_nr].TOOL_ID = 0 ; bei Winkel Positions Nr des Tools
+  GIK_POSDAT[cam_sys_nr].GRP_TCP = $NULLFRAME
+  FOR i = 1 TO 10
+    GIK_position[cam_sys_nr, i] = $NULLFRAME
+  ENDFOR
+END
+
+;------------------------------------------------------------
+;---- Funktion Positioniersequenz vom GIK - System holen ----
+;------------------------------------------------------------
+
+DEFFCT INT chk_gik_statID(i :IN)
+  INT i ; Datensatz - Nummer
+  
+  INT ret_val, taste 
+  ; 0 = ok, weitere Daten 
+  ; 1 = letzter Datensatz
+  ; 2 = Datensatz f�r Greifposition am Bauteil
+  ; 3 = Daten fuer GRP - Winkel GRP Stelle
+  ;-1 = Fehler
+  
+  ret_val = GIK_SEQ_ERR
+  GIK_POSDAT[cam_sys_nr].pos_nr = i
+  SWITCH EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID
+    CASE GIK_DATA_POS
+      GIK_position[cam_sys_nr, i] = EKI_VARS[cam_sys_nr].Get_Val_Pos 
+      ret_val = GIK_VALID_DT
+    
+    CASE GIK_GRIP_DAT
+      GIK_POSDAT[cam_sys_nr].GRP_Winkel = EKI_VARS[cam_sys_nr].Get_Val_Pos.X ; X = Greifer Anstellwinkel, wenn vorhanden
+      GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr = EKI_VARS[cam_sys_nr].Get_Val_Pos.Y ; Y = Greifposition am Bauteil, wenn mehrere Moeglichkeiten
+      GIK_POSDAT[cam_sys_nr].TOOL_ID = EKI_VARS[cam_sys_nr].Get_Val_Pos.Z ;    Z = Roboter Tool Nr setzen, wenn nicht -1
+      GIK_POSDAT[cam_sys_nr].GRP_TCP.X = EKI_VARS[cam_sys_nr].Get_Val_Pos.A ;  A = Roboter TCP X - Wert
+      GIK_POSDAT[cam_sys_nr].GRP_TCP.Y = EKI_VARS[cam_sys_nr].Get_Val_Pos.B ;  B = Roboter TCP Y - Wert
+      GIK_POSDAT[cam_sys_nr].GRP_TCP.Z = EKI_VARS[cam_sys_nr].Get_Val_Pos.C ;  C = Roboter TCP Z - Wert
+      ret_val = GIK_GRP_WIPO
+  
+    CASE GIK_GRIP_POS
+      GIK_position[cam_sys_nr, i] = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      GIK_POSDAT[cam_sys_nr].GRP_Makro_do = i ; Punktnummer in Ablaufsequenz fuer Greifer - Makro
+      ret_val = GIK_GRBT_POS
+    
+    CASE GIK_LAST_POS
+      GIK_position[cam_sys_nr, i] = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      ret_val = GIK_LAST_DAT
+    
+    DEFAULT
+      taste = VIS_MLD(74, #NotifyMsg, 0) ;Error Check Status_ID Quit - MSG Roboter PHG
+      ret_val = GIK_SEQ_ERR
+    
+  ENDSWITCH
+  RETURN(ret_val)
+ENDFCT
+  
+;---------------------------------------------------
+;---- Funktion GIK abfahren der Entnahmesequenz ----
+;---------------------------------------------------
+  
+DEFFCT INT execute_gtBT()
+  
+  INT i, taste, ret_wert
+  FRAME tool_merk
+  INT Tool_NR
+  BOOL speed_change
+  INT MakroNr
+
+;-- Timer deklarieren -- fuer Versuch 27.09.2017, IBN                                                                                                                         
+  
+   $TIMER_FLAG[51] = FALSE ;IBN
+   $TIMER_STOP[51] = TRUE ;IBN
+   $TIMER[51] = 0 ;IBN 
+   $TIMER_STOP[51] = FALSE ;IBN
+
+
+  IF ((GIK_POSDAT[cam_sys_nr].TOOL_ID > 0) AND (GIK_POSDAT[cam_sys_nr].TOOL_ID < 5)) THEN ; check TOOL ID vom Kamerasystem
+    Tool_NR = ROB_TOOL_ID[cam_sys_nr, GIK_POSDAT[cam_sys_nr].TOOL_ID]
+  ELSE
+    taste = VIS_MLD(117, #QuitMsg, 0) ; falsche Tool ID vom Kamerasystem
+    RETURN (-1)
+  ENDIF
+
+  ret_wert = 1
+  IF ((Tool_NR < 0) OR (Tool_NR > 32)) THEN ; konfigurierte Tool_Nr pruefen
+    taste = VIS_MLD(113, #QuitMsg, 0)
+    GIK_POSDAT[cam_sys_nr].Data_valid = FALSE ; Daten nicht mehr gueltig
+    RETURN(-1)
+  ELSE ; konfigurierte Makro Nr pruefen
+    MakroNr = GIK_GP_MAKRO[cam_sys_nr, Tool_NR]
+    IF ((MakroNr < 0) OR (MakroNr > 999)) THEN ; fehlerhafte Makro - Nummer
+      taste = VIS_MLD(79, #QuitMsg, 0)
+      GIK_POSDAT[cam_sys_nr].Data_valid = FALSE ; Daten nicht mehr gueltig
+      RETURN(-1)
+    ENDIF
+  ENDIF
+  
+  GIK_POSDAT[cam_sys_nr].f_rob_speed = $VEL.CP
+  speed_change = FALSE
+  IF (ret_wert > 0) THEN
+    CONTINUE
+    FOR i = 1 TO GIK_POSDAT[cam_sys_nr].pos_nr
+      CONTINUE
+      ; Speed limit for grip target
+      IF (i == GIK_POSDAT[cam_sys_nr].GRP_Makro_do) THEN
+        IF ((speed_limit[cam_sys_nr] > 0.0) AND (speed_limit[cam_sys_nr] < GIK_POSDAT[cam_sys_nr].f_rob_speed)) THEN
+          speed_change = TRUE
+          WAIT SEC 0  ; Vorlauf stop
+          $VEL.CP = speed_limit[cam_sys_nr]
+        ENDIF
+        ; activate target search, if switch number configured
+        IF ((I_GIK_TGCont[cam_sys_nr] > 0) AND (I_GIK_TGCont[cam_sys_nr] < 4096)) THEN
+          ; target search active
+          ; -- Interrupt fuer Taget search enable
+          IF ($IN[I_GIK_TGCont[cam_sys_nr]] == FALSE) THEN ; Zielpkt schon erreicht ??
+            INTERRUPT DECL TARGET_IRQ WHEN $IN[I_GIK_TGCont[cam_sys_nr]] == TRUE DO gik_irq4trgt()
+            GIK_Target_Search(i)
+          ENDIF
+        ELSE
+          ; no target search
+          LIN GIK_position[cam_sys_nr, i]
+        ENDIF
+      ELSE
+        IF (speed_change == TRUE) THEN
+          speed_change = FALSE
+          WAIT SEC 0  ; Vorlauf stop
+          $VEL.CP = GIK_POSDAT[cam_sys_nr].f_rob_speed  ; restore old ROB speed
+        ENDIF
+        LIN GIK_position[cam_sys_nr, i]
+      ENDIF
+      IF (i == GIK_POSDAT[cam_sys_nr].GRP_Makro_do) THEN
+        MakroNr = GIK_GP_MAKRO[cam_sys_nr, Tool_NR]
+        IF ((MakroNr > 0) AND (MakroNr < 1000)) THEN ; korrekte Makro - Nummer
+          SEL_RES = SELECT(#MAKRO, MakroNr, TRUE , , , , , FALSE)
+        ENDIF
+      ENDIF
+    ENDFOR
+  ENDIF
+  INTERRUPT OFF TARGET_IRQ
+  GIK_POSDAT[cam_sys_nr].Data_valid = FALSE ; Daten nicht mehr gueltig
+ $TIMER_STOP[51] = TRUE ;IBN
+ $TIMER[52] = $TIMER[51] ;IBN
+RETURN(ret_wert)
+ENDFCT
+
+;---------------------------------------------------
+;---- SUB Funktion GIK Suchlauf Bauteil         ----
+;---------------------------------------------------
+DEF GIK_Target_Search(pos_nr :IN)
+  INT pos_nr
+
+  INTERRUPT ON TARGET_IRQ
+  LIN GIK_position[cam_sys_nr, pos_nr]
+  INTERRUPT OFF TARGET_IRQ
+  WAIT SEC 0
+END
+
+;---------------------------------------------------
+;---- Interrupt Funktion GIK Suchlauf Bauteil   ----
+;---------------------------------------------------
+DEF gik_irq4trgt()
+
+  INTERRUPT OFF TARGET_IRQ
+  BRAKE
+  RESUME
+  LIN $pos_act
+
+END
+
+
+;---------------------------------------------------
+;---- Funktion GIK Greifer Winkel einstellen    ----
+;---------------------------------------------------
+
+DEFFCT INT set_gik_grpw(Tool_NR : IN, PAR3 : IN)
+  INT Tool_NR , PAR3
+  INT wert, taste, ret_wert
+  INT MakroNr
+  
+  ret_wert = -1
+  IF ((Tool_NR < 0) OR (Tool_NR > 32)) THEN
+      taste = VIS_MLD(134, #QuitMsg, Tool_NR) ; falsche oder keine Tool NR parametriert
+      RETURN (ret_wert)  ; Error return
+  ENDIF
+
+  IF ((PAR3 <= 0) OR (PAR3 > 32)) THEN
+    taste = VIS_MLD(113, #QuitMsg, 0) ; falsche Target Tool NR
+    RETURN (ret_wert)
+  ENDIF
+
+  wert = GIK_POSDAT[cam_sys_nr].GRP_Winkel ; derzeit keine Verwendung
+  MakroNr = GIK_GW_MAKRO[cam_sys_nr, Tool_NR]
+  IF ((MakroNr > 0) AND (MakroNr < 1000)) THEN
+    ;Greifertool Winkelstellung aktivieren
+    SEL_RES = SELECT(#MAKRO, MakroNr, TRUE , , , , , FALSE)
+  ELSE
+    IF (MakroNr <> 0) THEN
+      taste = VIS_MLD(114, #QuitMsg, 0) ; kein passendes Makro
+    ENDIF
+  ENDIF
+  IF (GIK_ROB_TOOL[cam_sys_nr] == TRUE) THEN ; Greifer Tool - Daten im Roboter konfiguriert
+    TOOL_DATA[PAR3] = TOOL_DATA[Tool_NR] ; set new TCP
+    ret_wert = 1
+  ELSE
+    TOOL_DATA[I_GIK_TOOLNR[cam_sys_nr]] = GIK_POSDAT[cam_sys_nr].GRP_TCP ; set new TCP from camsystem
+    ret_wert = 1 
+  ENDIF
+  RETURN(ret_wert)
+ENDFCT
+;
+;--------------------------------------------
+;---- Funktion Ring-Logging 20 Messdaten ----
+;--------------------------------------------
+
+DEF EKI_LOG_Data()
+
+  DECL STATE_T stat 
+  CHAR date_string[20]
+  CHAR pos_string[80]
+  INT offset
+  FRAME temp_frame
+
+  actDate = $DATE
+
+  IF ((EKI_LOG_NR[cam_sys_nr] > 20) OR (EKI_LOG_NR[cam_sys_nr] < 1)) THEN
+    EKI_LOG_NR[cam_sys_nr] = 1 ; reset to first position
+  ENDIF
+  offset = 0
+  SWRITE(date_string[], stat, offset, "%04d-%02d-%02d %02d:%02d:%02d ", actDate.year, actDate.month, actDate.day, actDate.hour, actDate.min, actDate.sec)
+  offset = 0
+  temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+  SWRITE(pos_string[], stat, offset, "Korr=%5.3f %5.3f %5.3f %5.3f %5.3f %5.3f", temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+  offset = 0
+  SWRITE(EKI_VAL_DAT[cam_sys_nr, EKI_LOG_NR[cam_sys_nr]].text[], stat, offset, "%s J_ID=%d M_ID=%d %s", date_string[], EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID, EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID, pos_string[])
+  EKI_LOG_NR[cam_sys_nr] = EKI_LOG_NR[cam_sys_nr] + 1 ; increment number
+END
+
+;------------------------------------------
+;---- Funktion Meldungsfenster oeffnen ----
+;------------------------------------------
+
+DEFFCT INT VIS_MLD(MLD_NR :IN, MsgTyp :IN, wert :IN)
+  INT MLD_NR
+  DECL EKI_MsgType MsgTyp
+  INT wert
+  
+  FRAME temp_frame
+  INT n_KeyNumber
+  BOOL B_Result
+  DECL KrlMsg_T USER_MSG
+  DECL KrlMsgPar_T Par[3]
+  DECL KrlMsgOpt_T Opt
+  DECL KrlMsgDlgSK_T SK[7]
+  DECL STATE_T stat 
+  INT OFFSET, n_eki_handle
+  
+  USER_MSG = { Modul[] "vw_xml_usr_user", Nr -1, Msg_txt[] " "}
+  Par[1] = { Par_type #Value, Par_txt[] " " } ; empty message
+  Par[2] = { Par_type #Value, Par_txt[] " " } ; empty message
+  Par[3] = { Par_type #Value, Par_txt[] " " } ; empty message
+  IF (MsgTyp == #NotifyMsg) THEN
+    Opt = { VL_Stop FALSE, Clear_P_Reset TRUE, Log_To_DB FALSE }
+  ELSE
+    Opt = { VL_Stop TRUE, Clear_P_Reset TRUE, Log_To_DB FALSE }
+  ENDIF
+  USER_MSG.Nr = MLD_NR
+  OFFSET = 0
+  n_eki_handle = 0
+  n_KeyNumber = TASTE_0
+  
+  SWITCH MLD_NR
+    
+    CASE 1
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Wert ausser Toleranz! System %d  Job_ID %d Verschiebewert anwenden ?", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error max. Correction 
+    CASE 2
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Kalibrierung fehlgeschlagen! System %d  Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Calibration
+    CASE 3
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Kalibrierung erfolgreich durchgefuehrt! System %d  Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Calibration OK 
+    CASE 4
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Korr-Werte SYS %d X=%7.2f,Y=%7.2f,Z=%7.2f,A=%7.2f,B=%7.2f,C=%7.2f", cam_sys_nr, temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+    CASE 5
+      temp_frame = Base_Data[EKI_VARS[cam_sys_nr].i_base_eki]
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Korr-Base[%d] X=%7.2f,Y=%7.2f,Z=%7.2f,A=%7.2f,B=%7.2f,C=%7.2f ", EKI_VARS[cam_sys_nr].i_base_eki, temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+    CASE 6
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Verschiebung durchgefuehrt! Job_ID %d. ", EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Correction OK 
+    CASE 7
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Kalibrierung SYS %d Punkt %d bearbeitet. Job_ID %d", cam_sys_nr, EKI_VARS[cam_sys_nr].counter_Cali, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID)
+    CASE 8
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Kalibrierung SYS %d wird berechnet. Bitte warten!Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Calibration 
+    CASE 9
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d  Fehler Telegramm_ID Send = %d != Receive = %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Tel_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Telgr_ID) ;Error Check Telegramm_ID 
+    CASE 10
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:TimeOUT System %d Verbindung Sendeport! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Connection Sendport
+    CASE 11
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:TimeOUT System %d Verbindung Empfangsport! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Connection Receiveport
+    CASE 12
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler bei Job %d. Errorcode = %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID) ;Error Check Status_ID 
+    CASE 13
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Time OUT System %d beim Empfang der Daten! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Receive Data 
+    CASE 14
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d  Error_ID-Nr: %d %r", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.Err_Text[]) ;Error Text from Vision
+    CASE 15
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:keine Kommunikation zu System %d, Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Ping
+    CASE 16
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Kommunikationsaufbau (2 Port) zu System %d erfolgreich!", cam_sys_nr) ;Ping OK 
+    CASE 17
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Validierung System %d fehlgeschlagen! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Validation
+    CASE 18
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Validierung System %d erfolgreich durchgefuehrt! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Validation OK 
+    CASE 19
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Validierung Punkt %d angefahren und bearbeitet. Job_ID %d", EKI_VARS[cam_sys_nr].counter_Vali, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID)
+    CASE 20
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Validierung System %d wird berechnet. Bitte warten! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Validation 
+    CASE 21
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Referenzierung System %d fehlgeschlagen! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Referencing
+    CASE 22
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Referenzierung System %d erfolgreich durchgefuehrt! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing OK 
+    CASE 23
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Referenzierung Punkt angefahren und bearbeitet! Job_ID %d. ", EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing 
+    CASE 24
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Referenzierung System %d wird berechnet. Bitte warten!Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing
+    CASE 25
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Verifizierung System %d fehlgeschlagen! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Verification
+    CASE 26
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Verifizierung System %d erfolgreich durchgefuehrt! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Verification OK 
+    CASE 27
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Verifizierung SYS %d Punkt %d angefahren / bearbeitet. Job_ID %d", cam_sys_nr, EKI_VARS[cam_sys_nr].counter_Very, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID)
+    CASE 28
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Verifizierung SYS %d Werte ausserhalb der Toleranz! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Verification
+    CASE 29
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Techaufruf falscher Wert PAR1 Job_ID = %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID)
+    CASE 30
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s X= %7.2fmm > %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.X, gwrt_max_msg[], VIS_Max[wert].X)
+    CASE 31
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s Y= %7.2fmm > %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.Y, gwrt_max_msg[], VIS_Max[wert].Y)
+    CASE 32
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s Z= %7.2fmm > %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.Z, gwrt_max_msg[], VIS_Max[wert].Z)
+    CASE 33
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s A= %7.2f > %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.A, gwrt_max_msg[], VIS_Max[wert].A)
+    CASE 34
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s B= %7.2f > %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.B, gwrt_max_msg[], VIS_Max[wert].B)
+    CASE 35
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s C= %7.2f > %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.C, gwrt_max_msg[], VIS_Max[wert].C)
+    CASE 36
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s X= %7.2fmm < %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.X, gwrt_min_msg[], VIS_Min[wert].X)
+    CASE 37
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s Y= %7.2fmm < %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.Y, gwrt_min_msg[], VIS_Min[wert].Y)
+    CASE 38
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s Z= %7.2fmm < %s %7.2fmm", cam_sys_nr, korrwert_msg[], debug_Frame.Z, gwrt_min_msg[], VIS_Min[wert].Z)
+    CASE 39
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s A= %7.2f < %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.A, gwrt_min_msg[], VIS_Min[wert].A)
+    CASE 40
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s B= %7.2f < %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.B, gwrt_min_msg[], VIS_Min[wert].B)
+    CASE 41
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d %s C= %7.2f < %s %7.2f Deg", cam_sys_nr, korrwert_msg[], debug_Frame.C, gwrt_min_msg[], VIS_Min[wert].C)
+    CASE 42
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:ACHTUNG: bei - weiter - Crashgefahr, bei - Abbbruch - neue Messung")
+    CASE 43
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d KEINE Daten erhalten! Keine Roboterkorrektur!", cam_sys_nr)
+    CASE 44
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d: ungueltige Base - Nummer PAR3 = %d !", cam_sys_nr, wert)
+    CASE 45
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Parameter PAR5 falscher Wert !")
+    CASE 46
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:unerlaubte Realign - Anforderung vom Camsystem %d Mode_ID = %d!", cam_sys_nr, wert)
+    CASE 47
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Realign - Wert System %d auser Toleranz Array = %d!", cam_sys_nr, wert)
+    CASE 48
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Realign-Wert System %d ausser Toleranz! Job_ID %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error max. Correction 
+    CASE 49
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s X= %7.2fmm > %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.X, gwrt_max_msg[], KORR_Max[wert].X)
+    CASE 50
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s Y= %7.2fmm > %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.Y, gwrt_max_msg[], KORR_Max[wert].Y)
+    CASE 51
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s Z= %7.2fmm > %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.Z, gwrt_max_msg[], KORR_Max[wert].Z)
+    CASE 52
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s A= %7.2f > %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.A, gwrt_max_msg[], KORR_Max[wert].A)
+    CASE 53
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s B= %7.2f > %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.B, gwrt_max_msg[], KORR_Max[wert].B)
+    CASE 54
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s C= %7.2f > %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.C, gwrt_max_msg[], KORR_Max[wert].C)
+    CASE 55
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s X= %7.2fmm < %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.X, gwrt_min_msg[], KORR_Min[wert].X)
+    CASE 56
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s Y= %7.2fmm < %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.Y, gwrt_min_msg[], KORR_Min[wert].Y)
+    CASE 57
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s Z= %7.2fmm < %s %7.2fmm", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.Z, gwrt_min_msg[], KORR_Min[wert].Z)
+    CASE 58
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s A= %7.2f < %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.A, gwrt_min_msg[], KORR_Min[wert].A)
+    CASE 59
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s B= %7.2f < %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.B, gwrt_min_msg[], KORR_Min[wert].B)
+    CASE 60
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Array = %d %s C= %7.2f < %s %7.2f Deg", wert , realign_msg[], EKI_VARS[cam_sys_nr].realign.C, gwrt_min_msg[], KORR_Min[wert].C)
+    CASE 61
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:unerlaubte Interpolationsart (nur LIN, KLIN, PTP)!")
+    CASE 62
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Realign System %.1d ausgefuehrt", cam_sys_nr)
+    CASE 63
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:kein Realign System %d ausgefuehrt", cam_sys_nr)
+    CASE 64
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Realign ungueltige Framenummer %d", wert)
+    CASE 65
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Wert ausser Toleranz! Job_ID %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error max. Correction 
+    CASE 66
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Kamerasystem Nr. %d", wert)
+    CASE 67
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Behaeltervermessung System %d fehlgeschlagen! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Referencing
+    CASE 68
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Behaeltervermessung System %d erfolgr. durchgefuehrt! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing OK 
+    CASE 69
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Bauteilidentifizierung System %d fehlgeschlagen! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Referencing
+    CASE 70
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Bauteilidentifizierung System %d erfolgreich! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing OK 
+    CASE 71
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Datenempfang fuer Roboter POS System %d fehlgeschlagen! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Referencing
+    CASE 72
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Datenempfang fuer POS System %d erfolgreich durchgefuehrt! Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Referencing OK 
+    CASE 73
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Check System %d Behaeltervermessung nio! Job_ID %d. Error_ID = %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Error_ID) ;Error Check Status_ID 
+    CASE 74
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:Check System %d Status_ID fehlgeschlagen! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Check Status_ID 
+    CASE 75
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d keine Datensequenz vorhanden! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Check Status_ID 
+    CASE 76
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Start Datensequenz von GIK abrufen! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Check Status_ID 
+    CASE 77
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Datenabruf von GIK fehlerhaft! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Check Status_ID 
+    CASE 78
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d fehlerhafter Datemempfang! Job_ID %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Check Status_ID 
+    CASE 79
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d fehlerhafte Greifer - Makronummer Nr = %d.", cam_sys_nr, GIK_GP_MAKRO[cam_sys_nr, I_GIK_TOOLNR[cam_sys_nr]]) ;Error Check Status_ID 
+    CASE 80
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler bei Job %d unbekannte Status ID = %d", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID, EKI_VARS[cam_sys_nr].EKI_RECEIVE.get_Stat_ID) ;Error Check Status_ID 
+    CASE 81
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.X = ABS(temp_frame.X)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert X = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.X, VIS_MaxVer[cam_sys_nr].X) ;Error Verification
+    CASE 82
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.Y = ABS(temp_frame.Y)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert Y = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.Y, VIS_MaxVer[cam_sys_nr].Y) ;Error Verification
+    CASE 83
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.Z = ABS(temp_frame.Z)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert Z = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.Z, VIS_MaxVer[cam_sys_nr].Z) ;Error Verification
+    CASE 84
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.A = ABS(temp_frame.A)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert A = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.A, VIS_MaxVer[cam_sys_nr].A) ;Error Verification
+    CASE 85
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.B = ABS(temp_frame.B)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert B = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.B, VIS_MaxVer[cam_sys_nr].B) ;Error Verification
+    CASE 86
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      temp_frame.C = ABS(temp_frame.C)
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Fehler Verifizierung SYS %d Wert C = %7.2f mm > Pruefwert = %7.2f mm", cam_sys_nr, temp_frame.C, VIS_MaxVer[cam_sys_nr].C) ;Error Verification
+    CASE 87
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Ping System %d Port nicht geoeffnet!", cam_sys_nr) ;Error Connection Sendport
+    CASE 88
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Ping System %d Empfangsport nicht geoeffnet!", cam_sys_nr) ;Error Connection Receiveport
+    CASE 89
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Techaufruf falscher Wert PAR2 Mode_ID = %d. ", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Mode_ID)
+    CASE 90
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:ANZ_KAL_POS[%d] falscher WERT in Conf.dat = %d.", cam_sys_nr, ANZ_KAL_POS[cam_sys_nr])
+    CASE 91
+      temp_frame = tool_Data[EKI_VARS[cam_sys_nr].i_base_eki]
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Korr-TOOL[%d] X=%7.2f,Y=%7.2f,Z=%7.2f,A=%7.2f,B=%7.2f,C=%7.2f ", EKI_VARS[cam_sys_nr].i_base_eki, temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+    CASE 92
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:TOOL Verschiebung durchgefuehrt! Job_ID %d. ", EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Correction OK 
+    CASE 93
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Interrupt nicht freigegeben B_IRQ_ENABLE[%d]", cam_sys_nr, cam_sys_nr) ;Interrupt Freigabe fehlt 
+    CASE 94
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d nicht zulaessige STATUS_ID im Interrupt", cam_sys_nr) ;falsche STATUS_ID im Interrupt 
+    CASE 95
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler %d von Kamerasystem im Interrupt", cam_sys_nr, wert) ;Fehlerrueckmeldung von Kamera im Interrupt 
+    CASE 96
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler im KUKA EKI Modul Nr = %d", cam_sys_nr, wert) ;Fehlerrueckmeldung von Kamera im Interrupt 
+    CASE 97
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d nicht initialisiert, bitte ( Port(s) scannen )", cam_sys_nr) ;Fehlerrueckmeldung von Kamera im Interrupt 
+    CASE 98
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler: kein Kommunikatiosport geoeffnet !", cam_sys_nr) ;
+    CASE 99
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System USER TRIG !") ; USR_TRIG 
+    CASE 100
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System USER ADV !") ; USR_ADV
+    CASE 101
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Zwei - Port Kommunikation", cam_sys_nr) ; kein Receive Port offen
+    CASE 102
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Sendeport nicht geoeffnet", cam_sys_nr) ; kein Send Port offen
+    CASE 103
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d neue Variante Ein - Port Kommunikation", cam_sys_nr) ; kein Receive Port offen
+    CASE 104
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Error_ID = 0", cam_sys_nr) ; Fehlermeldung ohne Fehlernummer
+    CASE 105
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Ping System %d erfolgreich! 1 Port Kommunikation", cam_sys_nr) ;Ping OK 
+    CASE 106
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Ping System %d erfolgreich! 1 Port NEW XML Kommunikation", cam_sys_nr) ;Ping OK 
+    CASE 107
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Ein - Port Kommunikation", cam_sys_nr) ; ein port communication
+    CASE 108
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d GreifPositions nummer = %d falsch", cam_sys_nr, GIK_POSDAT[cam_sys_nr].GRP_Pos_Nr) ; kein Send Port offen
+    CASE 109
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Bauteilnummer (1..5) = %d falsch", cam_sys_nr, GIK_POSDAT[cam_sys_nr].bauteil_nr) ; kein Send Port offen
+    CASE 110
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Ping - Port erfolgreich geoeffnet", cam_sys_nr) ; Port offen
+    CASE 111
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Ping - Port nicht geoeffnet", cam_sys_nr) ; Port offen
+    CASE 112
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d falsche Bautei-ID (Job-Nr) = %d", cam_sys_nr, EKI_JOB_NR[cam_sys_nr]) ; falsche Bauteil Nummer
+    CASE 113
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d fehlerhafte Tool Nr (PAR3) %d. ", cam_sys_nr, I_GIK_TOOLNR[cam_sys_nr]) ;Error I_GIK_TOOLNR[1..5]: Wert eintragen 
+    CASE 114
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d fehlerhafte Winkel-Greifer - Makronummer Nr = %d. ", cam_sys_nr, GIK_GW_MAKRO[cam_sys_nr, I_GIK_TOOLNR[cam_sys_nr]]) ;Error GIK_GW_MAKRO[...,...] configurieren
+    CASE 115
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Konfigurationsfehler Bauteil Greifen!", cam_sys_nr) ;Error Bauteilgreifen  fehlerhafte CFG 
+    CASE 116
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Konfigurationsfehler ROB_TOOL_ID = %d ", cam_sys_nr, ROB_TOOL_ID[cam_sys_nr, GIK_POSDAT[cam_sys_nr].TOOL_ID]) ;CFG Fehler Roboter ToolNummer
+    CASE 117
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Greifer ID = %d vom Cam - System nio ", cam_sys_nr, GIK_POSDAT[cam_sys_nr].TOOL_ID) ;CFG Fehler Roboter ToolNummer
+    CASE 118
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Ein - Port Binaerdatenuebertragung", cam_sys_nr) ; ASCII String als Binaerdaten uebertragen
+    CASE 119
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler Datenempfang, kein END TAG", cam_sys_nr) ; ASCII String Ende Zeichen nicht empfangen
+    CASE 120
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d ASCII Stream Datentransfer", cam_sys_nr) ; ASCII Datenstring Kommunikation
+    CASE 121
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d keine Nutzdaten im Empfangsbuffer", cam_sys_nr) ; Fehler - keine Nutzdaten
+    CASE 122
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d neue Variante Ein - Port ASCII Datentransfer", cam_sys_nr) ; kein Receive Port offen
+    CASE 123
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler Production END Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Production END
+    CASE 124
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Production END mit Job_ID %d OK.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Production END OK 
+    CASE 125
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler Licht EIN (Prozess start) Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Process START
+    CASE 126
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Licht EIN (Prozess start) Job_ID %d OK.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Prozess START OK 
+    CASE 127
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler Licht AUS (Prozess start) Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Prozess END
+    CASE 128
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Licht AUS (Prozess stop) Job_ID %d OK.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Prozess END OK 
+    CASE 129
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:unerlaubte Status ID = 4 vom Camsystem %d Mode_ID = %d!", cam_sys_nr, wert)
+    CASE 130
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Cal[%d] S-BASE = %d X=%5.2f Y=%5.2f Z=%5.2f A=%5.2f B=%5.2f C=%5.2f", cam_sys_nr, EKI_VARS[cam_sys_nr].i_base_eki, temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+    CASE 131
+      temp_frame = EKI_VARS[cam_sys_nr].Get_Val_Pos
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:Cal[%d] S-TOOL = %d X=%5.2f Y=%5.2f Z=%5.2f A=%5.2f B=%5.2f C=%5.2f", cam_sys_nr, EKI_VARS[cam_sys_nr].i_base_eki, temp_frame.X, temp_frame.Y, temp_frame.Z, temp_frame.A, temp_frame.B, temp_frame.C)
+    CASE 132
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Fehler Messpunkt Job_ID %d.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Error Production END
+    CASE 133
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "EKI:System %d Messpunkt mit Job_ID %d OK.", cam_sys_nr, EKI_VARS[cam_sys_nr].EKI_SND.send_Job_ID) ;Production END OK 
+    CASE 134
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d - ToolNr %d - Keine ROB_TOOL_ID parametriert", cam_sys_nr, GIK_POSDAT[cam_sys_nr].TOOL_ID) ;keine gueltige TOOL NR unter TOLL ID parametriert
+    CASE 135
+      SWRITE(USER_MSG.MSG_TXT[], stat, offset, "GIK:System %d Keine Referenz Pos Daten vorhanden, PAR4 = %d", cam_sys_nr, EKI_VARS[cam_sys_nr].PAR4) ;keine Ref - Pos - Daten
+    DEFAULT
+      USER_MSG.MSG_TXT[] = "EKI: Meldung nicht deklariert" ; Meldungsnummer nicht programmiert
+      n_eki_handle = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+      RETURN(n_KeyNumber)
+  ENDSWITCH
+  
+  SWITCH MsgTyp
+    CASE #QuitMsg
+      n_eki_handle = Set_KrlMsg (#Quit, USER_MSG, Par[], Opt) ;Ausgabe Quittierungsmeldung
+      WHILE ( Exists_KrlMsg(n_eki_handle) ) ;Warten bis der Anwender quittiert
+        WAIT SEC 0.1
+      ENDWHILE
+      
+    CASE #NotifyMsg
+      n_eki_handle = Set_KrlMsg (#Notify, USER_MSG, Par[], Opt) ;Ausgabe Hinweismeldung
+      
+    CASE #DialogMsg
+      SWITCH MLD_NR
+        CASE 8, 20, 24 ; Message fuer Referezieren, validieren, kalibrieren
+          SK[1] = {SK_Type #Value, SK_txt[] "weiter"}
+          n_eki_handle = Set_KrlDlg( USER_MSG, Par[], SK[], Opt) ;Ausgabe Dialogmeldung
+          IF (n_eki_handle > 0) THEN
+            n_KeyNumber = 0
+          WHILE(n_Keynumber == TASTE_0)
+            WHILE(Exists_KrlDlg( n_eki_handle, n_KeyNumber))
+              WAIT SEC 0.1 ;Erforderlich fuer Ausgabe Meldung
+            ENDWHILE
+            IF (n_KeyNumber == TASTE_1) THEN
+              EXIT ; Taste "Continue"
+            ENDIF
+            WAIT SEC 0.1 ;Erforderlich fuer Ausgabe Meldung
+          ENDWHILE
+          B_Result = Clear_KrlMSG( n_eki_handle )
+        ENDIF
+        
+      DEFAULT
+        SK[1] = {SK_Type #Value, SK_txt[] "weiter"}
+        SK[2] = {SK_Type #Value, SK_txt[] "Abbruch"}
+        n_eki_handle = Set_KrlDlg( USER_MSG, Par[], SK[], Opt) ;Ausgabe Dialogmeldung
+        IF (n_eki_handle > 0) THEN
+          n_KeyNumber = TASTE_0
+          WHILE(n_Keynumber == TASTE_0)
+            WHILE(Exists_KrlDlg( n_eki_handle, n_KeyNumber))
+              WAIT SEC 0.1 ;Erforderlich fuer Ausgabe Meldung
+            ENDWHILE
+            SWITCH n_KeyNumber
+              CASE TASTE_1 ; Taste "TRUE"
+                EXIT
+              CASE TASTE_2 ; Taste "FALSE"
+                EXIT
+            ENDSWITCH
+            WAIT SEC 0.1 ;Erforderlich fuer Ausgabe Meldung
+          ENDWHILE
+          B_Result = Clear_KrlMSG( n_eki_handle )
+        ENDIF
+      ENDSWITCH
+  
+    DEFAULT
+      n_eki_handle = Set_KrlMsg(#Quit, USER_MSG, Par[], Opt) ;Ausgabe Message
+    
+  ENDSWITCH
+  RETURN(n_KeyNumber)
+ENDFCT
+
+;------------------------------------------
+;---- Funktion Frame invertieren  ---------
+;------------------------------------------
+
+GLOBAL DEFFCT FRAME VW_INV_FRAME(Trafo : IN)
+  FRAME Trafo
+
+  FRAME Trans
+  FRAME Roll
+  FRAME Pitch
+  FRAME Yaw
+  FRAME Result
+
+  Trans = $NULLFRAME
+  Roll = $NULLFRAME
+  Pitch = $NULLFRAME
+  Yaw = $NULLFRAME
+
+  Trans.X = -Trafo.X
+  Trans.Y = -Trafo.Y
+  Trans.Z = -Trafo.Z
+  Roll.C = -Trafo.C
+  Pitch.B = -Trafo.B
+  Yaw.A = -Trafo.A
+
+  Result = Roll : Pitch : Yaw : Trans
+
+  RETURN Result
+ENDFCT
+
+;======================================
+;Funktion zum Setzen von Flags.
+;Modifiziert auch gleichzeitig UserFlags
+;======================================
+GLOBAL DEF SetzeFlags(FlagTyp : IN, Wert : IN, Kamerasystem : IN)
+DECL EKI_FLAG_TYPE FlagTyp
+BOOL Wert
+INT Kamerasystem
+
+; Gueltiges Kamerasystem angegeben?
+IF (Kamerasystem <= 0) OR (Kamerasystem > 5) THEN 
+  RETURN
+ENDIF
+
+SWITCH FlagTyp
+CASE #EKI_MES_IO
+  $FLAG[F_EKI_MES_IO] = Wert
+  IF UF_EKI_MES_IO[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_MES_IO[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_MES_NE
+  $FLAG[F_EKI_MES_NE] = Wert
+  IF UF_EKI_MES_NE[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_MES_NE[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_RANGE
+  $FLAG[F_EKI_RANGE] = Wert
+  IF UF_EKI_RANGE[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_RANGE[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_REALI
+  $FLAG[F_EKI_REALI] = Wert
+  IF UF_EKI_REALI[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_REALI[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_EMPTY
+  $FLAG[F_EKI_EMPTY] = Wert
+  IF UF_EKI_EMPTY[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_EMPTY[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_WARN_F
+  $FLAG[F_EKI_WARN_F] = Wert
+  IF UF_EKI_WARN_F[Kamerasystem] > 0 THEN 
+    $FLAG[UF_EKI_WARN_F[Kamerasystem]] = Wert
+  ENDIF
+CASE #EKI_DAT_OK
+  $FLAG[F_EKI_DAT_OK[Kamerasystem]] = Wert
+CASE #EKI_SP_ACT
+  $FLAG[F_EKI_SP_ACT[Kamerasystem]] = Wert
+CASE #EKI_RP_ACT
+  $FLAG[F_EKI_RP_ACT[Kamerasystem]] = Wert
+CASE #EKI_KMD_DT
+  $FLAG[F_EKI_KMD_DT[Kamerasystem]] = Wert
+ENDSWITCH
+END

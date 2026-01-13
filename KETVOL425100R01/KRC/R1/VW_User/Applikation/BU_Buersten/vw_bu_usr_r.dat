@@ -1,0 +1,52 @@
+&ACCESS RV1
+&COMMENT KS26
+&REL 200
+&PARAM DISKPATH = VW_User/Applikation/BU_Buersten
+&PARAM TPUSER_VERSION = 8.3.0
+DEFDAT  VW_BU_USR_R PUBLIC
+;
+; FOLD ;%{H}%MKUKATPVW
+; ENDFOLD
+;
+;***************************************************
+;*Technologiepaket Buersten                        *
+;*                                                 *
+;*Konzernstandard                                  *
+;*Bearbeiter: C. Eisenknappl AUDI AG I/PG-C61      *
+;*                                                 *
+;* Erstellt am:                                    *
+;* 2014.09.25 CE                                   *
+;* 2014.12.15 Drehzahlvorgabe erweitert LE         *
+;***************************************************
+;
+;FOLD BU Motor
+SIGNAL BU_Drehzahl $OUT[3025] TO $OUT[3040]
+;
+FRAME MESSUNG[6]
+MESSUNG[1]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+MESSUNG[2]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+MESSUNG[3]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+MESSUNG[4]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+MESSUNG[5]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+MESSUNG[6]={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;
+FRAME BU_TOOL_NEW={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+E6POS ORG_POS={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0,S 'B0110',T 'B00011011',E1 0.0,E2 0.0,E3 0.0,E4 0.0,E5 0.0,E6 0.0}
+E6POS MESS_POS={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+FRAME KORR_NEW_BU={X 0.0,Y 0.0,Z 0.0,A 0.0,B 0.0,C 0.0}
+;ENDFOLD BU Motor
+;
+;FOLD BU ACF
+SIGNAL SO_ACF_Arbeitskraft $OUT[2961] TO $OUT[2975]
+SIGNAL SO_ACF_Antastkraft $OUT[2977] TO $OUT[2991]
+SIGNAL SO_ACF_Traglast $OUT[2993] TO $OUT[3008]
+SIGNAL SO_ACF_Kraftrampe $OUT[3009] TO $OUT[3016]
+;ENDFOLD BU ACF
+;
+;FOLD Meldungsausgabe
+ENUM BUR_MsgType StateMsg,QuitMsg,NotifyMsg
+INT nMsgNum=0
+INT RemMsgNum=0
+;ENDFOLD
+; 
+ENDDAT

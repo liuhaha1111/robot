@@ -1,0 +1,48 @@
+<ETHERNETKRL>
+  <CONFIGURATION>
+    <EXTERNAL>
+      <IP>10.210.193.229</IP>
+      <PORT>6008</PORT>
+      <TYPE>Server</TYPE>
+    </EXTERNAL>
+    <INTERNAL>
+      <ENVIRONMENT>Program</ENVIRONMENT>
+      <BUFFSIZE Limit="32767" />
+      <BUFFERING Limit="100" />
+      <TIMEOUT Connect="60000" />
+      <ALIVE Set_Flag="872" />
+      <PROTOCOL>TCP</PROTOCOL>
+      <MESSAGES Logging="error" Display="disabled"/>
+    </INTERNAL>
+  </CONFIGURATION>
+  <RECEIVE>
+    <XML>
+	  <!--Receive from Camera-->
+	  <ELEMENT Tag="VISION/TEL_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/STAT_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/ERR_ID" Type="INT"></ELEMENT>
+	  <ELEMENT Tag="VISION/ERR_TEXT" Type="STRING"/>
+	  <ELEMENT Tag="VISION/POS" Type="FRAME"></ELEMENT>
+	  <ELEMENT Tag="VISION/PAR" Type="STRING"/>
+	  <ELEMENT Tag="VISION/T" Type="STRING"/>
+	  <!--Flag for Data Transfer completed-->
+	  <ELEMENT Tag="VISION" Set_Flag="871"/>
+    </XML>
+  </RECEIVE>
+  <SEND>
+    <XML>
+	  <!--Send to Camera-->
+	  <ELEMENT Tag="ROBOT/TEL_ID"/>
+	  <ELEMENT Tag="ROBOT/M_ID"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/J_ID"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@X"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@Y"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@Z"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@A"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@B"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/POS/@C"></ELEMENT>
+	  <ELEMENT Tag="ROBOT/PAR"></ELEMENT>
+          <ELEMENT Tag="ROBOT/T"></ELEMENT>
+    </XML>
+  </SEND>
+</ETHERNETKRL>
